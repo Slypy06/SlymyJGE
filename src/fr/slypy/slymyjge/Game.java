@@ -20,9 +20,7 @@ import org.lwjgl.util.glu.GLU;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 
-import fr.slypy.slymyjge.components.Button;
 import fr.slypy.slymyjge.components.Component;
-import fr.slypy.slymyjge.components.MoveableComponent;
 import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
 import fr.slypy.slymyjge.inputs.KeyboardInputs;
 import fr.slypy.slymyjge.network.NetworkRegister;
@@ -662,78 +660,12 @@ public abstract class Game extends KeyboardInputs {
 		return components;
 		
 	}
-
-	public Button buttonHover() {
-
-		Button button = null;
-		
-		for(Component comp : components) {
-				
-			if(comp instanceof MoveableComponent) {
-				
-				if(((MoveableComponent) comp).isMove()) {
-					
-					return null;
-					
-				}
-				
-			}
-			
-			if(comp.isHover()) {
-				
-				button = comp instanceof Button ? (Button) comp : null;
-					
-			}
-			
-		}
-		
-		return button;
-		
-	}
-	
-	public MoveableComponent moveableComponentHover() {
-
-		MoveableComponent moveableComponent = null;
-		
-		for(Component comp : components) {
-				
-			if(comp instanceof MoveableComponent) {
-				
-				if(((MoveableComponent) comp).isMove()) {
-					
-					return (MoveableComponent) comp;
-					
-				}
-				
-			}
-			
-			if(comp.isHover()) {
-					
-				moveableComponent = comp instanceof MoveableComponent ? (MoveableComponent) comp : null;
-					
-			}
-			
-		}
-		
-		return moveableComponent;
-		
-	}
 	
 	public Component componentHover() {
 
 		Component component = null;
 		
 		for(Component comp : components) {
-				
-			if(comp instanceof MoveableComponent) {
-				
-				if(((MoveableComponent) comp).isMove()) {
-					
-					return comp;
-					
-				}
-				
-			}
 			
 			if(comp.isHover()) {
 					
