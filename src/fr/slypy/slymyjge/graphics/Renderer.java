@@ -16,11 +16,21 @@ import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
 public class Renderer {
 	
 	protected static Game game;
+	protected static float d = 0;
 	
 	public static void init(Game main) {
 		
 		game = main;
 		
+	}
+	
+	protected static void rotate(float d, int w, int h, float x, float y) {
+
+		int dW = game.getWidth();
+		int dH = game.getHeight();
+		
+                gltranslated(x - (dW / 2) + (w / 2));
+
 	}
 
 	protected static void texturedQuadData(float x, float y, int w, int h, Color color) {
