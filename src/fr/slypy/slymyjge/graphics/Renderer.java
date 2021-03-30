@@ -58,7 +58,7 @@ public class Renderer {
 
 	}
 	
-	public void setRotation(double degres) {
+	public static void setRotation(double degres) {
 		
 		d = degres;
 		
