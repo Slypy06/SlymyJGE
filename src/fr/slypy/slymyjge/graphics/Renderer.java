@@ -1,11 +1,6 @@
 package fr.slypy.slymyjge.graphics;
 
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glTexCoord2f;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Color;
 
@@ -16,7 +11,7 @@ import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
 public class Renderer {
 	
 	protected static Game game;
-	protected static float d = 0;
+	protected static double d = 0;
 	
 	public static void init(Game main) {
 		
@@ -24,13 +19,49 @@ public class Renderer {
 		
 	}
 	
-	protected static void rotate(float d, int w, int h, float x, float y) {
+	protected static void rotate(double d, int w, int h, float x, float y) {
 
 		int dW = game.getWidth();
 		int dH = game.getHeight();
 		
-                gltranslated(x - (dW / 2) + (w / 2));
+        glTranslated(x - (dW / 2) + (w / 2), y - (dH / 2) + (h / 2), 0);
+        glRotated(d, 0, 0, 1);
+        glTranslated(-(x - (dW / 2) + (w / 2)), -(y - (dH / 2) + (h / 2)), 0);
 
+	}
+	
+	protected static void lineRotate(double d, float ax, float ay, float bx, float by) {
+
+		int dW = game.getWidth();
+		int dH = game.getHeight();
+		
+		float x = ((float) ax + (float) bx) / (float) 2;
+		float y = ((float) ay + (float) by) / (float) 2;
+		
+        glTranslated(x - (dW / 2), y - (dH / 2), 0);
+        glRotated(d, 0, 0, 1);
+        glTranslated(-(x - (dW / 2)), -(y - (dH / 2)), 0);
+
+	}
+	
+	protected static void triangleRotate(double d, float ax, float ay, float bx, float by, float cx, float cy) {
+
+		int dW = game.getWidth();
+		int dH = game.getHeight();
+		
+		float x = ((float) ax + (float) bx + (float) cx) / (float) 3;
+		float y = ((float) ay + (float) by + (float) cy) / (float) 3;
+		
+        glTranslated(x - (dW / 2), y - (dH / 2), 0);
+        glRotated(d, 0, 0, 1);
+        glTranslated(-(x - (dW / 2)), -(y - (dH / 2)), 0);
+
+	}
+	
+	public void setRotation(double degres) {
+		
+		d = degres;
+		
 	}
 
 	protected static void texturedQuadData(float x, float y, int w, int h, Color color) {
@@ -53,7 +84,24 @@ public class Renderer {
 		
 	}
 	
-	protected static void entityData(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
+	protected static void triangleData(float ax, float ay, float bx, float by, float cx, float cy, Color color) {
+		
+		glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, (float) color.getAlpha() / 255.0F);
+		glVertex2f(ax, ay);
+		glVertex2f(bx, by);
+		glVertex2f(cx, cy);
+		
+	}
+	
+	protected static void lineData(float ax, float ay, float bx, float by, Color color) {
+		
+		glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, (float) color.getAlpha() / 255.0F);
+		glVertex2f(ax, ay);
+		glVertex2f(bx, by);
+		
+	}
+	
+	protected static void texturePartData(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
 		
 		glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, (float) color.getAlpha() / 255.0F);
 		glTexCoord2f((0F + xo) / (float) maxXo, (0F + yo) / (float) maxYo); glVertex2f(x, y);
@@ -71,9 +119,88 @@ public class Renderer {
 		w *= game.getWidthDiff();
 		h *= game.getHeightDiff();
 		
-		glBegin(GL_QUADS);
-			Renderer.quadData(x, y, w, h, color);
-		glEnd();
+		if(d != 0.0D) {
+			
+			rotate(d, w, h, x, y);
+			
+		}
+		
+			glBegin(GL_QUADS);
+				Renderer.quadData(x, y, w, h, color);
+			glEnd();
+			
+		if(d != 0.0D) {
+				
+			rotate(-d, w, h, x, y);
+				
+		}
+		
+	}
+	
+	public static void renderTriangle(float ax, float ay, float bx, float by, float cx, float cy, Color color) {
+		
+		ax *= game.getWidthDiff();
+		ay *= game.getHeightDiff();
+		
+		bx *= game.getWidthDiff();
+		by *= game.getHeightDiff();
+		
+		cx *= game.getWidthDiff();
+		cy *= game.getHeightDiff();
+		
+		if(d != 0.0D) {
+			
+			triangleRotate(d, ax, ay, bx, by, cx, cy);
+			
+		}
+		
+			glBegin(GL_TRIANGLES);
+				Renderer.triangleData(ax, ay, bx, by, cx, cy, color);
+			glEnd();
+			
+		if(d != 0.0D) {
+				
+			triangleRotate(d, ax, ay, bx, by, cx, cy);
+				
+		}
+		
+	}
+	
+	public static void renderTriangle(float ax, float ay, float bx, float by, float cx, float cy) {
+		
+		renderTriangle(ax, ay, bx, by, cx, cy, Color.white);
+		
+	}
+	
+	public static void renderLine(float ax, float ay, float bx, float by, Color color) {
+		
+		ax *= game.getWidthDiff();
+		ay *= game.getHeightDiff();
+		
+		bx *= game.getWidthDiff();
+		by *= game.getHeightDiff();
+		
+		if(d != 0.0D) {
+			
+			lineRotate(d, ax, ay, bx, by);
+			
+		}
+		
+			glBegin(GL_LINE);
+				Renderer.lineData(ax, ay, bx, by, color);
+			glEnd();
+			
+		if(d != 0.0D) {
+				
+			lineRotate(d, ax, ay, bx, by);
+				
+		}
+		
+	}
+	
+	public static void renderLine(float ax, float ay, float bx, float by) {
+		
+		renderLine(ax, ay, bx, by, Color.white);
 		
 	}
 	
@@ -85,15 +212,27 @@ public class Renderer {
 		w *= game.getWidthDiff();
 		h *= game.getHeightDiff();
 		
-		texture.bind();
-		
-			glBegin(GL_QUADS);
+		if(d != 0.0D) {
 			
-				Renderer.texturedQuadData(x, y, w, h, color);
+			rotate(d, w, h, x, y);
 				
-			glEnd();
+		}
 		
-		texture.unbind();
+			texture.bind();
+			
+				glBegin(GL_QUADS);
+				
+					Renderer.texturedQuadData(x, y, w, h, color);
+					
+				glEnd();
+			
+			texture.unbind();
+			
+		if(d != 0.0D) {
+				
+			rotate(-d, w, h, x, y);
+					
+		}
 		
 	}
 	
@@ -103,7 +242,7 @@ public class Renderer {
 		
 	}
 	
-	public static void renderEntity(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
+	public static void renderTexturePart(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -111,33 +250,45 @@ public class Renderer {
 		w *= game.getWidthDiff();
 		h *= game.getHeightDiff();
 		
-		texture.bind();
-		
-			glBegin(GL_QUADS);
+		if(d != 0.0D) {
 			
-				Renderer.entityData(x, y, w, h, color, xo, yo, maxXo, maxYo, texture);
+			rotate(d, w, h, x, y);
 				
-			glEnd();
+		}
 		
-		texture.unbind();
+			texture.bind();
+			
+				glBegin(GL_QUADS);
+				
+					Renderer.texturePartData(x, y, w, h, color, xo, yo, maxXo, maxYo, texture);
+					
+				glEnd();
+			
+			texture.unbind();
+		
+		if(d != 0.0D) {
+				
+			rotate(-d, w, h, x, y);
+					
+		}
+			
+	}
+	
+	public static void renderTexturePart(float x, float y, int w, int h, Color color, Texture texture) {
+		
+		renderTexturePart(x, y, w, h, color, 0, 0, 1, 1, texture);
 		
 	}
 	
-	public static void renderEntity(float x, float y, int w, int h, Color color, Texture texture) {
+	public static void renderTexturePart(float x, float y, int w, int h, int xo, int yo, int maxXo, int maxYo, Texture texture) {
 		
-		renderEntity(x, y, w, h, color, 0, 0, 1, 1, texture);
-		
-	}
-	
-	public static void renderEntity(float x, float y, int w, int h, int xo, int yo, int maxXo, int maxYo, Texture texture) {
-		
-		renderEntity(x, y, w, h, Color.white, xo, yo, maxXo, maxYo, texture);
+		renderTexturePart(x, y, w, h, Color.white, xo, yo, maxXo, maxYo, texture);
 		
 	}
 	
-	public static void renderEntity(float x, float y, int w, int h, Texture texture) {
+	public static void renderTexturePart(float x, float y, int w, int h, Texture texture) {
 		
-		renderEntity(x, y, w, h, Color.white, texture);
+		renderTexturePart(x, y, w, h, Color.white, texture);
 		
 	}
 	
@@ -149,7 +300,19 @@ public class Renderer {
 		w *= game.getWidthDiff();
 		h *= game.getHeightDiff();
 		
-		animation.draw(x, y, w, h, yo, color);
+		if(d != 0.0D) {
+			
+			rotate(d, w, h, x, y);
+				
+		}
+		
+			animation.draw(x, y, w, h, yo, color);
+		
+		if(d != 0.0D) {
+			
+			rotate(-d, w, h, x, y);
+				
+		}
 		
 	}
 	
@@ -161,7 +324,19 @@ public class Renderer {
 		w *= game.getWidthDiff();
 		h *= game.getHeightDiff();
 		
-		animation.draw(x, y, w, h, yo);
+		if(d != 0.0D) {
+			
+			rotate(d, w, h, x, y);
+				
+		}
+		
+			animation.draw(x, y, w, h, yo);
+		
+		if(d != 0.0D) {
+			
+			rotate(-d, w, h, x, y);
+				
+		}
 		
 	}
 	
@@ -170,7 +345,19 @@ public class Renderer {
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
 		
-		font.drawString(x, y, str);
+		if(d != 0.0D) {
+			
+			rotate(d, font.getWidth(str), font.getHeight(), x, y);
+				
+		}
+		
+			font.drawString(x, y, str);
+		
+		if(d != 0.0D) {
+			
+			rotate(d, font.getWidth(str), font.getHeight(), x, y);
+				
+		}
 		
 	}
 	
@@ -179,7 +366,19 @@ public class Renderer {
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
 		
-		font.drawString(x, y, str, new org.newdawn.slick.Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
+		if(d != 0.0D) {
+			
+			rotate(d, font.getWidth(str), font.getHeight(), x, y);
+				
+		}
+		
+			font.drawString(x, y, str, new org.newdawn.slick.Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
+		
+		if(d != 0.0D) {
+			
+			rotate(-d, font.getWidth(str), font.getHeight(), x, y);
+				
+		}
 		
 	}
 	

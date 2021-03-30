@@ -62,7 +62,7 @@ public class Animation {
 				
 		}
 		
-		Renderer.renderEntity(x, y, w, h, color, frames.get(xo).getXo(), frames.get(xo).getYo(), frames.get(xo).getMaxXo(), frames.get(xo).getMaxYo(), frames.get(xo).getTexture());
+		Renderer.renderTexturePart(x, y, w, h, color, frames.get(xo).getXo(), frames.get(xo).getYo(), frames.get(xo).getMaxXo(), frames.get(xo).getMaxYo(), frames.get(xo).getTexture());
 		
 	}
 	
