@@ -174,7 +174,7 @@ public class SlymyTrueTypeFont implements Font {
 	 * 
 	 * @param customCharsArray Characters that should be also added to the cache.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	private void createSet( char[] customCharsArray ) {
 		// If there are custom chars then I expand the font texture twice		
 		if	(customCharsArray != null && customCharsArray.length > 0) {
@@ -301,6 +301,7 @@ public class SlymyTrueTypeFont implements Font {
 	 * 
 	 * @return The width of the characters
 	 */
+	@SuppressWarnings("deprecation")
 	public int getWidth(String whatchars) {
 		int totalwidth = 0;
 		IntObject intObject = null;
@@ -366,6 +367,7 @@ public class SlymyTrueTypeFont implements Font {
 	/**
 	 * @see Font#drawString(float, float, String, org.newdawn.slick.Color, int, int)
 	 */
+	@SuppressWarnings("deprecation")
 	public void drawString(float x, float y, String whatchars,
 			org.newdawn.slick.Color color, int startIndex, int endIndex) {
 		color.bind();
