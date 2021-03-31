@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,8 @@ import com.esotericsoftware.kryonet.Client;
 
 import fr.slypy.slymyjge.components.Component;
 import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
+import fr.slypy.slymyjge.graphics.Icon;
+import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.inputs.KeyboardInputs;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.utils.Logger;
@@ -31,6 +34,8 @@ public abstract class Game extends KeyboardInputs {
 	protected boolean resizable;
 	
 	protected boolean showFPS = false;
+	
+	protected int showedFPS = 0;
 
 	protected boolean autoResizeHeight = true;
 	protected boolean autoResizeWidth = true;
@@ -54,6 +59,10 @@ public abstract class Game extends KeyboardInputs {
 	
 	protected Color backgroundColor;
 
+	protected boolean showTPS = false;
+	
+	protected int showedTPS = 0;
+
 	protected static ArrayList<Component> components = new ArrayList<Component>();
 	
 	protected static Map<String, SlymyTrueTypeFont> fonts = new HashMap<String, SlymyTrueTypeFont>();
@@ -62,6 +71,11 @@ public abstract class Game extends KeyboardInputs {
 	protected static long wait = 0;
 	
 	protected static Client client;
+	
+	protected static long frameCap = Integer.MAX_VALUE;
+	protected static long tickCap = Integer.MAX_VALUE;
+	
+	protected static boolean closeRequested = false;
 	
 	public Game(int width, int height, String title) {
 		
@@ -225,12 +239,14 @@ public abstract class Game extends KeyboardInputs {
 		
 		Logger.log("Arret du système");
 		
-		Display.destroy();
+		closeRequested = true;
+		
 		System.exit(0);
 		
 	}
 	
 	public void loop() {
+		
 		
 		Logger.log("Initialisation du jeu");
 		
@@ -238,112 +254,177 @@ public abstract class Game extends KeyboardInputs {
 		
 		init();
 		
-		long before = System.nanoTime();
-		
-		double alpha = System.nanoTime() - before;
-		long fps = 0;
-		
-		long lastFpsUpdate = System.nanoTime();
-		
 		Logger.log("Démarage de la boucle principale du jeu");
 		
-		while(true) {
+		Game game = this;
+		
+		Thread ut = new Thread() {
 			
-			if (Display.isCloseRequested() || this.isCloseRequested()) {
+			public void run() {
 				
-				Logger.log("Arret du jeu");
-				stop();
+				long tps = 0;
 				
-				exit();
+				long lastTpsUpdate = System.nanoTime();
+				
+				long before = System.nanoTime();
+				
+				double alpha = (double) (System.nanoTime() - before) / 1000000000D;
+				
+				double gamma = 1D / (double) tickCap;
+				
+				while(true) {
+					
+					alpha = (double) (System.nanoTime() - before) / 1000000000D;
+					
+					if(alpha > gamma) {
+
+						gamma = 1D / (double) tickCap;
+						
+						alpha = (double) (System.nanoTime() - before) / 1000000000D;
+						
+						before = System.nanoTime();
+						
+						if(game.isCloseRequested()) {
+							
+							Logger.log("Arret du jeu");
+							game.stop();
+							game.exit();
+							
+						}
+						
+						tps++;
+						
+						keyUpdate();
+						
+						for(Component comp : components) {
+							
+							comp.update(getXCursor(), getYCursor(), game);
+							
+						}
+						
+						update(alpha);
+						
+						if (System.nanoTime() - lastTpsUpdate > 1000000000L) {
+							
+							if(showTPS) {
+							
+								showedTPS = (int) tps;
+							
+							}
+							
+							lastTpsUpdate = System.nanoTime();
+							
+							tps = 0;
+	
+						}
+					
+					}
+					
+				}
 				
 			}
+			
+		};
+		
+		ut.start();
+				
+		long fps = 0;
+				
+		long lastFpsUpdate = System.nanoTime();
+				
+		long before = System.nanoTime();
+				
+		double alpha = (double) (System.nanoTime() - before) / 1000000000D;
+		double gamma = 1D / (double) frameCap;
+				
+		while(true) {
 			
 			alpha = (double) (System.nanoTime() - before) / 1000000000D;
 			
-			if(wait > 0) {
-				
-				try {
-					
-					Thread.sleep(wait);
-					
-				} catch (InterruptedException e) {
+			if(alpha > gamma) {
 
-					e.printStackTrace();
+				gamma = 1D / (double) frameCap;
+				
+				alpha = (double) (System.nanoTime() - before) / 1000000000D;
+				
+				before = System.nanoTime();
+			
+				if (Display.isCloseRequested()) {
+					
+					Logger.log("Arret du jeu");
+					game.stop();
+					game.exit();
 					
 				}
 				
-				wait = 0;
+				if(closeRequested) {
+					
+					Display.destroy();
+					
+				}
 				
-			}
-			
-			before = System.nanoTime();
-			
-			Display.update();
-			
-			updateSize();
-			
-			view2D(width, height);
-			
-			translateView(xCam, yCam);
-			
-			keyUpdate();
-			
-			for(Component comp : components) {
-				
-				comp.update(getXCursor(), getYCursor(), this);
-				
-			}
-			
-			float wDiff = (float) width / (float) lastWidth;
-			float hDiff = (float) height / (float) lastHeight;
-			
-			if(wDiff != 1 || hDiff != 1) {
-				
-				for(String uuid : startFonts.keySet()) {
-					
-					SlymyTrueTypeFont ttf = fonts.get(uuid);
-					
-					Font f = ttf.getFont();
-					
-					fonts.remove(uuid);
-					
-					if(widthDiff <= heightDiff) {
-					
-						ttf = new SlymyTrueTypeFont(f.deriveFont(startFonts.get(uuid).getFont().getSize() * widthDiff), ttf.antiAlias());
-					
-					} else {
+				fps++;
 						
-						ttf = new SlymyTrueTypeFont(f.deriveFont(startFonts.get(uuid).getFont().getSize() * heightDiff), ttf.antiAlias());
+				Display.update();
 						
+				updateSize();
+						
+				view2D(width, height);
+						
+				translateView(xCam, yCam);
+						
+				float wDiff = (float) width / (float) lastWidth;
+				float hDiff = (float) height / (float) lastHeight;
+						
+				if(wDiff != 1 || hDiff != 1) {
+							
+					for(String uuid : startFonts.keySet()) {
+								
+						SlymyTrueTypeFont ttf = fonts.get(uuid);
+								
+						Font f = ttf.getFont();
+								
+						fonts.remove(uuid);
+								
+						if(widthDiff <= heightDiff) {
+								
+							ttf = new SlymyTrueTypeFont(f.deriveFont(startFonts.get(uuid).getFont().getSize() * widthDiff), ttf.antiAlias());
+								
+						} else {
+									
+							ttf = new SlymyTrueTypeFont(f.deriveFont(startFonts.get(uuid).getFont().getSize() * heightDiff), ttf.antiAlias());
+									
+						}
+								
+						fonts.put(uuid, ttf);
+								
 					}
+							
+				}
+						
+				glClear(GL_COLOR_BUFFER_BIT);
+				glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
+						
+				render(alpha);
+						
+				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
+							
+					if(showFPS) {
+							
+						showedFPS = (int) fps;
+							
+					}
+							
+					lastFpsUpdate = System.nanoTime();
 					
-					fonts.put(uuid, ttf);
-					
+					fps = 0;
+	
 				}
 				
+				Display.setTitle(title + (showFPS ? " || FPS: " + showedFPS : "") + (showTPS ? " || TPS: " + showedTPS : ""));
+			
 			}
-			
-			update(alpha);
-			
-			glClear(GL_COLOR_BUFFER_BIT);
-			glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
-			
-			render();
-			
-			if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
-
-				fps = (long)(1D / alpha);
-				
-				if(showFPS) {
-				
-					Display.setTitle(title + " || FPS: " + fps);
-				
-				}
-				
-				lastFpsUpdate = System.nanoTime();
-
-			}
-			
+					
 		}
 		
 	}
@@ -351,6 +432,12 @@ public abstract class Game extends KeyboardInputs {
 	public void delay(long millis) {
 		
 		wait = millis;
+		
+	}
+	
+	public void showFps() {
+		
+		
 		
 	}
 	
@@ -384,6 +471,43 @@ public abstract class Game extends KeyboardInputs {
 	public void setMouseGrabbed(boolean grabbed) {
 		
 		Mouse.setGrabbed(grabbed);
+		
+	}
+	
+	public void setIcon(Icon icon) {
+
+		if(icon.icons() <= 0) {
+			
+			return;
+			
+		}
+		
+		ByteBuffer[] icons = new ByteBuffer[icon.icons()];
+		
+		int iconsStoraged = 0;
+		
+		if(icon.hasIcon(IconResolution.X16)) {
+			
+			icons[iconsStoraged] = icon.getIcon(IconResolution.X16);
+			iconsStoraged++;
+			
+		}
+		
+		if(icon.hasIcon(IconResolution.X32)) {
+			
+			icons[iconsStoraged] = icon.getIcon(IconResolution.X32);
+			iconsStoraged++;
+			
+		}
+		
+		if(icon.hasIcon(IconResolution.X128)) {
+			
+			icons[iconsStoraged] = icon.getIcon(IconResolution.X128);
+			iconsStoraged++;
+			
+		}
+		
+		Display.setIcon(icons);
 		
 	}
 	
@@ -533,7 +657,7 @@ public abstract class Game extends KeyboardInputs {
 	
 	public abstract void update(double alpha);
 	
-	public abstract void render();
+	public abstract void render(double alpha);
 	
 	public abstract void stop();
 	
@@ -655,6 +779,18 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
+	public void setShowTPS(boolean showTPS) {
+		
+		this.showTPS = showTPS;
+		
+	}
+	
+	public boolean showTPS() {
+		
+		return showTPS;
+		
+	}
+	
 	public ArrayList<Component> getComponents() {
 		
 		return components;
@@ -688,6 +824,30 @@ public abstract class Game extends KeyboardInputs {
 	public float getHeightDiff() {
 		
 		return heightDiff;
+		
+	}
+	
+	public void setFrameCap(long cap) {
+		
+		frameCap = cap;
+		
+	}
+	
+	public long getFrameCap() {
+		
+		return frameCap;
+		
+	}
+	
+	public void setTickCap(long cap) {
+		
+		tickCap = cap;
+		
+	}
+	
+	public long getTickCap() {
+		
+		return tickCap;
 		
 	}
 	

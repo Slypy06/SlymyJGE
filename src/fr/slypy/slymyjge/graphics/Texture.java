@@ -2,11 +2,16 @@ package fr.slypy.slymyjge.graphics;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
+
+import net.sf.image4j.codec.ico.ICODecoder;
+import net.sf.image4j.codec.ico.ICOImage;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
@@ -17,13 +22,15 @@ public class Texture {
 	int height;
 	int id;
 	BufferedImage image;
+	ByteBuffer byteBuffer;
 	
-	public Texture(int width, int height, int id, BufferedImage image) {
+	public Texture(int width, int height, int id, BufferedImage image, ByteBuffer byteBuffer) {
 		
 		this.width = width;
 		this.height = height;
 		this.id = id;
 		this.image = image;
+		this.byteBuffer = byteBuffer;
 		
 	}
 	
@@ -40,7 +47,7 @@ public class Texture {
 		try {
 			
 			image = ImageIO.read(Texture.class.getResource("/" + path));
-			
+
 		} catch (IOException e) {
 			
 			e.printStackTrace();
@@ -107,7 +114,9 @@ public class Texture {
 		
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		
-		return new Texture(w, h, id, image);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		return new Texture(w, h, id, image, buffer);
 		
 	}
 	
@@ -173,7 +182,9 @@ public class Texture {
 		
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		
-		return new Texture(w, h, id, image);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		return new Texture(w, h, id, image, buffer);
 		
 	}
 	
@@ -204,7 +215,7 @@ public class Texture {
 	public void unbind() {
 		
 		glBindTexture(GL_TEXTURE_2D, 0);
-		
+
 	}
 	
 	public Texture getTexturePart(int x, int y, int endX, int endY) {
@@ -273,7 +284,144 @@ public class Texture {
 		
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		
-		return new Texture(w, h, id, img);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		return new Texture(w, h, id, img, buffer);
+		
+	}
+	
+	public static Icon getIcon(String path) {
+
+		if(!path.endsWith(".ico")) {
+			
+			return null;
+			
+		}
+		
+		InputStream inputStream = null;
+		Icon icon = new Icon();
+		
+		try {
+			
+	        inputStream = Texture.class.getResource("/" + path).openStream();
+	        
+	        List<ICOImage> icons = ICODecoder.readExt(inputStream);
+	        
+	        for(ICOImage ico : icons) {
+	        	
+	        	if(ico.getWidth() == ico.getHeight()) {
+	        		
+	        		if(ico.getWidth() == 16) {
+	        			
+	        			BufferedImage image = ico.getImage();
+	        			
+	        			int w = image.getWidth();
+	        			int h = image.getHeight();
+	        			
+	        			int[] pixels = new int[w * h];
+	        			image.getRGB(0, 0, w, h, pixels, 0, w);
+	        			
+	        			ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
+
+	        			for (int y = 0; y < h; y++) {
+	        				
+	        				for (int x = 0; x < w; x++) {
+	        					
+	        					int i = pixels[x + y * w];
+	        					
+	        					
+	        					buffer.put((byte) ((i >> 16) & 0xFF));
+	        					buffer.put((byte) ((i >> 8) & 0xFF));
+	        					buffer.put((byte) ((i) & 0xFF));
+	        					buffer.put((byte) ((i >> 24) & 0xFF));
+	        					
+	        				}
+	        				
+	        			}
+	        			
+	        			buffer.flip();
+	        			
+	        			icon.addIcon(IconResolution.X16, buffer);
+	        			
+	        		} else if(ico.getWidth() == 32) {
+	        			
+	        			BufferedImage image = ico.getImage();
+	        			
+	        			int w = image.getWidth();
+	        			int h = image.getHeight();
+	        			
+	        			int[] pixels = new int[w * h];
+	        			image.getRGB(0, 0, w, h, pixels, 0, w);
+	        			
+	        			ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
+
+	        			for (int y = 0; y < h; y++) {
+	        				
+	        				for (int x = 0; x < w; x++) {
+	        					
+	        					int i = pixels[x + y * w];
+	        					
+	        					
+	        					buffer.put((byte) ((i >> 16) & 0xFF));
+	        					buffer.put((byte) ((i >> 8) & 0xFF));
+	        					buffer.put((byte) ((i) & 0xFF));
+	        					buffer.put((byte) ((i >> 24) & 0xFF));
+	        					
+	        				}
+	        				
+	        			}
+	        			
+	        			buffer.flip();
+	        			
+	        			icon.addIcon(IconResolution.X32, buffer);
+	        			
+	        		} else if(ico.getWidth() == 128) {
+	        			
+	        			BufferedImage image = ico.getImage();
+	        			
+	        			int w = image.getWidth();
+	        			int h = image.getHeight();
+	        			
+	        			int[] pixels = new int[w * h];
+	        			image.getRGB(0, 0, w, h, pixels, 0, w);
+	        			
+	        			ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
+
+	        			for (int y = 0; y < h; y++) {
+	        				
+	        				for (int x = 0; x < w; x++) {
+	        					
+	        					int i = pixels[x + y * w];
+	        					
+	        					
+	        					buffer.put((byte) ((i >> 16) & 0xFF));
+	        					buffer.put((byte) ((i >> 8) & 0xFF));
+	        					buffer.put((byte) ((i) & 0xFF));
+	        					buffer.put((byte) ((i >> 24) & 0xFF));
+	        					
+	        				}
+	        				
+	        			}
+	        			
+	        			buffer.flip();
+	        			
+	        			icon.addIcon(IconResolution.X128, buffer);
+	        			
+	        		}
+	        		
+	        	}
+	        	
+	        }
+	        
+	        return icon;
+
+		} catch (IOException e1) {
+
+			e1.printStackTrace();
+			
+		}
+		
+		return null;
 		
 	}
 	

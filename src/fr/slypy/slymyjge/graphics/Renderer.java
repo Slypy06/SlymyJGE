@@ -20,47 +20,44 @@ public class Renderer {
 	}
 	
 	protected static void rotate(double d, int w, int h, float x, float y) {
-
-		int dW = game.getWidth();
-		int dH = game.getHeight();
 		
-        glTranslated(x - (dW / 2) + (w / 2), y - (dH / 2) + (h / 2), 0);
+        glTranslated(x + (w / 2), y + (h / 2), 0);
         glRotated(d, 0, 0, 1);
-        glTranslated(-(x - (dW / 2) + (w / 2)), -(y - (dH / 2) + (h / 2)), 0);
+        glTranslated(-(x + (w / 2)), -(y + (h / 2)), 0);
 
 	}
 	
 	protected static void lineRotate(double d, float ax, float ay, float bx, float by) {
-
-		int dW = game.getWidth();
-		int dH = game.getHeight();
 		
 		float x = ((float) ax + (float) bx) / (float) 2;
 		float y = ((float) ay + (float) by) / (float) 2;
 		
-        glTranslated(x - (dW / 2), y - (dH / 2), 0);
+        glTranslated(x, y, 0);
         glRotated(d, 0, 0, 1);
-        glTranslated(-(x - (dW / 2)), -(y - (dH / 2)), 0);
+        glTranslated(-x, -y, 0);
 
 	}
 	
 	protected static void triangleRotate(double d, float ax, float ay, float bx, float by, float cx, float cy) {
-
-		int dW = game.getWidth();
-		int dH = game.getHeight();
 		
 		float x = ((float) ax + (float) bx + (float) cx) / (float) 3;
 		float y = ((float) ay + (float) by + (float) cy) / (float) 3;
 		
-        glTranslated(x - (dW / 2), y - (dH / 2), 0);
+        glTranslated(x, y, 0);
         glRotated(d, 0, 0, 1);
-        glTranslated(-(x - (dW / 2)), -(y - (dH / 2)), 0);
+        glTranslated(-x, -y, 0);
 
 	}
 	
 	public static void setRotation(double degres) {
 		
 		d = degres;
+		
+	}
+	
+	public static double getRotation() {
+		
+		return d;
 		
 	}
 
@@ -137,6 +134,12 @@ public class Renderer {
 		
 	}
 	
+	public static void renderQuad(float x, float y, int w, int h) {
+		
+		renderQuad(x, y, w, h, Color.white);
+		
+	}
+	
 	public static void renderTriangle(float ax, float ay, float bx, float by, float cx, float cy, Color color) {
 		
 		ax *= game.getWidthDiff();
@@ -172,7 +175,7 @@ public class Renderer {
 		
 	}
 	
-	public static void renderLine(float ax, float ay, float bx, float by, Color color) {
+	public static void renderLine(float ax, float ay, float bx, float by, int width, Color color) {
 		
 		ax *= game.getWidthDiff();
 		ay *= game.getHeightDiff();
@@ -186,7 +189,8 @@ public class Renderer {
 			
 		}
 		
-			glBegin(GL_LINE);
+			glLineWidth(width);
+			glBegin(GL_LINE_STRIP);
 				Renderer.lineData(ax, ay, bx, by, color);
 			glEnd();
 			
@@ -198,9 +202,21 @@ public class Renderer {
 		
 	}
 	
+	public static void renderLine(float ax, float ay, float bx, float by, int width) {
+		
+		renderLine(ax, ay, bx, by, width, Color.white);
+		
+	}
+	
+	public static void renderLine(float ax, float ay, float bx, float by, Color color) {
+		
+		renderLine(ax, ay, bx, by, 1, color);
+		
+	}
+	
 	public static void renderLine(float ax, float ay, float bx, float by) {
 		
-		renderLine(ax, ay, bx, by, Color.white);
+		renderLine(ax, ay, bx, by, 1, Color.white);
 		
 	}
 	

@@ -2,7 +2,10 @@ package fr.slypy.slymyjge;
 
 import java.awt.Color;
 
+import org.lwjgl.input.Keyboard;
+
 import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.graphics.Texture;
 
 public class ExampleGame extends Game {
 
@@ -16,31 +19,43 @@ public class ExampleGame extends Game {
 	
 	public static void main(String[] args) {
 		
-		game = new ExampleGame(1280, 720, "Example Game", Color.black, false);
+		game = new ExampleGame(1280, 720, "Example Game", Color.black, true);
 		game.start();
 		
 	}
 
 	@Override
 	public void init() {
+
+		try {
 		
-		game.setShowFPS(true);
 		Renderer.init(game);
-		Renderer.setRotation(15);
+		game.setShowTPS(true);
+		game.setShowFPS(true);
+		game.setFrameCap(60);
+		game.setTickCap(50);
+		game.setIcon(Texture.getIcon("icon.ico"));
+		
+		} catch(Exception e) {
+			
+			e.printStackTrace();
+			
+		}
 		
 	}
 
 	@Override
 	public void update(double alpha) {
 		
-		
-		
-	}
-
-	@Override
-	public void render() {
-		
-		Renderer.renderTriangle(350, 150, 250, 350, 550, 350);
+		if(Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
+			
+			Renderer.setRotation(Renderer.getRotation() + (45 * alpha));
+			
+		} else if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
+			
+			Renderer.setRotation(Renderer.getRotation() - (45 * alpha));
+			
+		}
 		
 	}
 
@@ -48,6 +63,13 @@ public class ExampleGame extends Game {
 	public void stop() {
 		
 		
+		
+	}
+
+	@Override
+	public void render(double alpha) {
+		
+		Renderer.renderQuad(50, 50, 200, 200, Color.cyan);
 		
 	}
 
