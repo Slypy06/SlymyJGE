@@ -25,11 +25,20 @@ import fr.slypy.slymyjge.components.Component;
 import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
+import fr.slypy.slymyjge.graphics.NewDisplayMode;
 import fr.slypy.slymyjge.inputs.KeyboardInputs;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.utils.Logger;
 
 public abstract class Game extends KeyboardInputs {
+	
+	protected boolean changeDisplaymode = false;
+	
+	protected NewDisplayMode newDisplay;
+	
+	protected boolean changeIcon = false;
+	
+	protected ByteBuffer[] icons;
 	
 	protected boolean resizable;
 	
@@ -343,6 +352,20 @@ public abstract class Game extends KeyboardInputs {
 			
 			if(alpha > gamma) {
 
+				if(changeDisplaymode) {
+					
+					changeDisplayMode(newDisplay);
+					changeDisplaymode = false;
+					
+				}
+				
+				if(changeIcon) {
+					
+					changeIcon(icons);
+					changeIcon = false;
+					
+				}
+				
 				gamma = 1D / (double) frameCap;
 				
 				alpha = (double) (System.nanoTime() - before) / 1000000000D;
@@ -474,6 +497,12 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
+	private void changeIcon(ByteBuffer[] icons) {
+		
+		Display.setIcon(icons);
+		
+	}
+	
 	public void setIcon(Icon icon) {
 
 		if(icon.icons() <= 0) {
@@ -507,38 +536,51 @@ public abstract class Game extends KeyboardInputs {
 			
 		}
 		
-		Display.setIcon(icons);
+		changeIcon = true;
+		
+		this.icons = icons;
 		
 	}
 	
-	public void setFullscreen(boolean fullscreen) {
-		 
-		if(isFullscreen() == fullscreen) {
-			
-			return;
-			
-		}
+	private void changeDisplayMode(NewDisplayMode newDisplaymode) {
 		
 	    try {
-				
-	    	if(fullscreen) {
+			
+	    	if(newDisplaymode.isFullscreen()) {
 	    	
 	    		Display.setDisplayModeAndFullscreen(Display.getDesktopDisplayMode());
 	    	
 	    	} else {
 
-	    		Display.setDisplayMode(new DisplayMode(width, height));
+	    		Display.setDisplayMode(new DisplayMode(newDisplaymode.getW(), newDisplaymode.getH()));
 	    		
 	    	}
 	    	
-	        Display.setResizable(!resizable);
-	        Display.setResizable(resizable);
+	        Display.setResizable(!newDisplaymode.isResizable());
+	        Display.setResizable(newDisplaymode.isResizable());
 	        Display.setTitle(title);
 	        
 	    } catch (LWJGLException e) {
 
 			e.printStackTrace();
 		}
+		
+	}
+	
+	public void setFullscreen(boolean fullscreen) {
+		
+		if(isFullscreen() == fullscreen) {
+			
+			return;
+			
+		}
+		
+		newDisplay = new NewDisplayMode(fullscreen, resizable, width, height);
+		
+		changeDisplaymode = true;
+		
+		System.out.println("hello");
+		
 	}
 	
 	public boolean isFullscreen() {
@@ -556,28 +598,10 @@ public abstract class Game extends KeyboardInputs {
 		}
 
 		boolean fullscreen = Display.isFullscreen();
-	 
-	    try {
-	 
-	        
-	    	if(fullscreen) {
-		    	
-	    		Display.setDisplayModeAndFullscreen(Display.getDesktopDisplayMode());
-	    	
-	    	} else {
-	    		
-	    		Display.setDisplayMode(new DisplayMode(width, height));
-	    		
-	    	}
-	    	
-	        Display.setResizable(resizable);
-	        Display.setTitle(title);
-	             
-	    } catch (LWJGLException e) {
-	    	
-	        e.printStackTrace();
-	        
-	    }
+		
+		newDisplay = new NewDisplayMode(fullscreen, resizable, width, height);
+		
+		changeDisplaymode = true;
 	    
 	}
 	
@@ -596,18 +620,10 @@ public abstract class Game extends KeyboardInputs {
 			return;
 			
 		}
-	 
-	    try {
-
-	    	Display.setDisplayMode(new DisplayMode(width, height));
-	        Display.setResizable(resizable);
-	        Display.setTitle(title);
-	             
-	    } catch (LWJGLException e) {
-	        
-	    	e.printStackTrace();
-	    	
-	    }
+		
+		newDisplay = new NewDisplayMode(false, resizable, width, height);
+		
+		changeDisplaymode = true;
 		
 	}
 	
@@ -623,7 +639,7 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 
-	public void updateSize() {
+	private void updateSize() {
 		
 		lastWidth = width;
 		lastHeight = height;

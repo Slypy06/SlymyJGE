@@ -3,6 +3,7 @@ package fr.slypy.slymyjge;
 import java.awt.Color;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
 
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.Texture;
@@ -27,47 +28,18 @@ public class ExampleGame extends Game {
 	@Override
 	public void init() {
 
-		try {
-		
 		Renderer.init(game);
-		game.setIcon(Texture.getIcon("icon.ico"));
-		
-		} catch(Exception e) {
-			
-			e.printStackTrace();
-			
-		}
 		
 	}
 
 	@Override
 	public void update(double alpha) {
 		
-		if(Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
+		if(Keyboard.isKeyDown(Keyboard.KEY_F)) {
 			
-			//game.translateCam(200F * (float) alpha, 0);
-			Renderer.setRotation(Renderer.getRotation() + (3600 * alpha));
-			
-		} 
-		
-		if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
-			
-			//game.translateCam(-200F * (float) alpha, 0);
-			Renderer.setRotation(Renderer.getRotation() - (3600 * alpha));
+			game.setFullscreen(!game.isFullscreen());
 			
 		}
-		
-		if(Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
-			
-			game.translateCam(0F, -200F * (float) alpha);
-			
-		}
-		
-		if(Keyboard.isKeyDown(Keyboard.KEY_UP)) {
-			
-			game.translateCam(0F, 200F * (float) alpha);
-			
-		} 
 		
 	}
 
