@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import fr.slypy.slymyjge.network.Network;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.network.Packet;
 import fr.slypy.slymyjge.utils.Logger;
@@ -14,6 +15,8 @@ public abstract class ServerGame {
 	
 	protected static Server server;
 	protected static boolean exit;
+	protected int tickCap = Integer.MAX_VALUE;
+	protected long showedTps = 0;
 	
 	public ServerGame(int tcpPort, int udpPort, String name, NetworkRegister register) {
 		
@@ -60,6 +63,22 @@ public abstract class ServerGame {
 					
 					public void received(Connection connect, Object o) {
 						
+						if(Network.hasClientRegistering()) {
+							
+							Packet p = (Packet) o;
+							
+							if(o.getClass().equals(Network.getClientRegistering().getClientRegisteringPacketClass())) {
+								
+								if(!Network.getClientRegistering().checkRegisteringPacket(p)) {
+									
+									connect.close();
+									
+								}
+								
+							}
+							
+						}
+						
 						if(o instanceof Packet) {
 							
 							Packet packet = (Packet) o;
@@ -93,18 +112,52 @@ public abstract class ServerGame {
 	
 	protected void loop() {
 		
+		long tps = 0;
+		
+		long lastTpsUpdate = System.nanoTime();
+		
+		long before = System.nanoTime();
+		
+		double alpha = (double) (System.nanoTime() - before) / 1000000000D;
+		
+		double gamma = 1D / (double) tickCap;
+		
 		while(true) {
 			
-			if(exit) {
+			alpha = (double) (System.nanoTime() - before) / 1000000000D;
+			
+			if(alpha > gamma) {
+			
+				tps++;
 				
-				exit();
-				close();
+				if(exit) {
+					
+					exit();
+					close();
+					
+				}
+				
+				update();
+				
+				if (System.nanoTime() - lastTpsUpdate > 1000000000L) {
+					
+					showedTps = tps;
+					
+					lastTpsUpdate = System.nanoTime();
+					
+					tps = 0;
+
+				}
 				
 			}
 			
-			update();
-			
 		}
+		
+	}
+	
+	public int getTps() {
+		
+		return (int) showedTps;
 		
 	}
 	

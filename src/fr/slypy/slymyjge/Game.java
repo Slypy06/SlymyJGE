@@ -44,7 +44,7 @@ public abstract class Game extends KeyboardInputs {
 	
 	protected boolean showFPS = false;
 	
-	protected int showedFPS = 0;
+	protected  long showedFPS = 0;
 
 	protected boolean autoResizeHeight = true;
 	protected boolean autoResizeWidth = true;
@@ -70,7 +70,7 @@ public abstract class Game extends KeyboardInputs {
 
 	protected boolean showTPS = false;
 	
-	protected int showedTPS = 0;
+	protected long showedTPS = 0;
 
 	protected static ArrayList<Component> components = new ArrayList<Component>();
 	
@@ -271,9 +271,9 @@ public abstract class Game extends KeyboardInputs {
 			
 			public void run() {
 				
-				long tps = 0;
-				
 				long lastTpsUpdate = System.nanoTime();
+				
+				long tps = 0;
 				
 				long before = System.nanoTime();
 				
@@ -315,11 +315,7 @@ public abstract class Game extends KeyboardInputs {
 						
 						if (System.nanoTime() - lastTpsUpdate > 1000000000L) {
 							
-							if(showTPS) {
-							
-								showedTPS = (int) tps;
-							
-							}
+							showedTPS = (int) tps;
 							
 							lastTpsUpdate = System.nanoTime();
 							
@@ -432,11 +428,7 @@ public abstract class Game extends KeyboardInputs {
 						
 				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
 							
-					if(showFPS) {
-							
-						showedFPS = (int) fps;
-							
-					}
+					showedFPS = fps;
 							
 					lastFpsUpdate = System.nanoTime();
 					
@@ -458,9 +450,15 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public void showFps() {
+	public long getFps() {
 		
+		return showedFPS;
 		
+	}
+	
+	public long getTps() {
+		
+		return showedTPS;
 		
 	}
 	
