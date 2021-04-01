@@ -579,8 +579,6 @@ public abstract class Game extends KeyboardInputs {
 		
 		changeDisplaymode = true;
 		
-		System.out.println("hello");
-		
 	}
 	
 	public boolean isFullscreen() {
