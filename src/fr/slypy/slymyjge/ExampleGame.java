@@ -2,59 +2,105 @@ package fr.slypy.slymyjge;
 
 import java.awt.Color;
 
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
+import fr.slypy.slymyjge.network.NetworkRegister;
+import fr.slypy.slymyjge.server.ServerGame;
 
-import fr.slypy.slymyjge.graphics.Renderer;
-import fr.slypy.slymyjge.graphics.Texture;
-
-public class ExampleGame extends Game {
-
-	public static ExampleGame game;
+public class ExampleGame {
 	
-	public ExampleGame(int width, int height, String title, Color backgroundColor, boolean resizable) {
-		
-		super(width, height, title, backgroundColor, resizable);
-
-	}
+	public static ExampleGameClient clientGame;
+	public static ExampleGameClient serverGame;
 	
-	public static void main(String[] args) {
+	public static void main(String args) {
 		
-		game = new ExampleGame(1280, 720, "Example Game", Color.black, true);
-		game.start();
-		
-	}
-
-	@Override
-	public void init() {
-
-		Renderer.init(game);
-		
-	}
-
-	@Override
-	public void update(double alpha) {
-		
-		if(Keyboard.isKeyDown(Keyboard.KEY_F)) {
+		new Thread() {
 			
-			game.setFullscreen(!game.isFullscreen());
+			public void run() {
+				
+				clientGame = new ExampleGameClient(width, height, title, backgroundColor, resizable)
+				
+			}
+			
+		}.start();
+		
+		new Thread() {
+			
+			public void run() {
+				
+				serverGame = new ExampleGameClient(width, height, title, backgroundColor, resizable)
+				
+			}
+			
+		}.start();
+		
+	}
+	
+	public class ExampleGameClient extends Game {
+
+		public ExampleGameClient(int width, int height, String title, Color backgroundColor, boolean resizable) {
+			
+			super(width, height, title, backgroundColor, resizable);
+
+		}
+
+		@Override
+		public void init() {
+
+			
+			
+		}
+
+		@Override
+		public void update(double alpha) {
+
+			
+			
+		}
+
+		@Override
+		public void render(double alpha) {
+
+			
+			
+		}
+
+		@Override
+		public void stop() {
+
+			
 			
 		}
 		
 	}
 
-	@Override
-	public void stop() {
-		
-		
+	public class ExampleGameServer extends ServerGame {
+
+		public ExampleGameServer(int tcpPort, int udpPort, String name, NetworkRegister register) {
+			
+			super(tcpPort, udpPort, name, register);
+
+		}
+
+		@Override
+		public void init() {
+
+			
+			
+		}
+
+		@Override
+		public void update() {
+
+			
+			
+		}
+
+		@Override
+		public void exit() {
+
+			
+			
+		}
 		
 	}
-
-	@Override
-	public void render(double alpha) {
-		
-		Renderer.renderQuad(50, 50, 200, 200, Color.cyan);
-		
-	}
-
+	
 }
