@@ -697,9 +697,16 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public void translateView(float xa, float ya) {
+	private void translateView(float xa, float ya) {
 		
 		glTranslatef(xa * getWidthDiff(), ya * getHeightDiff(), 0);
+		
+	}
+	
+	public void translateCam(float xa, float ya) {
+		
+		setXCam(xCam + (xa * getWidthDiff()));
+		setYCam(yCam + (ya * getHeightDiff()));
 		
 	}
 	

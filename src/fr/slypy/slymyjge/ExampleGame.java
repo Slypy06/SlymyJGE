@@ -30,10 +30,6 @@ public class ExampleGame extends Game {
 		try {
 		
 		Renderer.init(game);
-		game.setShowTPS(true);
-		game.setShowFPS(true);
-		game.setFrameCap(60);
-		game.setTickCap(50);
 		game.setIcon(Texture.getIcon("icon.ico"));
 		
 		} catch(Exception e) {
@@ -49,13 +45,29 @@ public class ExampleGame extends Game {
 		
 		if(Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
 			
-			Renderer.setRotation(Renderer.getRotation() + (45 * alpha));
+			//game.translateCam(200F * (float) alpha, 0);
+			Renderer.setRotation(Renderer.getRotation() + (3600 * alpha));
 			
-		} else if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
+		} 
+		
+		if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
 			
-			Renderer.setRotation(Renderer.getRotation() - (45 * alpha));
+			//game.translateCam(-200F * (float) alpha, 0);
+			Renderer.setRotation(Renderer.getRotation() - (3600 * alpha));
 			
 		}
+		
+		if(Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
+			
+			game.translateCam(0F, -200F * (float) alpha);
+			
+		}
+		
+		if(Keyboard.isKeyDown(Keyboard.KEY_UP)) {
+			
+			game.translateCam(0F, 200F * (float) alpha);
+			
+		} 
 		
 	}
 
