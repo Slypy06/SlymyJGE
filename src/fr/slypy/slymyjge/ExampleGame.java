@@ -4,7 +4,9 @@ import java.awt.Color;
 
 import org.lwjgl.input.Keyboard;
 
-import fr.slypy.slymyjge.network.Connection;
+import com.esotericsoftware.kryonet.Connection;
+
+import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.server.ServerGame;
 
@@ -43,6 +45,8 @@ public class ExampleGame {
 	
 	public static class ExampleGameClient extends Game {
 
+		public int state = -1;
+		
 		public ExampleGameClient(int width, int height, String title, Color backgroundColor, boolean resizable) {
 			
 			super(width, height, title, backgroundColor, resizable);
@@ -52,27 +56,51 @@ public class ExampleGame {
 		@Override
 		public void init() {
 
-			this.setupClientForMultiplayer(new NetworkRegister());
+			setupClientForMultiplayer(new NetworkRegister());
 			
 			setFrameCap(60);
 			setTickCap(50);
-			
-			this.connectToServer("localhost", 25566);
-			System.out.println("try connecting");
+			Renderer.init(this);
 			
 		}
 
 		@Override
 		public void update(double alpha) {
 
-
+			if(state == -1 && Keyboard.isKeyDown(Keyboard.KEY_E)) {
+				
+				connectToServer("localhost", 25566, 25567);
+				
+			}
 			
 		}
 
 		@Override
 		public void render(double alpha) {
 
+			switch(state) {
 			
+			case -1:
+				
+				Renderer.renderQuad(100, 100, 100, 100, Color.BLACK);
+				break;
+			
+			case 0:
+				
+				Renderer.renderQuad(100, 100, 100, 100, Color.DARK_GRAY);
+				break;
+				
+			case 1:
+				
+				Renderer.renderQuad(100, 100, 100, 100, Color.LIGHT_GRAY);
+				break;
+				
+			case 2:
+				
+				Renderer.renderQuad(100, 100, 100, 100, Color.WHITE);
+				break;
+			
+			}
 			
 		}
 
@@ -86,14 +114,14 @@ public class ExampleGame {
 		@Override
 		public void authentified(Connection c) {
 			
-			System.out.println("authentified !");
+			state = 2;
 			
 		}
 		
 		@Override
 		public void connected(Connection c) {
 			
-			System.out.println("connected !");
+			state = 1;
 			
 		}
 		

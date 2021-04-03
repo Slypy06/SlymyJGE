@@ -141,29 +141,19 @@ public abstract class Game extends KeyboardInputs {
 				
 		client.addListener(new Listener() {
 					
-			public void connected(Connection connect) {
-						
-				if(connect instanceof fr.slypy.slymyjge.network.Connection) {
-				
-					fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+			public void connected(Connection c) {
 							
-					game.connected(c);
-				
-				}
+				game.connected(c);
 						
 			}
 					
-			public void disconnected(Connection connect) {
-						
-				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+			public void disconnected(Connection c) {
 						
 				game.disconnected(c);
 						
 			}
 					
-			public void received(Connection connect, Object o) {
-
-				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+			public void received(Connection c, Object o) {
 					
 				if(o instanceof AuthentifiedPacket) {
 							
@@ -259,10 +249,10 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public void connected(fr.slypy.slymyjge.network.Connection c) {}
-	public void disconnected(fr.slypy.slymyjge.network.Connection c) {}
-	public void packetReceived(fr.slypy.slymyjge.network.Connection c, Packet p, long ping) {}
-	public void authentified(fr.slypy.slymyjge.network.Connection c) {}
+	public void connected(Connection c) {}
+	public void disconnected(Connection c) {}
+	public void packetReceived(Connection c, Packet p, long ping) {}
+	public void authentified(Connection c) {}
 	
 	public void setEscapeGameKey(int escapeGameKey) {
 		

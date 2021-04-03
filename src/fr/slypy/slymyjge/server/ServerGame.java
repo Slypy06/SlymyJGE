@@ -25,50 +25,80 @@ public abstract class ServerGame {
 	public ServerGame(int tcpPort, int udpPort, String name, NetworkRegister register) {
 		
 		ServerGame game = this;
-		
-		new Thread() {
-		
-			public void run() {
-			
-				server = new Server();
-				server.setName(name);
-				server.start();
-				Kryo kryo = server.getKryo();
-				
-				for(Class<?> packetClass : register.getClasses()) {
-					
-					kryo.register(packetClass);
-					
-				}
-				
-				try {
-					
-					server.bind(tcpPort, udpPort);
-					
-				} catch (IOException e) {
 
-					e.printStackTrace();
+		server = new Server();
+		server.setName(name);
+		
+		server.start();
+		
+		try {
+			
+			server.bind(tcpPort, udpPort);
+			
+		} catch (IOException e) {
+
+			e.printStackTrace();
+			
+		}
+		
+		Kryo kryo = server.getKryo();
+		
+		for(Class<?> packetClass : register.getClasses()) {
+			
+			kryo.register(packetClass);
+			
+		}
+		
+		server.addListener(new Listener() {
+			
+			public void connected(Connection connect) {
+				
+				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+				
+				if(Network.hasClientRegistering()) {
+				
+					connectionsTimeout.put(connect, Network.getClientRegistering().getTimeoutDelay());
+					c.setConnectedState(false);
+				
+					game.connected(c);
+					
+				} else {
+					
+					c.setConnectedState(true);
+					
+					game.connected(c);
+					
+					game.authentified(c);
+					
+					c.sendTCP(new AuthentifiedPacket());
 					
 				}
 				
-				server.addListener(new Listener() {
+			}
+			
+			public void disconnected(Connection connect) {
+				
+				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+				
+				game.disconnected(c);
+				
+			}
+			
+			public void received(Connection connect, Object o) {
+				
+				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+				
+				if(Network.hasClientRegistering()) {
 					
-					public void connected(Connection connect) {
+					Packet p = (Packet) o;
+					
+					if(o.getClass().equals(Network.getClientRegistering().getClientRegisteringPacketClass())) {
 						
-						fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
-						
-						if(Network.hasClientRegistering()) {
-						
-							connectionsTimeout.put(connect, Network.getClientRegistering().getTimeoutDelay());
-							c.setConnectedState(false);
-						
-							game.connected(c);
+						if(!Network.getClientRegistering().checkRegisteringPacket(p)) {
+							
+							c.close();
 							
 						} else {
-							
-							c.setConnectedState(true);
-							
-							game.connected(c);
 							
 							game.authentified(c);
 							
@@ -76,59 +106,23 @@ public abstract class ServerGame {
 							
 						}
 						
-					}
-					
-					public void disconnected(Connection connect) {
-						
-						fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
-						
-						game.disconnected(c);
+						return;
 						
 					}
 					
-					public void received(Connection connect, Object o) {
-						
-						fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
-						
-						if(Network.hasClientRegistering()) {
-							
-							Packet p = (Packet) o;
-							
-							if(o.getClass().equals(Network.getClientRegistering().getClientRegisteringPacketClass())) {
-								
-								if(!Network.getClientRegistering().checkRegisteringPacket(p)) {
-									
-									c.close();
-									
-								} else {
-									
-									game.authentified(c);
-									
-									c.sendTCP(new AuthentifiedPacket());
-									
-								}
-								
-								return;
-								
-							}
-							
-						}
-						
-						if(o instanceof Packet) {
-							
-							Packet packet = (Packet) o;
-							
-							game.packetReceived(c, packet, System.nanoTime() - packet.timestamp);
-							
-						}
-						
-					}
+				}
+				
+				if(o instanceof Packet) {
 					
-				});
-		
+					Packet packet = (Packet) o;
+					
+					game.packetReceived(c, packet, System.nanoTime() - packet.timestamp);
+					
+				}
+				
 			}
-		
-		}.start();
+			
+		});
 		
 	}
 	
