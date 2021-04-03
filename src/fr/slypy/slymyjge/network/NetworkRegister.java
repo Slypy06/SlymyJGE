@@ -8,6 +8,12 @@ public class NetworkRegister {
 
 	protected List<Class<?>> classes = new ArrayList<Class<?>>();
 	
+	public NetworkRegister() {
+		
+		classes.add(AuthentifiedPacket.class);
+		
+	}
+	
 	public void register(Class<?> packet) {
 		
 		classes.add(packet);

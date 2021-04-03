@@ -20,6 +20,8 @@ import org.lwjgl.util.glu.GLU;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 
 import fr.slypy.slymyjge.components.Component;
 import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
@@ -27,7 +29,9 @@ import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
 import fr.slypy.slymyjge.inputs.KeyboardInputs;
+import fr.slypy.slymyjge.network.AuthentifiedPacket;
 import fr.slypy.slymyjge.network.NetworkRegister;
+import fr.slypy.slymyjge.network.Packet;
 import fr.slypy.slymyjge.utils.Logger;
 
 public abstract class Game extends KeyboardInputs {
@@ -122,24 +126,74 @@ public abstract class Game extends KeyboardInputs {
 	
 	public void setupClientForMultiplayer(NetworkRegister networkRegister) {
 		
-		new Thread() {
-		
-			public void run() {
+		Game game = this;
 			
-				client = new Client();
-				client.start();
+		client = new Client();
+		client.start();
 				
-				Kryo kryo = client.getKryo();
+		Kryo kryo = client.getKryo();
 				
-				for(Class<?> packetClass : networkRegister.getClasses()) {
+		for(Class<?> packetClass : networkRegister.getClasses()) {
 					
-					kryo.register(packetClass);
+			kryo.register(packetClass);
 					
+		}
+				
+		client.addListener(new Listener() {
+					
+			public void connected(Connection connect) {
+						
+				if(connect instanceof fr.slypy.slymyjge.network.Connection) {
+				
+					fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+							
+					game.connected(c);
+				
 				}
-			
+						
 			}
-		
-		}.start();
+					
+			public void disconnected(Connection connect) {
+						
+				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+						
+				game.disconnected(c);
+						
+			}
+					
+			public void received(Connection connect, Object o) {
+
+				fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+					
+				if(o instanceof AuthentifiedPacket) {
+							
+					AuthentifiedPacket p = (AuthentifiedPacket) o;
+							
+					if(p.authendtified) {
+								
+						game.authentified(c);
+								
+					} else {
+								
+						c.close();
+								
+					}
+							
+					return;
+							
+				}
+						
+				if(o instanceof Packet) {
+							
+					Packet packet = (Packet) o;
+							
+					game.packetReceived(c, packet, System.nanoTime() - packet.timestamp);
+							
+				}
+						
+			}
+					
+		});
 		
 	}
 	
@@ -204,6 +258,11 @@ public abstract class Game extends KeyboardInputs {
 		return client;
 		
 	}
+	
+	public void connected(fr.slypy.slymyjge.network.Connection c) {}
+	public void disconnected(fr.slypy.slymyjge.network.Connection c) {}
+	public void packetReceived(fr.slypy.slymyjge.network.Connection c, Packet p, long ping) {}
+	public void authentified(fr.slypy.slymyjge.network.Connection c) {}
 	
 	public void setEscapeGameKey(int escapeGameKey) {
 		

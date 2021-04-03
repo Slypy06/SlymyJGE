@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import fr.slypy.slymyjge.network.AuthentifiedPacket;
 import fr.slypy.slymyjge.network.Network;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.network.Packet;
@@ -71,6 +72,8 @@ public abstract class ServerGame {
 							
 							game.authentified(c);
 							
+							c.sendTCP(new AuthentifiedPacket());
+							
 						}
 						
 					}
@@ -100,6 +103,8 @@ public abstract class ServerGame {
 								} else {
 									
 									game.authentified(c);
+									
+									c.sendTCP(new AuthentifiedPacket());
 									
 								}
 								

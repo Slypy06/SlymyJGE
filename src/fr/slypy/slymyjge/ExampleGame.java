@@ -2,6 +2,9 @@ package fr.slypy.slymyjge;
 
 import java.awt.Color;
 
+import org.lwjgl.input.Keyboard;
+
+import fr.slypy.slymyjge.network.Connection;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.server.ServerGame;
 
@@ -10,7 +13,7 @@ public class ExampleGame {
 	public static ExampleGameClient clientGame;
 	public static ExampleGameServer serverGame;
 	
-	public static void main(String args) {
+	public static void main(String[] args) {
 		
 		new Thread() {
 			
@@ -23,7 +26,7 @@ public class ExampleGame {
 			
 		}.start();
 		
-		/*new Thread() {
+		new Thread() {
 			
 			public void run() {
 				
@@ -34,7 +37,7 @@ public class ExampleGame {
 				
 			}
 			
-		}.start();*/
+		}.start();
 		
 	}
 	
@@ -49,15 +52,20 @@ public class ExampleGame {
 		@Override
 		public void init() {
 
+			this.setupClientForMultiplayer(new NetworkRegister());
+			
 			setFrameCap(60);
 			setTickCap(50);
+			
+			this.connectToServer("localhost", 25566);
+			System.out.println("try connecting");
 			
 		}
 
 		@Override
 		public void update(double alpha) {
 
-			
+
 			
 		}
 
@@ -72,6 +80,20 @@ public class ExampleGame {
 		public void stop() {
 
 			
+			
+		}
+		
+		@Override
+		public void authentified(Connection c) {
+			
+			System.out.println("authentified !");
+			
+		}
+		
+		@Override
+		public void connected(Connection c) {
+			
+			System.out.println("connected !");
 			
 		}
 		
