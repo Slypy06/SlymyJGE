@@ -1,6 +1,8 @@
 package fr.slypy.slymyjge.server;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
@@ -17,6 +19,7 @@ public abstract class ServerGame {
 	protected static boolean exit;
 	protected int tickCap = Integer.MAX_VALUE;
 	protected long showedTps = 0;
+	protected Map<Connection, Long> connectionsTimeout = new HashMap<Connection, Long>();
 	
 	public ServerGame(int tcpPort, int udpPort, String name, NetworkRegister register) {
 		
@@ -51,17 +54,38 @@ public abstract class ServerGame {
 					
 					public void connected(Connection connect) {
 						
-						game.connected(connect);
+						fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+						
+						if(Network.hasClientRegistering()) {
+						
+							connectionsTimeout.put(connect, Network.getClientRegistering().getTimeoutDelay());
+							c.setConnectedState(false);
+						
+							game.connected(c);
+							
+						} else {
+							
+							c.setConnectedState(true);
+							
+							game.connected(c);
+							
+							game.authentified(c);
+							
+						}
 						
 					}
 					
 					public void disconnected(Connection connect) {
 						
-						game.disconnected(connect);
+						fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
+						
+						game.disconnected(c);
 						
 					}
 					
 					public void received(Connection connect, Object o) {
+						
+						fr.slypy.slymyjge.network.Connection c = (fr.slypy.slymyjge.network.Connection) connect;
 						
 						if(Network.hasClientRegistering()) {
 							
@@ -71,9 +95,15 @@ public abstract class ServerGame {
 								
 								if(!Network.getClientRegistering().checkRegisteringPacket(p)) {
 									
-									connect.close();
+									c.close();
+									
+								} else {
+									
+									game.authentified(c);
 									
 								}
+								
+								return;
 								
 							}
 							
@@ -83,7 +113,7 @@ public abstract class ServerGame {
 							
 							Packet packet = (Packet) o;
 							
-							game.packetReceived(connect, packet, System.nanoTime() - packet.timestamp);
+							game.packetReceived(c, packet, System.nanoTime() - packet.timestamp);
 							
 						}
 						
@@ -106,7 +136,7 @@ public abstract class ServerGame {
 	
 	public abstract void init();
 	
-	public abstract void update();
+	public abstract void update(double alpha);
 	
 	public abstract void exit();
 	
@@ -137,7 +167,25 @@ public abstract class ServerGame {
 					
 				}
 				
-				update();
+				for(Connection c : connectionsTimeout.keySet()) {
+					
+					long timeout = connectionsTimeout.get(c) - (long) (alpha * 1000000000D);
+					
+					if(timeout <= 0) {
+						
+						c.close();
+						
+					} else {
+					
+						connectionsTimeout.remove(c);
+						
+						connectionsTimeout.put(c, timeout);
+					
+					}
+					
+				}
+				
+				update(alpha);
 				
 				if (System.nanoTime() - lastTpsUpdate > 1000000000L) {
 					
@@ -174,10 +222,25 @@ public abstract class ServerGame {
 		
 	}
 	
-	public void connected(Connection connect) {}
+	public void connected(fr.slypy.slymyjge.network.Connection connect) {}
 	
-	public void disconnected(Connection connect) {}
+	public void authentified(fr.slypy.slymyjge.network.Connection connect) {}
 	
-	public void packetReceived(Connection connect, Packet packet, long ping) {}
+	public void disconnected(fr.slypy.slymyjge.network.Connection connect) {}
+	
+	public void packetReceived(fr.slypy.slymyjge.network.Connection connect, Packet packet, long ping) {}
+
+	public int getTickCap() {
+		
+		return tickCap;
+		
+	}
+
+	public void setTickCap(int tickCap) {
+		
+		this.tickCap = tickCap;
+		
+	}
+	
 
 }

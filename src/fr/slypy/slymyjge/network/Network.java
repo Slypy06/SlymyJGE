@@ -15,7 +15,7 @@ public class Network {
 	public void addClientRegistering(NetworkClientRegistering registering) {
 		
 		clientRegistering = registering;
-		checkClientRegistering = false;
+		checkClientRegistering = true;
 		
 	}
 	

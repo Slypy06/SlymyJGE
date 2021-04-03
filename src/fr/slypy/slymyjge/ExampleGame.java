@@ -8,7 +8,7 @@ import fr.slypy.slymyjge.server.ServerGame;
 public class ExampleGame {
 	
 	public static ExampleGameClient clientGame;
-	public static ExampleGameClient serverGame;
+	public static ExampleGameServer serverGame;
 	
 	public static void main(String args) {
 		
@@ -16,25 +16,29 @@ public class ExampleGame {
 			
 			public void run() {
 				
-				clientGame = new ExampleGameClient(width, height, title, backgroundColor, resizable)
+				clientGame = new ExampleGameClient(1280, 720, "Example Game Client", Color.black, false);
+				clientGame.start();
 				
 			}
 			
 		}.start();
 		
-		new Thread() {
+		/*new Thread() {
 			
 			public void run() {
 				
-				serverGame = new ExampleGameClient(width, height, title, backgroundColor, resizable)
+				NetworkRegister reg = new NetworkRegister();
+				
+				serverGame = new ExampleGameServer(25566, 25567, "Example Game Server", reg);
+				serverGame.start();
 				
 			}
 			
-		}.start();
+		}.start();*/
 		
 	}
 	
-	public class ExampleGameClient extends Game {
+	public static class ExampleGameClient extends Game {
 
 		public ExampleGameClient(int width, int height, String title, Color backgroundColor, boolean resizable) {
 			
@@ -45,7 +49,8 @@ public class ExampleGame {
 		@Override
 		public void init() {
 
-			
+			setFrameCap(60);
+			setTickCap(50);
 			
 		}
 
@@ -72,7 +77,7 @@ public class ExampleGame {
 		
 	}
 
-	public class ExampleGameServer extends ServerGame {
+	public static class ExampleGameServer extends ServerGame {
 
 		public ExampleGameServer(int tcpPort, int udpPort, String name, NetworkRegister register) {
 			
@@ -83,17 +88,17 @@ public class ExampleGame {
 		@Override
 		public void init() {
 
-			
+			setTickCap(50);
 			
 		}
 
 		@Override
-		public void update() {
-
+		public void update(double alpha) {
+			
 			
 			
 		}
-
+		
 		@Override
 		public void exit() {
 

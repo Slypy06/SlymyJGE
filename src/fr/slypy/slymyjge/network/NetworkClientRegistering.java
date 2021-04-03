@@ -8,4 +8,6 @@ public interface NetworkClientRegistering {
 	
 	public boolean checkRegisteringPacket(Packet p);
 	
+	public long getTimeoutDelay();
+	
 }
