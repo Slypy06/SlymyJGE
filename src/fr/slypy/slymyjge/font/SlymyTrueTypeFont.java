@@ -235,8 +235,8 @@ public class SlymyTrueTypeFont implements Font {
 
 				if( i < 256 ) { // standard characters
 					charArray[i] = newIntObject;
-				} else { // custom characters
-					customChars.put( new Character( ch ), newIntObject );
+				} else { // custom character 
+					customChars.put( Character.valueOf(ch), newIntObject );
 				}
 
 				fontImage = null;
@@ -311,7 +311,7 @@ public class SlymyTrueTypeFont implements Font {
 			if (currentChar < 256) {
 				intObject = charArray[currentChar];
 			} else {
-				intObject = (IntObject)customChars.get( new Character( (char) currentChar ) );
+				intObject = (IntObject)customChars.get( Character.valueOf((char) currentChar));
 			}
 			
 			if( intObject != null )
@@ -384,7 +384,7 @@ public class SlymyTrueTypeFont implements Font {
 			if (charCurrent < 256) {
 				intObject = charArray[charCurrent];
 			} else {
-				intObject = (IntObject)customChars.get( new Character( (char) charCurrent ) );
+				intObject = (IntObject)customChars.get(Character.valueOf((char) charCurrent ));
 			} 
 			
 			if( intObject != null ) {
