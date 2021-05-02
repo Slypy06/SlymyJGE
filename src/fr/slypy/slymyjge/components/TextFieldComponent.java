@@ -1,15 +1,21 @@
 package fr.slypy.slymyjge.components;
 
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.lwjgl.input.Keyboard;
 
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.font.SlymyFont;
+import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.utils.MouseButtons;
 import fr.slypy.slymyjge.utils.RenderType;
 
 public abstract class TextFieldComponent extends Component {
 
-	public String text = "";
+	public List<String> text = new ArrayList<String>();
 	public int cap = -1;
 	public String allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890&È~" + '"' + "#'{([-|Ë`_\\Á^‡@)]∞+=}^®$£§%˘ß!/:.;?,*≤<>‚‰„ÍÎ˚¸ÓÔÙˆıÒ¬ƒ√ À€‹Œœ‘÷’—µ";
 	public boolean allowMultilines = false;
@@ -60,13 +66,13 @@ public abstract class TextFieldComponent extends Component {
 		
 	}
 	
-	public String getText() {
+	public List<String> getText() {
 		
 		return text;
 		
 	}
 	
-	public void setString(String text) {
+	public void setString(List<String> text) {
 		
 		this.text = text;
 		
@@ -78,42 +84,60 @@ public abstract class TextFieldComponent extends Component {
 		
 	}
 	
+	public int getTextSize() {
+		
+		int size = 0;
+		
+		for(String s : text) {
+			
+			size += s.length();
+			
+		}
+		
+		return size;
+		
+	}
+	
 	public void setCap(int cap) {
 		
 		this.cap = cap;
 		
-		if(text.length() < cap) {
-			
-			cap = text.length();
-			
-		}
-		
-		if(cap > 0) {
-			
-			text = text.substring(0, cap - 1);
-		
-		} else if(cap == 0) {
-			
-			text = "";
-			
-		}
-		
 	}
 	
 	public void keyTyped(char key) {
+		System.out.println((int) key);
+		if(allowed.contains(key + "")) {
 		
-		if(allowed.contains(key + "") || (allowMultilines && (int) key == 13)) {
-		
-			if(cap <= -1) {
+			if(text.size() == 0) {
 				
-				text += key;
+				text.add(key + "");
 				
-			} else if(text.length() + 1 <= cap) {
-				
-				text += key;
-				
+			} else {
+			
+				if(cap <= -1) {
+					
+					text.set(text.size() - 1, text.get(text.size() - 1) + key);
+					
+				} else if(getTextSize() + 1 <= cap) {
+					
+					text.set(text.size() - 1, text.get(text.size() - 1) + key);
+					
+				}
+			
 			}
 		
+		} else if(allowMultilines && (int) key == 13) { //BACKLINE
+			
+			text.add("");
+			
+		} else if((int) key == 8) { //EREASE
+			
+			if(getTextSize() > 0) {
+				
+
+				
+			}
+			
 		}
 		
 	}
@@ -231,29 +255,67 @@ public abstract class TextFieldComponent extends Component {
 		
 	}
 
-	public void setText(String text) {
+	public void setText(List<String> text) {
 		
 		this.text = text;
+		
+	}
+	
+	public void setText(String text) {
+		
+		this.text = new ArrayList<String>(Arrays.asList(text));
 		
 	}
 
 	@Override
 	public void render() {
 		
-		if(f.getWidth(text) > w - (margin * 2)) {
+		renderBackground();
+		
+		List<String> linesTemp = new ArrayList<String>();
+		String lineTemp = "";
+		int i = 1;
+		
+		for(String line : text) {
 			
+			if(f.getHeight() * i < h - (margin * 2)) {
 			
+				for(char c : line.toCharArray()) {
+					
+					if(f.getWidth(lineTemp + c) < w - (margin * 2)) {
+						
+						lineTemp += c;
+						
+					}
+					
+				}
+				
+				linesTemp.add(lineTemp);
+				
+				lineTemp = "";
+				
+			}
 			
-		} else {
+			i++;
+
+		}
+		
+		i = 0;
+		
+		for(String line : linesTemp) {
 			
+			Renderer.renderText(x + margin, y + margin + (f.getHeight() * i), f, line, Color.black);
 			
+			i++;
 			
 		}
 		
-		renderField();
-		
+		renderForeground();
+
 	}
 	
-	public abstract void renderField();
+	public abstract void renderBackground();
+	
+	public abstract void renderForeground();
 
 }

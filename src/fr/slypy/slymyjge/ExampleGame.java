@@ -2,9 +2,9 @@ package fr.slypy.slymyjge;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.io.File;
-import java.io.IOException;
+
+import org.lwjgl.input.Keyboard;
 
 import fr.slypy.slymyjge.components.TextFieldComponent;
 import fr.slypy.slymyjge.font.SlymyFont;
@@ -34,7 +34,7 @@ public class ExampleGame extends Game {
 		
 		try {
 			
-			font = new SlymyFont(Font.createFont(Font.TRUETYPE_FONT, new File("C:\\Users\\Enzo\\Desktop\\font.ttf")).deriveFont(30f), Color.black);
+			font = new SlymyFont(Font.createFont(Font.TRUETYPE_FONT, new File("C:\\Users\\Enzo\\Desktop\\font.ttf")).deriveFont(28f), Color.black);
 			
 		} catch (Exception e) {
 
@@ -46,26 +46,33 @@ public class ExampleGame extends Game {
 		
 		Renderer.init(game);
 		
-		comp = new TextFieldComponent(100, 100, 300, 50, game) {
-			
+		comp = new TextFieldComponent(100, 100, 800, 150, game, font) {
+
 			@Override
-			public void renderField() {
+			public void renderBackground() {
 				
 				Renderer.renderLine(this.getX(), this.getY(), this.getX() + this.getW(), this.getY(), Color.black);
 				Renderer.renderLine(this.getX(), this.getY(), this.getX(), this.getY() + this.getH(), Color.black);
 				Renderer.renderLine(this.getX() + this.getW(), this.getY(), this.getX() + this.getW(), this.getY() + this.getH(), Color.black);
 				Renderer.renderLine(this.getX(), this.getY() + this.getH(), this.getX() + this.getW(), this.getY() + this.getH(), Color.black);
 				
-				if(this.isFocus()) {
+			}
+
+			@Override
+			public void renderForeground() {
+				
+				if(Keyboard.isKeyDown(Keyboard.KEY_A)) {
 					
-					Renderer.renderLine(this.getX() + 12 + font.getWidth(this.getText()), this.getY() + 10, this.getX() + 12 + font.getWidth(this.getText()), this.getY() + this.getH() - 10, Color.black);
+					System.out.println(this.getTextSize());
 					
 				}
-
+				
 			}
 			
 		};
-		comp.setCap(10);
+		
+		comp.setCap(100);
+		comp.setAllowMultilines(true);
 		
 		game.addComponent("textField", comp);
 		
