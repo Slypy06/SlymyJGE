@@ -120,6 +120,12 @@ public class Texture {
 		
 	}
 	
+	public static Texture loadTexture(BufferedImage image) {
+		
+		return loadTexture(image, false);
+		
+	}
+	
 	public static Texture loadTexture(BufferedImage image, boolean blackAndWhite) {
 		
 		int w = image.getWidth();
@@ -203,6 +209,12 @@ public class Texture {
 	public BufferedImage getImage() {
 		
 		return image;
+		
+	}
+	
+	public int getId() {
+		
+		return id;
 		
 	}
 	

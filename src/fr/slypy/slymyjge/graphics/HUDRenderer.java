@@ -7,7 +7,6 @@ import static org.lwjgl.opengl.GL11.glEnd;
 import java.awt.Color;
 
 import fr.slypy.slymyjge.animations.SimpleAnimation;
-import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
 
 public class HUDRenderer extends Renderer {
 	
@@ -72,30 +71,6 @@ public class HUDRenderer extends Renderer {
 		y -= game.getYCam();
 		
 		animation.draw(x, y, w, h, yo);
-		
-	}
-	
-	public static void renderString(float x, float y, SlymyTrueTypeFont font, String str) {
-		
-		x -= game.getXCam();
-		y -= game.getYCam();
-		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
-		
-		font.drawString(x, y, str);
-		
-	}
-	
-	public static void renderString(float x, float y, SlymyTrueTypeFont font, String str, Color color) {
-		
-		x -= game.getXCam();
-		y -= game.getYCam();
-		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
-		
-		font.drawString(x, y, str, new org.newdawn.slick.Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
 		
 	}
 	

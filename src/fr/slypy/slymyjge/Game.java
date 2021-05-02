@@ -7,7 +7,6 @@ import java.awt.Font;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
 import fr.slypy.slymyjge.components.Component;
-import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
+import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
@@ -76,10 +75,7 @@ public abstract class Game extends KeyboardInputs {
 	
 	protected long showedTPS = 0;
 
-	protected static ArrayList<Component> components = new ArrayList<Component>();
-	
-	protected static Map<String, SlymyTrueTypeFont> fonts = new HashMap<String, SlymyTrueTypeFont>();
-	protected static Map<String, SlymyTrueTypeFont> startFonts = new HashMap<String, SlymyTrueTypeFont>();
+	protected static Map<String, Component> components = new HashMap<String, Component>();
 	
 	protected static long wait = 0;
 	
@@ -274,15 +270,7 @@ public abstract class Game extends KeyboardInputs {
 	
 	public void registerFont(Font font, String uuid, boolean antiAlias) {
 		
-		if(fonts.containsKey(uuid)) {
-			
-			System.err.println("TrueTypeFont with uuid " + uuid + " is already register ! Overriding it...");
-			fonts.remove(uuid);
-			
-		}
-		
-		fonts.put(uuid, new SlymyTrueTypeFont(font, false));
-		startFonts.put(uuid, fonts.get(uuid));
+
 		
 	}
 	
@@ -354,7 +342,7 @@ public abstract class Game extends KeyboardInputs {
 						
 						keyUpdate();
 						
-						for(Component comp : components) {
+						for(Component comp : components.values()) {
 							
 							comp.update(getXCursor(), getYCursor(), game);
 							
@@ -390,7 +378,7 @@ public abstract class Game extends KeyboardInputs {
 				
 		double alpha = (double) (System.nanoTime() - before) / 1000000000D;
 		double gamma = 1D / (double) frameCap;
-				
+		
 		while(true) {
 			
 			alpha = (double) (System.nanoTime() - before) / 1000000000D;
@@ -446,34 +434,20 @@ public abstract class Game extends KeyboardInputs {
 						
 				if(wDiff != 1 || hDiff != 1) {
 							
-					for(String uuid : startFonts.keySet()) {
-								
-						SlymyTrueTypeFont ttf = fonts.get(uuid);
-								
-						Font f = ttf.getFont();
-								
-						fonts.remove(uuid);
-								
-						if(widthDiff <= heightDiff) {
-								
-							ttf = new SlymyTrueTypeFont(f.deriveFont(startFonts.get(uuid).getFont().getSize() * widthDiff), ttf.antiAlias());
-								
-						} else {
-									
-							ttf = new SlymyTrueTypeFont(f.deriveFont(startFonts.get(uuid).getFont().getSize() * heightDiff), ttf.antiAlias());
-									
-						}
-								
-						fonts.put(uuid, ttf);
-								
-					}
+
 							
 				}
 						
 				glClear(GL_COLOR_BUFFER_BIT);
 				glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
-						
+				
 				render(alpha);
+				
+				for(Component comp : components.values()) {
+					
+					comp.render();
+					
+				}
 						
 				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
 							
@@ -523,18 +497,9 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public SlymyTrueTypeFont getFont(String uuid) {
+	public SlymyFont getFont(String uuid) {
 		
-		if(fonts.containsKey(uuid)) {
-			
-			return fonts.get(uuid);
-			
-		} else {
-			
-			System.err.println("Font with uuid " + uuid + " not found !");
-			return null;
-			
-		}
+		return null;
 		
 	}
 	
@@ -771,17 +736,24 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public void addComponent(Component comp) {
+	public void addComponent(String uuid, Component comp) {
 		
-		components.add(comp);
+		if(components.containsKey(uuid)) {
+			
+			System.err.println("Component with uuid " + uuid + " is already register ! Overriding it...");
+			components.remove(uuid);
+			
+		}
+		
+		components.put(uuid, comp);
 		
 	}
 	
-	public void addComponents(Component[] comps) {
+	public void addComponents(Map<String, Component> comps) {
 		
-		for(Component comp : comps) {
+		for(String uuid : comps.keySet()) {
 			
-			components.add(comp);
+			addComponent(uuid, comps.get(uuid));
 			
 		}
 		
@@ -859,7 +831,37 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public ArrayList<Component> getComponents() {
+	public Component getComponent(String uuid) {
+		
+		for(String key : components.keySet()) {
+			
+			if(key.equalsIgnoreCase(uuid)) {
+				
+				return components.get(key);
+				
+			}
+			
+		}
+		
+		return null;
+		
+	}
+	
+	public void removeComponent(String uuid) {
+		
+		for(String key : components.keySet()) {
+			
+			if(key.equalsIgnoreCase(uuid)) {
+				
+				components.remove(key);
+				
+			}
+			
+		}
+		
+	}
+	
+	public Map<String, Component> getComponents() {
 		
 		return components;
 		
@@ -869,7 +871,7 @@ public abstract class Game extends KeyboardInputs {
 
 		Component component = null;
 		
-		for(Component comp : components) {
+		for(Component comp : components.values()) {
 			
 			if(comp.isHover()) {
 					

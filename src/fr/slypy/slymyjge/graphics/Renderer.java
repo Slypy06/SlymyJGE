@@ -3,10 +3,9 @@ package fr.slypy.slymyjge.graphics;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Color;
-
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.animations.SimpleAnimation;
-import fr.slypy.slymyjge.font.SlymyTrueTypeFont;
+import fr.slypy.slymyjge.font.SlymyFont;
 
 public class Renderer {
 	
@@ -91,7 +90,7 @@ public class Renderer {
 	}
 	
 	protected static void lineData(float ax, float ay, float bx, float by, Color color) {
-		
+
 		glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, (float) color.getAlpha() / 255.0F);
 		glVertex2f(ax, ay);
 		glVertex2f(bx, by);
@@ -189,14 +188,14 @@ public class Renderer {
 			
 		}
 		
-			glLineWidth(width);
-			glBegin(GL_LINE_STRIP);
-				Renderer.lineData(ax, ay, bx, by, color);
-			glEnd();
+		glLineWidth(width);
+		glBegin(GL_LINE_STRIP);
+			Renderer.lineData(ax, ay, bx, by, color);
+		glEnd();
 			
 		if(d != 0.0D) {
 				
-			lineRotate(d, ax, ay, bx, by);
+			lineRotate(-d, ax, ay, bx, by);
 				
 		}
 		
@@ -356,44 +355,30 @@ public class Renderer {
 		
 	}
 	
-	public static void renderString(float x, float y, SlymyTrueTypeFont font, String str) {
+	public static void renderText(float x, float y, SlymyFont font, String text) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
-		
-		if(d != 0.0D) {
+		for(int i = 0; i < text.length(); i++) {
 			
-			rotate(d, font.getWidth(str), font.getHeight(), x, y);
-				
-		}
-		
-			font.drawString(x, y, str);
-		
-		if(d != 0.0D) {
+			Texture charTexture = font.getCharTexture(text.charAt(i));
 			
-			rotate(d, font.getWidth(str), font.getHeight(), x, y);
-				
+			renderTexturedQuad(x, y, charTexture.getWidth(), charTexture.getHeight(), charTexture);
+			
+			x += font.getCharData(text.charAt(i)).getWidth();
+			
 		}
 		
 	}
 	
-	public static void renderString(float x, float y, SlymyTrueTypeFont font, String str, Color color) {
+	public static void renderText(float x, float y, SlymyFont font, String text, Color color) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
-		
-		if(d != 0.0D) {
+		for(int i = 0; i < text.length(); i++) {
 			
-			rotate(d, font.getWidth(str), font.getHeight(), x, y);
-				
-		}
-		
-			font.drawString(x, y, str, new org.newdawn.slick.Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
-		
-		if(d != 0.0D) {
+			Texture charTexture = font.getCharTexture(text.charAt(i));
 			
-			rotate(-d, font.getWidth(str), font.getHeight(), x, y);
-				
+			renderTexturedQuad(x, y, charTexture.getWidth(), charTexture.getHeight(), charTexture, color);
+			
+			x += font.getCharData(text.charAt(i)).getWidth();
+			
 		}
 		
 	}

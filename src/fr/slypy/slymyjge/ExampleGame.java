@@ -1,160 +1,94 @@
 package fr.slypy.slymyjge;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.File;
+import java.io.IOException;
 
-import org.lwjgl.input.Keyboard;
-
-import com.esotericsoftware.kryonet.Connection;
-
+import fr.slypy.slymyjge.components.TextFieldComponent;
+import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Renderer;
-import fr.slypy.slymyjge.network.NetworkRegister;
-import fr.slypy.slymyjge.server.ServerGame;
 
-public class ExampleGame {
+public class ExampleGame extends Game {
+
+	public static ExampleGame game;
+	public TextFieldComponent comp;
+	public SlymyFont font;
 	
-	public static ExampleGameClient clientGame;
-	public static ExampleGameServer serverGame;
+	public ExampleGame(int width, int height, String title, Color backgroundColor, boolean resizable) {
+		
+		super(width, height, title, backgroundColor, resizable);
+
+	}
 	
 	public static void main(String[] args) {
 		
-		new Thread() {
-			
-			public void run() {
-				
-				clientGame = new ExampleGameClient(1280, 720, "Example Game Client", Color.black, false);
-				clientGame.start();
-				
-			}
-			
-		}.start();
-		
-		new Thread() {
-			
-			public void run() {
-				
-				NetworkRegister reg = new NetworkRegister();
-				
-				serverGame = new ExampleGameServer(25566, 25567, "Example Game Server", reg);
-				serverGame.start();
-				
-			}
-			
-		}.start();
-		
-	}
-	
-	public static class ExampleGameClient extends Game {
-
-		public int state = -1;
-		
-		public ExampleGameClient(int width, int height, String title, Color backgroundColor, boolean resizable) {
-			
-			super(width, height, title, backgroundColor, resizable);
-
-		}
-
-		@Override
-		public void init() {
-
-			setupClientForMultiplayer(new NetworkRegister());
-			
-			setFrameCap(60);
-			setTickCap(50);
-			Renderer.init(this);
-			
-		}
-
-		@Override
-		public void update(double alpha) {
-
-			if(state == -1 && Keyboard.isKeyDown(Keyboard.KEY_E)) {
-				
-				connectToServer("localhost", 25566, 25567);
-				
-			}
-			
-		}
-
-		@Override
-		public void render(double alpha) {
-
-			switch(state) {
-			
-			case -1:
-				
-				Renderer.renderQuad(100, 100, 100, 100, Color.BLACK);
-				break;
-			
-			case 0:
-				
-				Renderer.renderQuad(100, 100, 100, 100, Color.DARK_GRAY);
-				break;
-				
-			case 1:
-				
-				Renderer.renderQuad(100, 100, 100, 100, Color.LIGHT_GRAY);
-				break;
-				
-			case 2:
-				
-				Renderer.renderQuad(100, 100, 100, 100, Color.WHITE);
-				break;
-			
-			}
-			
-		}
-
-		@Override
-		public void stop() {
-
-			
-			
-		}
-		
-		@Override
-		public void authentified(Connection c) {
-			
-			state = 2;
-			
-		}
-		
-		@Override
-		public void connected(Connection c) {
-			
-			state = 1;
-			
-		}
+		game = new ExampleGame(1280, 720, "Client Game", Color.white, false);
+		game.start();
 		
 	}
 
-	public static class ExampleGameServer extends ServerGame {
-
-		public ExampleGameServer(int tcpPort, int udpPort, String name, NetworkRegister register) {
+	@Override
+	public void init() {
+		
+		try {
 			
-			super(tcpPort, udpPort, name, register);
-
-		}
-
-		@Override
-		public void init() {
-
-			setTickCap(50);
+			font = new SlymyFont(Font.createFont(Font.TRUETYPE_FONT, new File("C:\\Users\\Enzo\\Desktop\\font.ttf")).deriveFont(30f), Color.black);
 			
-		}
+		} catch (Exception e) {
 
-		@Override
-		public void update(double alpha) {
-			
-			
+			e.printStackTrace();
 			
 		}
 		
-		@Override
-		public void exit() {
+		game.setShowFPS(true);
+		
+		Renderer.init(game);
+		
+		comp = new TextFieldComponent(100, 100, 300, 50, game) {
+			
+			@Override
+			public void renderField() {
+				
+				Renderer.renderLine(this.getX(), this.getY(), this.getX() + this.getW(), this.getY(), Color.black);
+				Renderer.renderLine(this.getX(), this.getY(), this.getX(), this.getY() + this.getH(), Color.black);
+				Renderer.renderLine(this.getX() + this.getW(), this.getY(), this.getX() + this.getW(), this.getY() + this.getH(), Color.black);
+				Renderer.renderLine(this.getX(), this.getY() + this.getH(), this.getX() + this.getW(), this.getY() + this.getH(), Color.black);
+				
+				if(this.isFocus()) {
+					
+					Renderer.renderLine(this.getX() + 12 + font.getWidth(this.getText()), this.getY() + 10, this.getX() + 12 + font.getWidth(this.getText()), this.getY() + this.getH() - 10, Color.black);
+					
+				}
 
+			}
 			
-			
-		}
+		};
+		comp.setCap(10);
+		
+		game.addComponent("textField", comp);
+		
+	}
+
+	@Override
+	public void update(double alpha) {
+		
+		
+		
+	}
+
+	@Override
+	public void render(double alpha) {
+
+		
+		
+	}
+
+	@Override
+	public void stop() {
+		
+		System.out.println("stop");
 		
 	}
 	
