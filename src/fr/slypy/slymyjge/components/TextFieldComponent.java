@@ -264,7 +264,7 @@ public abstract class TextFieldComponent extends Component {
 	public void setText(String text) {
 		
 		this.text = new ArrayList<String>(Arrays.asList(text));
-		
+		 
 	}
 
 	@Override
