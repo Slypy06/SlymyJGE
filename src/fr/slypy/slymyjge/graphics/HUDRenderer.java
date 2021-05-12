@@ -6,7 +6,7 @@ import static org.lwjgl.opengl.GL11.glEnd;
 
 import java.awt.Color;
 
-import fr.slypy.slymyjge.animations.SimpleAnimation;
+import fr.slypy.slymyjge.animations.Animation;
 
 public class HUDRenderer extends Renderer {
 	
@@ -56,21 +56,21 @@ public class HUDRenderer extends Renderer {
 		
 	}
 	
-	public static void renderSimpleAnimation(float x, float y, int w, int h, SimpleAnimation animation, int yo, Color color) {
+	public static void renderAnimation(float x, float y, int w, int h, Animation animation, Color color) {
 		
 		x -= game.getXCam();
 		y -= game.getYCam();
 		
-		animation.draw(x, y, w, h, yo, color);
+		animation.render(x, y, w, h, color);
 		
 	}
 	
-	public static void renderSimpleAnimation(float x, float y, int w, int h, SimpleAnimation animation, int yo) {
+	public static void renderAnimation(float x, float y, int w, int h, Animation animation) {
 	
 		x -= game.getXCam();
 		y -= game.getYCam();
 		
-		animation.draw(x, y, w, h, yo);
+		animation.render(x, y, w, h);
 		
 	}
 	

@@ -22,11 +22,19 @@ public class SlymyFont {
 		
 		this.f = f;
 		
+		this.c = c;
+		
 		for(int i = 0; i < 256; i++) {
 			
 			createCharTexture(i);
 			
 		}
+		
+	}
+	
+	public Color getColor() {
+		
+		return c;
 		
 	}
 

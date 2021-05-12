@@ -4,7 +4,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Color;
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.animations.SimpleAnimation;
+import fr.slypy.slymyjge.animations.Animation;
 import fr.slypy.slymyjge.font.SlymyFont;
 
 public class Renderer {
@@ -307,7 +307,7 @@ public class Renderer {
 		
 	}
 	
-	public static void renderSimpleAnimation(float x, float y, int w, int h, SimpleAnimation animation, int yo, Color color) {
+	public static void renderAnimation(float x, float y, int w, int h, Animation animation, Color color) {
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -321,7 +321,7 @@ public class Renderer {
 				
 		}
 		
-			animation.draw(x, y, w, h, yo, color);
+		animation.render(x, y, w, h, color);
 		
 		if(d != 0.0D) {
 			
@@ -331,7 +331,7 @@ public class Renderer {
 		
 	}
 	
-	public static void renderSimpleAnimation(float x, float y, int w, int h, SimpleAnimation animation, int yo) {
+	public static void renderAnimation(float x, float y, int w, int h, Animation animation) {
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -345,7 +345,7 @@ public class Renderer {
 				
 		}
 		
-			animation.draw(x, y, w, h, yo);
+		animation.render(x, y, w, h);
 		
 		if(d != 0.0D) {
 			

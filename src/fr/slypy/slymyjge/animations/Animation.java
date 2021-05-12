@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.slypy.slymyjge.graphics.Renderer;
-
 
 public class Animation {
 	
@@ -15,30 +13,30 @@ public class Animation {
 	private long lastUpdate = 0;
 	private long speed = 200000000;
 	
-	private int xo = 0;
+	private int frame = 0;
 
-	protected Animation(AnimationFrame[] frames) {
+	public Animation(AnimationFrame[] frames) {
 		
 		this.frames.addAll(Arrays.asList(frames));
 		
 	}
 	
-	protected void render(float x, float y, int w, int h, Color color) {
+	public void render(float x, float y, int w, int h, Color color) {
 			
 		if(frames.size() < 1) {
 			
 			return;
 			
-		} else if(xo >= frames.size()) {
+		} else if(frame >= frames.size()) {
 			
-			xo = 0;
+			frame = 0;
 			
 		}
 		
 		if(lastUpdate == 0) {
 				
 			lastUpdate = System.nanoTime();
-			xo = 0;
+			frame = 0;
 				
 		} else {
 				
@@ -48,13 +46,13 @@ public class Animation {
 				
 				long changes = Math.floorDiv(alpha, speed);
 					
-				long totalXo = xo + changes;
+				long newFrame = frame + changes;
 					
-				long rounds = Math.floorDiv(totalXo, frames.size());
+				long rounds = Math.floorDiv(newFrame, frames.size());
 					
-				totalXo -= rounds * (frames.size());
+				newFrame -= rounds * (frames.size());
 					
-				xo = (int) totalXo;
+				frame = (int) newFrame;
 					
 				lastUpdate = System.nanoTime();
 				
@@ -62,11 +60,11 @@ public class Animation {
 				
 		}
 		
-		Renderer.renderTexturePart(x, y, w, h, color, frames.get(xo).getXo(), frames.get(xo).getYo(), frames.get(xo).getMaxXo(), frames.get(xo).getMaxYo(), frames.get(xo).getTexture());
+		frames.get(frame).render(x, y, w, h, color);
 		
 	}
 	
-	protected void render(float x, float y, int w, int h) {
+	public void render(float x, float y, int w, int h) {
 		
 		render(x, y, w, h, Color.white);
 		
@@ -105,6 +103,16 @@ public class Animation {
 	public void addFrames(AnimationFrame[] frames) {
 		
 		this.frames.addAll(Arrays.asList(frames));
+		
+	}
+	
+	public void setFrame(int frame) {
+		
+		long rounds = Math.floorDiv(frame, frames.size());
+		
+		frame -= rounds * (frames.size());
+			
+		this.frame = (int) frame;
 		
 	}
 	

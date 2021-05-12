@@ -8,6 +8,8 @@ import java.util.List;
 import org.lwjgl.input.Keyboard;
 
 import fr.slypy.slymyjge.Game;
+import fr.slypy.slymyjge.animations.Animation;
+import fr.slypy.slymyjge.animations.AnimationFrame;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.utils.MouseButtons;
@@ -17,11 +19,12 @@ public abstract class TextFieldComponent extends Component {
 
 	public List<String> text = new ArrayList<String>();
 	public int cap = -1;
-	public String allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890&È~" + '"' + "#'{([-|Ë`_\\Á^‡@)]∞+=}^®$£§%˘ß!/:.;?,*≤<>‚‰„ÍÎ˚¸ÓÔÙˆıÒ¬ƒ√ À€‹Œœ‘÷’—µ";
+	public String allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890&È~" + '"' + "#'{([-|Ë`_\\Á^‡@)]∞+=}^®$£§%˘ß!/:.;?,*≤<>‚‰„ÍÎ˚¸ÓÔÙˆıÒ¬ƒ√ À€‹Œœ‘÷’—µ ";
 	public boolean allowMultilines = false;
 	public boolean focus;
 	public SlymyFont f;
 	public int margin = 10;
+	public Animation cursorAnimation;
 	
 	public TextFieldComponent(float x, float y, int w, int h, Game game, SlymyFont f) {
 		
@@ -39,6 +42,32 @@ public abstract class TextFieldComponent extends Component {
 		this.addMouseButtonToListen(MouseButtons.RIGHT_BUTTON);
 		this.addMouseButtonToListen(MouseButtons.MIDDLE_BUTTON);
 		this.addKeyToListen(Keyboard.KEY_ESCAPE);
+		
+		text.add("");
+		
+		cursorAnimation = new Animation(new AnimationFrame[] {
+				
+				new AnimationFrame() {
+					
+					@Override
+					public void render(float x, float y, int w, int h, Color c) {
+						
+						Renderer.renderLine(x, y, x + w, y + h, c);
+						
+					}
+					
+				},
+				
+				new AnimationFrame() {
+					
+					@Override
+					public void render(float x, float y, int w, int h, Color c) {}
+					
+				}
+				
+		});
+		
+		cursorAnimation.setSpeed(0.7f);
 		
 	}
 	
@@ -66,35 +95,65 @@ public abstract class TextFieldComponent extends Component {
 		
 	}
 	
-	public List<String> getText() {
+	public List<String> getLines() {
 		
 		return text;
 		
 	}
 	
-	public void setString(List<String> text) {
+	public int length() {
 		
-		this.text = text;
+		int i = 0;
+		
+		for(String s : text) {
+			
+			i += s.length();
+			
+		}
+		
+		return i;
+		
+	}
+	
+	public String getText() {
+		
+		if(text.size() > 1) {
+		
+			String textLine = "";
+			
+			int i = 0;
+			
+			for(String s : text) {
+				
+				textLine += i == 0 ? "" : "\n" + s;
+				
+				i++;
+				
+			}
+			
+			return textLine;
+		
+		} else if(text.size() == 1) {
+			
+			return text.get(0);
+			
+		} else {
+			
+			return "";
+			
+		}
+		
+	}
+	
+	public void setString(String text) {
+		
+		this.text = new ArrayList<String>(Arrays.asList(text.split("\n")));
 		
 	}
 	
 	public int getCap() {
 		
 		return cap;
-		
-	}
-	
-	public int getTextSize() {
-		
-		int size = 0;
-		
-		for(String s : text) {
-			
-			size += s.length();
-			
-		}
-		
-		return size;
 		
 	}
 	
@@ -105,7 +164,7 @@ public abstract class TextFieldComponent extends Component {
 	}
 	
 	public void keyTyped(char key) {
-		System.out.println((int) key);
+		
 		if(allowed.contains(key + "")) {
 		
 			if(text.size() == 0) {
@@ -118,7 +177,7 @@ public abstract class TextFieldComponent extends Component {
 					
 					text.set(text.size() - 1, text.get(text.size() - 1) + key);
 					
-				} else if(getTextSize() + 1 <= cap) {
+				} else if(length() + 1 <= cap) {
 					
 					text.set(text.size() - 1, text.get(text.size() - 1) + key);
 					
@@ -132,9 +191,23 @@ public abstract class TextFieldComponent extends Component {
 			
 		} else if((int) key == 8) { //EREASE
 			
-			if(getTextSize() > 0) {
+			if(length() > 0) {
 				
-
+				if(text.size() > 0) {
+					
+					String line = text.get(text.size() - 1);
+					
+					if(line.length() == 0) {
+						
+						text.remove(text.size() - 1);
+						
+					} else {
+						
+						text.set(text.size() - 1, line.substring(0, line.length() - 1));
+						
+					}
+					
+				}
 				
 			}
 			
@@ -303,8 +376,14 @@ public abstract class TextFieldComponent extends Component {
 		i = 0;
 		
 		for(String line : linesTemp) {
+
+			Renderer.renderText(x + margin, y + margin + (f.getHeight() * i), f, line, f.getColor());
 			
-			Renderer.renderText(x + margin, y + margin + (f.getHeight() * i), f, line, Color.black);
+			if(i == linesTemp.size() - 1 && focus && x + margin + f.getWidth(line + " ") + (f.getF().getSize() / 10) <= x + w) {
+				
+				Renderer.renderAnimation(x + margin + f.getWidth(line) + (f.getF().getSize() / 10), y + margin + (f.getHeight() * i), 0, f.getHeight(), cursorAnimation);
+				
+			}
 			
 			i++;
 			
