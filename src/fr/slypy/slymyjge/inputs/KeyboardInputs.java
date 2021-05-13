@@ -1,6 +1,8 @@
 package fr.slypy.slymyjge.inputs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 
@@ -9,6 +11,14 @@ public class KeyboardInputs extends MouseInputs {
 	public int escapeGameKey = Keyboard.KEY_NONE;
 
 	private HashMap<Integer, Integer> keys = new HashMap<Integer, Integer>();
+	
+	private static List<KeyboardInputs> instances = new ArrayList<KeyboardInputs>();
+	
+	public KeyboardInputs() {
+		
+		instances.add(this);
+		
+	}
 	
 	public void addKeyToListen(int key) {
 		
@@ -50,10 +60,19 @@ public class KeyboardInputs extends MouseInputs {
 			
 		}
 		
+		while(Keyboard.next()) {
+			
+			for(KeyboardInputs instance : instances) {
+				
+				instance.keyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKeyState());
+				
+			}
+			
+		}
+		
 	}
 	
 	public void keyPressed(int key) {}
-	
 	
 	public void keyReleased(int key) {}
 
@@ -62,5 +81,7 @@ public class KeyboardInputs extends MouseInputs {
 		return Keyboard.isKeyDown(escapeGameKey);
 		
 	}
+	
+	public void keyTyped(char key, boolean eventState) {}
 	
 }

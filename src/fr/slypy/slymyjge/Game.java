@@ -3,7 +3,6 @@ package fr.slypy.slymyjge;
 import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -23,7 +23,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
 import fr.slypy.slymyjge.components.Component;
-import fr.slypy.slymyjge.font.SlymyFont;
+import fr.slypy.slymyjge.components.PanelComponent;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
@@ -85,6 +85,8 @@ public abstract class Game extends KeyboardInputs {
 	protected static long tickCap = Integer.MAX_VALUE;
 	
 	protected static boolean closeRequested = false;
+	
+	protected static Cursor defaultCursor = Mouse.getNativeCursor();
 	
 	public Game(int width, int height, String title) {
 		
@@ -195,47 +197,15 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public void connectToServer(String adress, int tcpPort, int udpPort) {
-		
-		new Thread() {
-			
-			public void run() {
+	public void connectToServer(String adress, int tcpPort, int udpPort) throws IOException {
 				
-				try {
-					
-					client.connect(5000, adress, tcpPort, udpPort);
-					
-				} catch (IOException e) {
-
-					e.printStackTrace();
-					
-				}
-				
-			}
-			
-		}.start();
+		client.connect(5000, adress, tcpPort, udpPort);
 		
 	}
 	
-	public void connectToServer(String adress, int tcpPort) {
+	public void connectToServer(String adress, int tcpPort) throws IOException {
 		
-		new Thread() {
-			
-			public void run() {
-				
-				try {
-					
-					client.connect(5000, adress, tcpPort);
-					
-				} catch (IOException e) {
-
-					e.printStackTrace();
-					
-				}
-				
-			}
-			
-		}.start();
+		client.connect(5000, adress, tcpPort);
 		
 	}
 	
@@ -259,18 +229,6 @@ public abstract class Game extends KeyboardInputs {
 	public int getEscapeGameKey() {
 		
 		return escapeGameKey;
-		
-	}
-	
-	public void registerFont(Font font, String uuid) {
-		
-		registerFont(font, uuid, false);
-		
-	}
-	
-	public void registerFont(Font font, String uuid, boolean antiAlias) {
-		
-
 		
 	}
 	
@@ -342,10 +300,12 @@ public abstract class Game extends KeyboardInputs {
 						
 						keyUpdate();
 						
-						for(Component comp : components.values()) {
+						Map<String, Component> componentsTemp = new HashMap<String, Component>(components);
+						
+						for(Component comp : componentsTemp.values()) {
 							
 							comp.update(getXCursor(), getYCursor(), game);
-							
+
 						}
 						
 						update(alpha);
@@ -387,7 +347,16 @@ public abstract class Game extends KeyboardInputs {
 
 				if(changeDisplaymode) {
 					
-					changeDisplayMode(newDisplay);
+					try {
+						
+						changeDisplayMode(newDisplay);
+						
+					} catch (LWJGLException e) {
+
+						e.printStackTrace();
+						
+					}
+					
 					changeDisplaymode = false;
 					
 				}
@@ -429,23 +398,20 @@ public abstract class Game extends KeyboardInputs {
 						
 				translateView(xCam, yCam);
 						
-				float wDiff = (float) width / (float) lastWidth;
-				float hDiff = (float) height / (float) lastHeight;
-						
-				if(wDiff != 1 || hDiff != 1) {
-							
-
-							
-				}
-						
 				glClear(GL_COLOR_BUFFER_BIT);
 				glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
 				
 				render(alpha);
 				
-				for(Component comp : components.values()) {
+				Map<String, Component> componentsTemp = new HashMap<String, Component>(components);
+				
+				for(Component comp : componentsTemp.values()) {
 					
-					comp.render();
+					if(comp.isVisible()) {
+						
+						comp.render();
+						
+					}
 					
 				}
 						
@@ -494,12 +460,6 @@ public abstract class Game extends KeyboardInputs {
 	public Color getBackgroundColor() {
 		
 		return this.backgroundColor;
-		
-	}
-	
-	public SlymyFont getFont(String uuid) {
-		
-		return null;
 		
 	}
 	
@@ -554,28 +514,21 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	private void changeDisplayMode(NewDisplayMode newDisplaymode) {
-		
-	    try {
-			
-	    	if(newDisplaymode.isFullscreen()) {
-	    	
-	    		Display.setDisplayModeAndFullscreen(Display.getDesktopDisplayMode());
-	    	
-	    	} else {
+	private void changeDisplayMode(NewDisplayMode newDisplaymode) throws LWJGLException {
 
-	    		Display.setDisplayMode(new DisplayMode(newDisplaymode.getW(), newDisplaymode.getH()));
+		if(newDisplaymode.isFullscreen()) {
+	    	
+			Display.setDisplayModeAndFullscreen(Display.getDesktopDisplayMode());
+	    	
+	    } else {
+
+	    	Display.setDisplayMode(new DisplayMode(newDisplaymode.getW(), newDisplaymode.getH()));
 	    		
-	    	}
+	    }
 	    	
-	        Display.setResizable(!newDisplaymode.isResizable());
-	        Display.setResizable(newDisplaymode.isResizable());
-	        Display.setTitle(title);
-	        
-	    } catch (LWJGLException e) {
-
-			e.printStackTrace();
-		}
+		Display.setResizable(!newDisplaymode.isResizable());
+		Display.setResizable(newDisplaymode.isResizable());
+		Display.setTitle(title);
 		
 	}
 	
@@ -749,6 +702,12 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
+	public void addComponentPanel(PanelComponent panel) {
+		
+		addComponents(panel.getComponents());
+
+	}
+	
 	public void addComponents(Map<String, Component> comps) {
 		
 		for(String uuid : comps.keySet()) {
@@ -849,13 +808,19 @@ public abstract class Game extends KeyboardInputs {
 	
 	public void removeComponent(String uuid) {
 		
-		for(String key : components.keySet()) {
+		if(components.containsKey(uuid)) {
 			
-			if(key.equalsIgnoreCase(uuid)) {
-				
-				components.remove(key);
-				
-			}
+			components.remove(uuid);
+			
+		}
+		
+	}
+	
+	public void removeComponentsPanel(PanelComponent panel) {
+		
+		for(String key : panel.getComponents().keySet()) {
+			
+			removeComponent(key);
 			
 		}
 		

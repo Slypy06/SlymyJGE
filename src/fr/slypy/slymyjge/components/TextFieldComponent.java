@@ -23,6 +23,8 @@ public abstract class TextFieldComponent extends Component {
 	public boolean allowMultilines = false;
 	public boolean focus;
 	public SlymyFont f;
+	public SlymyFont ghostF;
+	public String ghostText;
 	public int margin = 10;
 	public Animation cursorAnimation;
 	
@@ -37,6 +39,7 @@ public abstract class TextFieldComponent extends Component {
 		super(x, y, w, h, game, type);
 		
 		this.f = f;
+		this.ghostF = f;
 		
 		this.addMouseButtonToListen(MouseButtons.LEFT_BUTTON);
 		this.addMouseButtonToListen(MouseButtons.RIGHT_BUTTON);
@@ -163,7 +166,14 @@ public abstract class TextFieldComponent extends Component {
 		
 	}
 	
-	public void keyTyped(char key) {
+	@Override
+	public void keyTyped(char key, boolean eventKeyState) {
+		
+		if(!eventKeyState || !focus) {
+			
+			return;
+			
+		}
 		
 		if(allowed.contains(key + "")) {
 		
@@ -217,20 +227,6 @@ public abstract class TextFieldComponent extends Component {
 	
 	@Override
 	public void update(float xCursor, float yCursor, Game game) {
-		
-		while(Keyboard.next()) {
-			
-			if(Keyboard.getEventKeyState()) {
-				
-				if(focus) {
-					
-					keyTyped(Keyboard.getEventCharacter());
-					
-				}
-				
-			}
-			
-		}
 		
 		this.keyUpdate();
 		
@@ -340,6 +336,30 @@ public abstract class TextFieldComponent extends Component {
 		 
 	}
 
+	public SlymyFont getGhostF() {
+		
+		return ghostF;
+		
+	}
+
+	public void setGhostF(SlymyFont ghostF) {
+		
+		this.ghostF = ghostF;
+		
+	}
+
+	public String getGhostText() {
+		
+		return ghostText;
+		
+	}
+
+	public void setGhostText(String ghostText) {
+		
+		this.ghostText = ghostText;
+		
+	}
+
 	@Override
 	public void render() {
 		
@@ -349,13 +369,13 @@ public abstract class TextFieldComponent extends Component {
 		String lineTemp = "";
 		int i = 1;
 		
-		for(String line : text) {
+		if(text.size() <= 1 && (text.size() == 0 || text.get(0).equals("")) && !focus && ghostText != null) {
 			
-			if(f.getHeight() * i < h - (margin * 2)) {
-			
-				for(char c : line.toCharArray()) {
+			if(ghostF.getHeight() * i < h - (margin * 2)) {
+				
+				for(char c : ghostText.toCharArray()) {
 					
-					if(f.getWidth(lineTemp + c) < w - (margin * 2)) {
+					if(ghostF.getWidth(lineTemp + c) < w - (margin * 2)) {
 						
 						lineTemp += c;
 						
@@ -363,30 +383,54 @@ public abstract class TextFieldComponent extends Component {
 					
 				}
 				
-				linesTemp.add(lineTemp);
-				
-				lineTemp = "";
-				
 			}
 			
-			i++;
-
-		}
-		
-		i = 0;
-		
-		for(String line : linesTemp) {
-
-			Renderer.renderText(x + margin, y + margin + (f.getHeight() * i), f, line, f.getColor());
-			
-			if(i == linesTemp.size() - 1 && focus && x + margin + f.getWidth(line + " ") + (f.getF().getSize() / 10) <= x + w) {
-				
-				Renderer.renderAnimation(x + margin + f.getWidth(line) + (f.getF().getSize() / 10), y + margin + (f.getHeight() * i), 0, f.getHeight(), cursorAnimation);
-				
-			}
+			Renderer.renderText(x + margin, y + margin, ghostF, lineTemp, ghostF.getColor());
 			
 			i++;
 			
+		} else {
+		
+			for(String line : text) {
+				
+				if(f.getHeight() * i < h - (margin * 2)) {
+				
+					for(char c : line.toCharArray()) {
+						
+						if(f.getWidth(lineTemp + c) < w - (margin * 2)) {
+							
+							lineTemp += c;
+							
+						}
+						
+					}
+					
+					linesTemp.add(lineTemp);
+					
+					lineTemp = "";
+					
+				}
+				
+				i++;
+	
+			}
+			
+			i = 0;
+			
+			for(String line : linesTemp) {
+
+				Renderer.renderText(x + margin, y + margin + (f.getHeight() * i), f, line, f.getColor());
+				
+				if(i == linesTemp.size() - 1 && focus && x + margin + f.getWidth(line + " ") + (f.getF().getSize() / 10) <= x + w) {
+					
+					Renderer.renderAnimation(x + margin + f.getWidth(line) + (f.getF().getSize() / 10), y + margin + (f.getHeight() * i), 0, f.getHeight(), cursorAnimation, f.getColor());
+					
+				}
+				
+				i++;
+				
+			}
+		
 		}
 		
 		renderForeground();

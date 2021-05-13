@@ -22,6 +22,8 @@ public abstract class Component extends KeyboardInputs {
 	int hitboxW;
 	int hitboxH;
 	
+	private boolean visible = true;
+	
 	public RenderType getRenderType() {
 		
 		return renderType;
@@ -200,6 +202,18 @@ public abstract class Component extends KeyboardInputs {
 		setHitboxY(y);
 		setHitboxW(w);
 		setHitboxH(h);
+		
+	}
+
+	public void setVisible(boolean visible) {
+		
+		this.visible = visible;
+		
+	}
+	
+	public boolean isVisible() {
+		
+		return visible;
 		
 	}
 	

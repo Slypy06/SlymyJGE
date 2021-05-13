@@ -13,7 +13,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SlymyJGE/lib/natives"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/slick-util.jar"/>
 	<classpathentry kind="lib" path="lib/kryonet-2.21-all.jar"/>
 	<classpathentry kind="lib" path="lib/image4j-0.7.2.jar"/>
 	<classpathentry kind="output" path="bin"/>

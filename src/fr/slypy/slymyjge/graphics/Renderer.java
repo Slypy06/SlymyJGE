@@ -139,6 +139,56 @@ public class Renderer {
 		
 	}
 	
+	public static void renderBorder(float x, float y, int w, int h, Color color) {
+		
+		renderBorder(x, y, w, h, 1, color);
+		
+	}
+	
+	public static void renderBorder(float x, float y, int w, int h) {
+		
+		renderBorder(x, y, w, h, 1, Color.white);
+		
+	}
+	
+	public static void renderBorder(float x, float y, int w, int h, int width, Color color) {
+		
+		x *= game.getWidthDiff();
+		y *= game.getHeightDiff();
+		
+		w *= game.getWidthDiff();
+		h *= game.getHeightDiff();
+		
+		if(d != 0.0D) {
+			
+			rotate(d, w, h, x, y);
+			
+		}
+		
+		glLineWidth(width);
+		glBegin(GL_LINE_STRIP);
+		
+			lineData(x, y, x + w, y, color);          // h h
+			lineData(x + w, y - (width > 1 ? ((float) width / 2F) : 0), x + w, y + h + (width > 1 ? ((float) width / 2F) : 0), color);  // v d
+			lineData(x + w, y + h, x, y + h, color);  // h b
+			lineData(x, y + h + (width > 1 ? ((float) width / 2F) : 0), x, y - (width > 1 ? ((float) width / 2F) : 1), color);          // v g
+		
+		glEnd();
+			
+		if(d != 0.0D) {
+				
+			rotate(-d, w, h, x, y);
+				
+		}
+		
+	}
+	
+	public static void renderBorder(float x, float y, int w, int h, int width) {
+		
+		renderBorder(x, y, w, h, width, Color.white);
+		
+	}
+	
 	public static void renderTriangle(float ax, float ay, float bx, float by, float cx, float cy, Color color) {
 		
 		ax *= game.getWidthDiff();
