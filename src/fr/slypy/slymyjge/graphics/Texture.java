@@ -1,5 +1,20 @@
 package fr.slypy.slymyjge.graphics;
 
+import static org.lwjgl.opengl.GL11.GL_NEAREST;
+import static org.lwjgl.opengl.GL11.GL_RGBA;
+import static org.lwjgl.opengl.GL11.GL_RGBA8;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glTexImage2D;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,9 +27,6 @@ import org.lwjgl.BufferUtils;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sf.image4j.codec.ico.ICOImage;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
 
 public class Texture {
 	
@@ -191,6 +203,25 @@ public class Texture {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
 		return new Texture(w, h, id, image, buffer);
+
+	}
+	
+	public static int loadTexture(ByteBuffer b, int w, int h) {
+		
+		int id = glGenTextures();
+		glBindTexture(GL_TEXTURE_2D, id);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, b);
+		
+		glBindTexture(GL_TEXTURE_2D, 0);
+		
+		return id;
 		
 	}
 	
@@ -404,7 +435,6 @@ public class Texture {
 	        				for (int x = 0; x < w; x++) {
 	        					
 	        					int i = pixels[x + y * w];
-	        					
 	        					
 	        					buffer.put((byte) ((i >> 16) & 0xFF));
 	        					buffer.put((byte) ((i >> 8) & 0xFF));

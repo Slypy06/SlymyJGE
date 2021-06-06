@@ -2,9 +2,9 @@ package fr.slypy.slymyjge.audio;
 
 import java.util.ArrayList;
 
-import org.lwjgl.openal.AL10;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL;
+import org.lwjgl.openal.AL10;
 import org.lwjgl.util.WaveData;
 
 import fr.slypy.slymyjge.graphics.Texture;

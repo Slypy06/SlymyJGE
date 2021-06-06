@@ -1,6 +1,20 @@
 package fr.slypy.slymyjge;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_PROJECTION;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
+import static org.lwjgl.opengl.GL11.glTranslatef;
+import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -22,18 +36,15 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import fr.slypy.slymyjge.components.Component;
-import fr.slypy.slymyjge.components.PanelComponent;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
-import fr.slypy.slymyjge.inputs.KeyboardInputs;
 import fr.slypy.slymyjge.network.AuthentifiedPacket;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.network.Packet;
 import fr.slypy.slymyjge.utils.Logger;
 
-public abstract class Game extends KeyboardInputs {
+public abstract class Game extends GameState {
 	
 	protected boolean changeDisplaymode = false;
 	
@@ -74,8 +85,12 @@ public abstract class Game extends KeyboardInputs {
 	protected boolean showTPS = false;
 	
 	protected long showedTPS = 0;
-
-	protected static Map<String, Component> components = new HashMap<String, Component>();
+	
+	protected static Map<Integer, GameState> states = new HashMap<Integer, GameState>();
+	
+	protected static GameState state;
+	protected static boolean changeState;
+	protected static GameState newState;
 	
 	protected static long wait = 0;
 	
@@ -119,6 +134,47 @@ public abstract class Game extends KeyboardInputs {
 		this.backgroundColor = backgroundColor;
 		
 		this.resizable = resizable;
+		
+		states.put(0, this);
+		
+		state = this;
+		
+	}
+	
+	public InitType getInitType() {
+		
+		return InitType.MANUALY_INIT;
+		
+	}
+	
+	public Game getGame() {
+		
+		return this;
+		
+	}
+	
+	public int registerState(GameState s) {
+		
+		states.put(states.size(), s);
+		
+		if(s.getInitType() == InitType.INIT_ON_REGISTER || s.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
+			
+			s.init();
+			
+		}
+		
+		return states.size() - 1;
+		
+	}
+	
+	public void setState(int id) {
+		
+		if(states.containsKey(id)) {
+			
+			changeState = true;
+			newState = states.get(id);
+			
+		}
 		
 	}
 	
@@ -251,7 +307,6 @@ public abstract class Game extends KeyboardInputs {
 	
 	public void loop() {
 		
-		
 		Logger.log("Initialisation du jeu");
 		
 		escapeGameKey = getEscapeGameKey();
@@ -261,6 +316,8 @@ public abstract class Game extends KeyboardInputs {
 		Logger.log("Démarage de la boucle principale du jeu");
 		
 		Game game = this;
+		
+		isInitialised = true;
 		
 		Thread ut = new Thread() {
 			
@@ -298,17 +355,15 @@ public abstract class Game extends KeyboardInputs {
 						
 						tps++;
 						
-						keyUpdate();
+						if(state.isInitialised) {
 						
-						Map<String, Component> componentsTemp = new HashMap<String, Component>(components);
-						
-						for(Component comp : componentsTemp.values()) {
+							state.keyUpdate();
 							
-							comp.update(getXCursor(), getYCursor(), game);
-
-						}
+							state.componentsUpdate();
+							
+							state.update(alpha);
 						
-						update(alpha);
+						}
 						
 						if (System.nanoTime() - lastTpsUpdate > 1000000000L) {
 							
@@ -368,6 +423,24 @@ public abstract class Game extends KeyboardInputs {
 					
 				}
 				
+				if(changeState) {
+					
+					state.isInitialised = false;
+					
+					state = newState;
+					
+					if(state.getInitType() == InitType.INIT_ON_LOAD || state.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
+						
+						state.init();
+						
+					}
+					
+					state.isInitialised = true;
+					
+					changeState = false;
+					
+				}
+				
 				gamma = 1D / (double) frameCap;
 				
 				alpha = (double) (System.nanoTime() - before) / 1000000000D;
@@ -401,19 +474,9 @@ public abstract class Game extends KeyboardInputs {
 				glClear(GL_COLOR_BUFFER_BIT);
 				glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
 				
-				render(alpha);
+				state.componentsRender();
 				
-				Map<String, Component> componentsTemp = new HashMap<String, Component>(components);
-				
-				for(Component comp : componentsTemp.values()) {
-					
-					if(comp.isVisible()) {
-						
-						comp.render();
-						
-					}
-					
-				}
+				state.render(alpha);
 						
 				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
 							
@@ -632,12 +695,6 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public abstract void init();
-	
-	public abstract void update(double alpha);
-	
-	public abstract void render(double alpha);
-	
 	public abstract void stop();
 	
 	public void display() {
@@ -686,35 +743,6 @@ public abstract class Game extends KeyboardInputs {
 		
 		setXCam(xCam + (xa * getWidthDiff()));
 		setYCam(yCam + (ya * getHeightDiff()));
-		
-	}
-	
-	public void addComponent(String uuid, Component comp) {
-		
-		if(components.containsKey(uuid)) {
-			
-			System.err.println("Component with uuid " + uuid + " is already register ! Overriding it...");
-			components.remove(uuid);
-			
-		}
-		
-		components.put(uuid, comp);
-		
-	}
-	
-	public void addComponentPanel(PanelComponent panel) {
-		
-		addComponents(panel.getComponents());
-
-	}
-	
-	public void addComponents(Map<String, Component> comps) {
-		
-		for(String uuid : comps.keySet()) {
-			
-			addComponent(uuid, comps.get(uuid));
-			
-		}
 		
 	}
 	
@@ -790,66 +818,6 @@ public abstract class Game extends KeyboardInputs {
 		
 	}
 	
-	public Component getComponent(String uuid) {
-		
-		for(String key : components.keySet()) {
-			
-			if(key.equalsIgnoreCase(uuid)) {
-				
-				return components.get(key);
-				
-			}
-			
-		}
-		
-		return null;
-		
-	}
-	
-	public void removeComponent(String uuid) {
-		
-		if(components.containsKey(uuid)) {
-			
-			components.remove(uuid);
-			
-		}
-		
-	}
-	
-	public void removeComponentsPanel(PanelComponent panel) {
-		
-		for(String key : panel.getComponents().keySet()) {
-			
-			removeComponent(key);
-			
-		}
-		
-	}
-	
-	public Map<String, Component> getComponents() {
-		
-		return components;
-		
-	}
-	
-	public Component componentHover() {
-
-		Component component = null;
-		
-		for(Component comp : components.values()) {
-			
-			if(comp.isHover()) {
-					
-				component = comp;
-					
-			}
-			
-		}
-		
-		return component;
-		
-	}
-
 	public float getWidthDiff() {
 		
 		return widthDiff;

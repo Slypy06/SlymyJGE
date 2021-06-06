@@ -259,7 +259,7 @@ public class HUDRenderer extends Renderer {
 			
 				glBegin(GL_QUADS);
 				
-					Renderer.texturePartData(x, y, w, h, color, xo, yo, maxXo, maxYo, texture);
+					Renderer.texturePartData(x, y, w, h, color, xo, yo, maxXo, maxYo);
 					
 				glEnd();
 			

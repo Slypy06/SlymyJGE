@@ -1,8 +1,21 @@
 package fr.slypy.slymyjge.graphics;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_LINE_STRIP;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLineWidth;
+import static org.lwjgl.opengl.GL11.glRotated;
+import static org.lwjgl.opengl.GL11.glTexCoord2f;
+import static org.lwjgl.opengl.GL11.glTranslated;
+import static org.lwjgl.opengl.GL11.glVertex2f;
 
 import java.awt.Color;
+
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.animations.Animation;
 import fr.slypy.slymyjge.font.SlymyFont;
@@ -97,7 +110,7 @@ public class Renderer {
 		
 	}
 	
-	protected static void texturePartData(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
+	protected static void texturePartData(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo) {
 		
 		glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, (float) color.getAlpha() / 255.0F);
 		glTexCoord2f((0F + xo) / (float) maxXo, (0F + yo) / (float) maxYo); glVertex2f(x, y);
@@ -307,6 +320,44 @@ public class Renderer {
 		
 	}
 	
+	public static void renderTexturedQuad(float x, float y, int w, int h, int texture, Color color) {
+		
+		x *= game.getWidthDiff();
+		y *= game.getHeightDiff();
+		
+		w *= game.getWidthDiff();
+		h *= game.getHeightDiff();
+		
+		if(d != 0.0D) {
+			
+			rotate(d, w, h, x, y);
+				
+		}
+		
+			glBindTexture(GL_TEXTURE_2D, texture);
+			
+				glBegin(GL_QUADS);
+				
+					Renderer.texturedQuadData(x, y, w, h, color);
+					
+				glEnd();
+			
+			glBindTexture(GL_TEXTURE_2D, 0);
+			
+		if(d != 0.0D) {
+				
+			rotate(-d, w, h, x, y);
+					
+		}
+		
+	}
+	
+	public static void renderTexturedQuad(float x, float y, int w, int h, int texture) {
+		
+		renderTexturedQuad(x, y, w, h, texture, Color.white);
+		
+	}
+	
 	public static void renderTexturePart(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
 		
 		x *= game.getWidthDiff();
@@ -325,7 +376,7 @@ public class Renderer {
 			
 				glBegin(GL_QUADS);
 				
-					Renderer.texturePartData(x, y, w, h, color, xo, yo, maxXo, maxYo, texture);
+					Renderer.texturePartData(x, y, w, h, color, xo, yo, maxXo, maxYo);
 					
 				glEnd();
 			

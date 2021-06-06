@@ -1,5 +1,7 @@
 package fr.slypy.slymyjge.components;
 
+import org.lwjgl.input.Mouse;
+
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.utils.MouseButtons;
 import fr.slypy.slymyjge.utils.RenderType;
@@ -25,13 +27,10 @@ public abstract class ButtonComponent extends Component {
 	@Override
 	public void mouseButtonPressed(int button) {
 		
-		if(!activated) {
-			
-			return;
-			
-		}
+		System.out.println(Mouse.getY());
+		System.out.println(getY());
 		
-		if(button == MouseButtons.LEFT_BUTTON && hover) {
+		if(button == MouseButtons.LEFT_BUTTON && hover && activated) {
 			
 			componentActivated();
 			

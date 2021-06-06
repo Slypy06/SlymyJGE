@@ -250,11 +250,11 @@ public abstract class TextFieldComponent extends Component {
 			
 		}
 		
-		if(game.componentHover() != this) {
+		/*if(game.componentHover() != this) {
 			
 			hover = false;
 			
-		}
+		}*/
 		
 	}
 	
@@ -273,7 +273,7 @@ public abstract class TextFieldComponent extends Component {
 	@Override
 	public void mouseButtonPressed(int button) {
 		
-		if(game.componentHover() != null && game.componentHover().equals(this) && button == MouseButtons.LEFT_BUTTON) {
+		/*if(game.componentHover() != null && game.componentHover().equals(this) && button == MouseButtons.LEFT_BUTTON) {
 			
 			if(!focus) {
 				
@@ -285,7 +285,7 @@ public abstract class TextFieldComponent extends Component {
 			
 			focus = false;
 			
-		}
+		}*/
 		
 	}
 	

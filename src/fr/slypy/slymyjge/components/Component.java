@@ -165,6 +165,7 @@ public abstract class Component extends KeyboardInputs {
 	public void update(float xCursor, float yCursor, Game game) {
 		
 		this.keyUpdate();
+		this.mouseUpdate();
 		
 		float x = xCursor;
 		float y = yCursor;
@@ -186,11 +187,11 @@ public abstract class Component extends KeyboardInputs {
 			
 		}
 		
-		if(game.componentHover() != this) {
+		/*if(game.componentHover() != this) {
 			
 			hover = false;
 			
-		}
+		}*/
 		
 	}
 	
