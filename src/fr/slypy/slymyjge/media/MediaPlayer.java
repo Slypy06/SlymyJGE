@@ -43,8 +43,6 @@ public class MediaPlayer {
 		
 		media = filename;
 		
-		System.setProperty("jna.library.path", "C:\\Program Files\\VideoLAN\\VLC");
-		
 		factory = new MediaPlayerFactory();
 		mediaPlayer = factory.mediaPlayers().newEmbeddedMediaPlayer();
 		
@@ -83,25 +81,31 @@ public class MediaPlayer {
 	
 	public void render(int x, int y, int w, int h, Color c) {
 		
+		if(playing && (mediaPlayer.status().state() == State.ENDED || mediaPlayer.status().state() == State.PAUSED || mediaPlayer.status().state() == State.STOPPED || mediaPlayer.status().state() == State.ERROR)) {
+				
+			playing = false;
+
+		}
+		
 		if(byteBuffer != null) {
-			
+				
 			glDeleteTextures(id);
-			
+				
 			id = glGenTextures();
 			glBindTexture(GL_TEXTURE_2D, id);
-			
+				
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			
+				
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			
+				
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, byteBuffer);
-			
+				
 			glBindTexture(GL_TEXTURE_2D, 0);
-
+	
 			Renderer.renderTexturedQuad(x, y, w, h, id, c);	
-			
+				
 		}
 		
 	}
@@ -114,11 +118,15 @@ public class MediaPlayer {
 	
 	public void play() {
 		
+		playing = true;
+		
 		mediaPlayer.controls().play();
 		
 	}
 	
 	public void pause() {
+		
+		playing = false;
 		
 		mediaPlayer.controls().pause();
 		
@@ -133,6 +141,12 @@ public class MediaPlayer {
 	public State getState() {
 		
 		return mediaPlayer.status().state();
+		
+	}
+	
+	public EmbeddedMediaPlayer getMediaPlayer() {
+		
+		return mediaPlayer;
 		
 	}
 	

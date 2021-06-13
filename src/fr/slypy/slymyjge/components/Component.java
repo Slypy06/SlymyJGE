@@ -177,6 +177,9 @@ public abstract class Component extends KeyboardInputs {
 			
 		}
 		
+		x /= game.getWidthDiff();
+		y /= game.getHeightDiff();
+		
 		if((x >= hitboxX && x <= hitboxX + hitboxW) && (y >= hitboxY && y <= hitboxY + hitboxH)) {
 			
 			hover = true;

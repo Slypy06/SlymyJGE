@@ -36,9 +36,11 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
+import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.network.AuthentifiedPacket;
 import fr.slypy.slymyjge.network.NetworkRegister;
 import fr.slypy.slymyjge.network.Packet;
@@ -76,17 +78,14 @@ public abstract class Game extends GameState {
 	
 	protected float widthDiff = 1;
 	protected float heightDiff = 1;
-	
-	protected float xCam = 0;
-	protected float yCam = 0;
-	
-	protected Color backgroundColor;
 
 	protected boolean showTPS = false;
 	
 	protected long showedTPS = 0;
 	
 	protected static Map<Integer, GameState> states = new HashMap<Integer, GameState>();
+	
+	protected static Map<String, SlymyFont> fonts = new HashMap<String, SlymyFont>();
 	
 	protected static GameState state;
 	protected static boolean changeState;
@@ -311,6 +310,8 @@ public abstract class Game extends GameState {
 		
 		escapeGameKey = getEscapeGameKey();
 		
+		Renderer.init(this);
+		
 		init();
 		
 		Logger.log("Démarage de la boucle principale du jeu");
@@ -469,14 +470,35 @@ public abstract class Game extends GameState {
 						
 				view2D(width, height);
 						
-				translateView(xCam, yCam);
+				translateView(state.getXCam(), state.getYCam());
 						
 				glClear(GL_COLOR_BUFFER_BIT);
 				glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
 				
-				state.componentsRender();
+				if(lastWidth != width || lastHeight != height) {
+					
+					float widthChanges = (float) width / (float) lastWidth;
+					float heightChanges = (float) height / (float) lastHeight;
+					
+					for(SlymyFont f : fonts.values()) {
+						
+						if(widthChanges <= heightChanges) {
+						
+							f.setF(f.getF().deriveFont(f.getF().getSize() / widthChanges));
+						
+						} else {
+							
+							f.setF(f.getF().deriveFont(f.getF().getSize() / heightChanges));
+							
+						}
+						
+					}
+					
+				}
 				
 				state.render(alpha);
+				
+				state.componentsRender();
 						
 				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
 							
@@ -739,13 +761,6 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	public void translateCam(float xa, float ya) {
-		
-		setXCam(xCam + (xa * getWidthDiff()));
-		setYCam(yCam + (ya * getHeightDiff()));
-		
-	}
-	
 	public float getXCursor() {
 		
 		return (Mouse.getX() / getWidthDiff()) - xCam;
@@ -767,30 +782,6 @@ public abstract class Game extends GameState {
 	public float getYCursorOnScreen() {
 		
 		return ((-Mouse.getY() + Display.getHeight()) / getHeightDiff());
-		
-	}
-	
-	public float getXCam() {
-		
-		return xCam;
-		
-	}
-
-	public float getYCam() {
-		
-		return yCam;
-		
-	}
-	
-	public void setXCam(float xCam) {
-		
-		this.xCam = xCam;
-		
-	}
-
-	public void setYCam(float yCam) {
-		
-		this.yCam = yCam;
 		
 	}
 	
@@ -851,6 +842,18 @@ public abstract class Game extends GameState {
 	public long getTickCap() {
 		
 		return tickCap;
+		
+	}
+	
+	public void registerFont(SlymyFont f, String key) {
+		
+		fonts.put(key, f);
+		
+	}
+	
+	public SlymyFont getFont(String key) {
+		
+		return fonts.get(key);
 		
 	}
 	

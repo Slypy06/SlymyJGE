@@ -14,6 +14,8 @@ public class Animation {
 	private long speed = 200000000;
 	
 	private int frame = 0;
+	
+	private boolean playing;
 
 	public Animation(AnimationFrame[] frames) {
 		
@@ -40,24 +42,32 @@ public class Animation {
 				
 		} else {
 				
-			long alpha = System.nanoTime() - lastUpdate;
+			if(playing) {
+			
+				long alpha = System.nanoTime() - lastUpdate;
 				
-			if(alpha > speed) {
+				if(alpha > speed) {
+					
+					long changes = Math.floorDiv(alpha, speed);
+						
+					long newFrame = frame + changes;
+						
+					long rounds = Math.floorDiv(newFrame, frames.size());
+						
+					newFrame -= rounds * (frames.size());
+						
+					frame = (int) newFrame;
+						
+					lastUpdate = System.nanoTime();
+					
+				}
+			
+			} else {
 				
-				long changes = Math.floorDiv(alpha, speed);
-					
-				long newFrame = frame + changes;
-					
-				long rounds = Math.floorDiv(newFrame, frames.size());
-					
-				newFrame -= rounds * (frames.size());
-					
-				frame = (int) newFrame;
-					
 				lastUpdate = System.nanoTime();
 				
 			}
-				
+			
 		}
 		
 		frames.get(frame).render(x, y, w, h, color);
@@ -115,5 +125,19 @@ public class Animation {
 		this.frame = (int) frame;
 		
 	}
+
+	public boolean isPlaying() {
+		
+		return playing;
+		
+	}
+
+	public void setPlaying(boolean playing) {
+		
+		this.playing = playing;
+		
+	}
+	
+	
 	
 }

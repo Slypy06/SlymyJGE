@@ -1,5 +1,6 @@
 package fr.slypy.slymyjge;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +21,12 @@ public abstract class GameState extends KeyboardInputs {
 	
 	protected boolean isInitialised = false;
 	
-	public Map<String, Component> components = new HashMap<String, Component>();
+	protected Map<String, Component> components = new HashMap<String, Component>();
+	
+	protected float xCam = 0;
+	protected float yCam = 0;
+	
+	protected Color backgroundColor;
 	
 	public Component getComponentHover() {
 		
@@ -119,6 +125,37 @@ public abstract class GameState extends KeyboardInputs {
 			}
 			
 		}
+		
+	}
+	
+	public void translateCam(float xa, float ya) {
+		
+		setXCam(xCam + xa);
+		setYCam(yCam + ya);
+		
+	}
+	
+	public float getXCam() {
+		
+		return xCam;
+		
+	}
+
+	public float getYCam() {
+		
+		return yCam;
+		
+	}
+	
+	public void setXCam(float xCam) {
+		
+		this.xCam = xCam;
+		
+	}
+
+	public void setYCam(float yCam) {
+		
+		this.yCam = yCam;
 		
 	}
 	
