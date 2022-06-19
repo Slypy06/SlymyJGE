@@ -17,10 +17,13 @@ import static org.lwjgl.opengl.GL12.GL_BGRA;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 import java.awt.Color;
+import java.io.File;
 import java.nio.ByteBuffer;
 
 import fr.slypy.slymyjge.graphics.Renderer;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
+import uk.co.caprica.vlcj.media.callback.nonseekable.FileInputStreamMedia;
+import uk.co.caprica.vlcj.media.callback.seekable.RandomAccessFileMedia;
 import uk.co.caprica.vlcj.player.base.State;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
@@ -75,8 +78,8 @@ public class MediaPlayer {
 			
 		}, false));
 		
-		mediaPlayer.media().startPaused(media);
-		
+		mediaPlayer.media().startPaused("resources/" + media);
+
 	}
 	
 	public void render(int x, int y, int w, int h, Color c) {
@@ -119,7 +122,6 @@ public class MediaPlayer {
 	public void play() {
 		
 		playing = true;
-		
 		mediaPlayer.controls().play();
 		
 	}

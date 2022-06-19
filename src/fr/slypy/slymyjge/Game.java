@@ -1,11 +1,28 @@
 package fr.slypy.slymyjge;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_LINE_SMOOTH;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_POINT_SMOOTH;
+import static org.lwjgl.opengl.GL11.GL_PROJECTION;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
+import static org.lwjgl.opengl.GL11.glTranslatef;
+import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +40,6 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import fr.slypy.slymyjge.font.SlymyFont;
-import fr.slypy.slymyjge.graphics.CursorsTextures;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
@@ -94,6 +109,8 @@ public abstract class Game extends GameState {
 	protected static Cursor defaultCursor = Mouse.getNativeCursor();
 	
 	protected Thread ut;
+	
+	protected static List<Runnable> toExecute = new ArrayList<Runnable>();
 	
 	public Game(int width, int height, String title) {
 		
@@ -305,9 +322,6 @@ public abstract class Game extends GameState {
 		
 		init();
 		
-		CursorsTextures.beam = Texture.loadTexture("beam.png");
-		CursorsTextures.base = Texture.loadTexture("base.png");
-		
 		Logger.log("Démarage de la boucle principale du jeu");
 		
 		Game game = this;
@@ -447,6 +461,15 @@ public abstract class Game extends GameState {
 					state.isInitialised = true;
 					
 					changeState = false;
+					
+				}
+				
+				List<Runnable> tempExecute = new ArrayList<Runnable>(toExecute);
+				toExecute = new ArrayList<Runnable>();
+				
+				for(Runnable exec : tempExecute) {
+					
+					exec.run();
 					
 				}
 				
@@ -862,6 +885,12 @@ public abstract class Game extends GameState {
 	public long getTickCap() {
 		
 		return tickCap;
+		
+	}
+	
+	public void executeInRenderThread(Runnable run) {
+		
+		toExecute.add(run);
 		
 	}
 	

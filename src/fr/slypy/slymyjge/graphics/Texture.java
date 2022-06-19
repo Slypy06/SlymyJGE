@@ -57,7 +57,7 @@ public class Texture {
 		BufferedImage image = null;
 		
 		try {
-			
+
 			image = ImageIO.read(Texture.class.getResource("/" + path));
 
 		} catch (IOException e) {

@@ -191,6 +191,12 @@ public abstract class Component extends KeyboardInputs {
 
 	public void update(float xCursor, float yCursor, Game game) {
 		
+		if(!activated) {
+			
+			return;
+			
+		}
+		
 		this.keyUpdate();
 		this.mouseUpdate();
 		
@@ -218,7 +224,11 @@ public abstract class Component extends KeyboardInputs {
 			
 		}
 		
+		componentUpdate(xCursor, yCursor, game);
+		
 	}
+	
+	public void componentUpdate(float xCursor, float yCursor, Game game) {}
 	
 	public abstract void render();
 	

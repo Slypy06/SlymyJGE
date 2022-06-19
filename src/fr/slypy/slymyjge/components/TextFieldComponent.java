@@ -12,7 +12,6 @@ import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.animations.Animation;
 import fr.slypy.slymyjge.animations.AnimationFrame;
 import fr.slypy.slymyjge.font.SlymyFont;
-import fr.slypy.slymyjge.graphics.CursorsTextures;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.utils.MouseButtons;
 import fr.slypy.slymyjge.utils.RenderType;
@@ -187,7 +186,7 @@ public abstract class TextFieldComponent extends Component {
 	@Override
 	public void keyTyped(char key, boolean eventKeyState) {
 		
-		if(!eventKeyState || !focus) {
+		if(!eventKeyState || !focus || !activated) {
 			
 			return;
 			
@@ -259,10 +258,10 @@ public abstract class TextFieldComponent extends Component {
 							
 						} else if(cursory > 0) {
 							
-							cursorx = text.get(cursory - 1).length();
-							text.set(cursory - 1, text.get(cursory - 1) + completeLine);
-							text.remove(cursory);
 							cursory--;
+							cursorx = text.get(cursory).length();
+							text.set(cursory, text.get(cursory) + completeLine);
+							text.remove(cursory + 1);
 							
 						}
 						
@@ -284,47 +283,7 @@ public abstract class TextFieldComponent extends Component {
 	}
 	
 	@Override
-	public void update(float xCursor, float yCursor, Game game) {
-		
-		if(hover) {
-			
-			game.setCursor(16, 16, 8, 8, CursorsTextures.beam);
-			beamCursor = true;
-			
-		} else if(!hover) {
-			
-			game.setCursor(32, 32, 0, 18, CursorsTextures.base);
-			beamCursor = false;
-			
-		}
-		
-		this.keyUpdate();
-		
-		float x = xCursor;
-		float y = yCursor;
-	
-		if(renderType == RenderType.HUD) {
-			
-			x = xCursor + game.getXCam();
-			y = yCursor + game.getYCam();
-			
-		}
-		
-		if((x >= hitboxX && x <= hitboxX + hitboxW) && (y >= hitboxY && y <= hitboxY + hitboxH)) {
-			
-			hover = true;
-			
-		} else {
-			
-			hover = false;
-			
-		}
-
-		if(game.getComponentHover() != this) {
-			
-			hover = false;
-			
-		}
+	public void componentUpdate(float xCursor, float yCursor, Game game) {
 		
 		if(System.currentTimeMillis() - backDuration >= 750l) {
 			
@@ -349,10 +308,10 @@ public abstract class TextFieldComponent extends Component {
 							
 						} else if(cursory > 0) {
 							
-							cursorx = text.get(cursory - 1).length();
-							text.set(cursory - 1, text.get(cursory - 1) + completeLine);
-							text.remove(cursory);
 							cursory--;
+							cursorx = text.get(cursory).length();
+							text.set(cursory, text.get(cursory) + completeLine);
+							text.remove(cursory + 1);
 							
 						}
 						
@@ -456,6 +415,12 @@ public abstract class TextFieldComponent extends Component {
 	@Override
 	public void mouseButtonPressed(int button) {
 		
+		if(!this.activated) {
+			
+			return;
+			
+		}
+		
 		if(game.getComponentHover() != null && game.getComponentHover().equals(this) && button == MouseButtons.LEFT_BUTTON) {
 			
 			if(!focus) {
@@ -478,6 +443,12 @@ public abstract class TextFieldComponent extends Component {
 	
 	@Override
 	public void keyPressed(int key) {
+		
+		if(!activated) {
+			
+			return;
+			
+		}
 		
 		if(key == Keyboard.KEY_BACK) {
 			
@@ -623,6 +594,12 @@ public abstract class TextFieldComponent extends Component {
 
 	@Override
 	public void render() {
+		
+		if(!isVisible()) {
+			
+			return;
+			
+		}
 		
 		renderBackground();
 		
