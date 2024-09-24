@@ -26,10 +26,23 @@ public class Renderer {
 	
 	protected static Game game;
 	protected static double d = 0;
+	protected static boolean resize = true;
 	
 	public static void init(Game main) {
 		
 		game = main;
+		
+	}
+	
+	public static void doNotResize() {
+		
+		resize = false;
+		
+	}
+	
+	public static void nowYouCanResize() {
+		
+		resize = true;
 		
 	}
 	
@@ -132,11 +145,18 @@ public class Renderer {
 	
 	public static void renderQuad(float x, float y, int w, int h, Color color) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
+		
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+		
+		}
 		
 		if(d != 0.0D) {
 			
@@ -176,11 +196,18 @@ public class Renderer {
 	
 	public static void renderBorder(float x, float y, int w, int h, int width, Color color) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
+			
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			x += game.getxDiff();
+			y += game.getyDiff();
+			
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+		
+		}
 		
 		if(d != 0.0D) {
 			
@@ -214,14 +241,27 @@ public class Renderer {
 	
 	public static void renderTriangle(float ax, float ay, float bx, float by, float cx, float cy, Color color) {
 		
-		ax *= game.getWidthDiff();
-		ay *= game.getHeightDiff();
+		if(resize) {
+			
+			ax *= game.getWidthDiff();
+			ay *= game.getHeightDiff();
+			
+			ax += game.getxDiff();
+			ay += game.getyDiff();
 		
-		bx *= game.getWidthDiff();
-		by *= game.getHeightDiff();
+			bx *= game.getWidthDiff();
+			by *= game.getHeightDiff();
+			
+			bx += game.getxDiff();
+			by += game.getyDiff();
 		
-		cx *= game.getWidthDiff();
-		cy *= game.getHeightDiff();
+			cx *= game.getWidthDiff();
+			cy *= game.getHeightDiff();
+			
+			cx += game.getxDiff();
+			cy += game.getyDiff();
+		
+		}
 		
 		if(d != 0.0D) {
 			
@@ -249,11 +289,21 @@ public class Renderer {
 	
 	public static void renderLine(float ax, float ay, float bx, float by, int width, Color color) {
 		
-		ax *= game.getWidthDiff();
-		ay *= game.getHeightDiff();
+		if(resize) {
 		
-		bx *= game.getWidthDiff();
-		by *= game.getHeightDiff();
+			ax *= game.getWidthDiff();
+			ay *= game.getHeightDiff();
+			
+			ax += game.getxDiff();
+			ay += game.getyDiff();
+		
+			bx *= game.getWidthDiff();
+			by *= game.getHeightDiff();
+			
+			bx += game.getxDiff();
+			by += game.getyDiff();
+		
+		}
 		
 		if(d != 0.0D) {
 			
@@ -294,11 +344,18 @@ public class Renderer {
 	
 	public static void renderTexturedQuad(float x, float y, int w, int h, Texture texture, Color color) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
+		
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+					
+		}
 		
 		if(d != 0.0D) {
 			
@@ -346,11 +403,18 @@ public class Renderer {
 	
 	public static void renderTexturedQuad(float x, float y, int w, int h, int texture, Color color) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
+			
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			x += game.getxDiff();
+			y += game.getyDiff();
+			
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+					
+		}
 		
 		if(d != 0.0D) {
 			
@@ -384,11 +448,18 @@ public class Renderer {
 	
 	public static void renderTexturePart(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
+			
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+					
+		}
 		
 		if(d != 0.0D) {
 			
@@ -452,8 +523,15 @@ public class Renderer {
 	
 	public static void renderText(float x, float y, SlymyFont font, String text, Color color) { //TODO
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
+			
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
+					
+		}
 		
 		if(d != 0) {
 			
@@ -465,9 +543,9 @@ public class Renderer {
 			
 			Texture charTexture = font.getCharTexture(text.charAt(i));
 			
-			renderSimpleTexturedQuad(x, y, (int) (charTexture.getWidth() * game.getWidthDiff()), (int) (charTexture.getHeight() * game.getHeightDiff()), charTexture, color);
+			renderSimpleTexturedQuad(x, y, (int) (charTexture.getWidth() * (resize ? game.getWidthDiff() : 1)), (int) (charTexture.getHeight() * (resize ? game.getHeightDiff() : 1)), charTexture, color);
 			
-			x += font.getCharData(text.charAt(i)).getWidth() * game.getWidthDiff();
+			x += font.getCharData(text.charAt(i)).getWidth() * (resize ? game.getWidthDiff() : 1);
 			
 		}
 		
@@ -585,11 +663,18 @@ public class Renderer {
 	
 	public static void renderFilledEllipse(float x, float y, int horizontalRadius, int verticalRadius, Color c) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
-		
-		horizontalRadius *= game.getWidthDiff();
-		verticalRadius *= game.getHeightDiff();
+		if(resize) {
+			
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
+			
+			horizontalRadius *= game.getWidthDiff();
+			verticalRadius *= game.getHeightDiff();
+					
+		}
 		
 		int precision = 360;
 		
@@ -651,11 +736,18 @@ public class Renderer {
 	
 	public static void renderFilledEllipseArc(float x, float y, int horizontalRadius, int verticalRadius, int startingAngle, int arcAngle, Color c) {
 
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
 		
-		horizontalRadius *= game.getWidthDiff();
-		verticalRadius *= game.getHeightDiff();
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
+		
+			horizontalRadius *= game.getWidthDiff();
+			verticalRadius *= game.getHeightDiff();
+		
+		}
 		
 		int precision = 360;
 		
@@ -836,11 +928,18 @@ public class Renderer {
 	
 	public static void renderEllipse(float x, float y, int horizontalRadius, int verticalRadius, int width, Color c) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
+
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
 		
-		horizontalRadius *= game.getWidthDiff();
-		verticalRadius *= game.getHeightDiff();
+			horizontalRadius *= game.getWidthDiff();
+			verticalRadius *= game.getHeightDiff();
+		
+		}
 		
 		int precision = 180;
 		
@@ -895,12 +994,19 @@ public class Renderer {
 	}
 	
 	public static void renderEllipseArc(float x, float y, int horizontalRadius, int verticalRadius, int startingAngle, int arcAngle, int width, Color c) {
+
+		if(resize) {
 		
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
 		
-		horizontalRadius *= game.getWidthDiff();
-		verticalRadius *= game.getHeightDiff();
+			horizontalRadius *= game.getWidthDiff();
+			verticalRadius *= game.getHeightDiff();
+		
+		}
 		
 		int precision = 360;
 		
@@ -1134,11 +1240,18 @@ public class Renderer {
 	
 	public static void renderRoundedQuad(float x, float y, int w, int h, int radius, Color c) {
 				
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+		
+			x += game.getxDiff();
+			y += game.getyDiff();
+			
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+		
+		}
 		
 		int hradius = (int) (radius * game.getWidthDiff());
 		int vradius = (int) (radius * game.getHeightDiff());
@@ -1178,11 +1291,18 @@ public class Renderer {
 	
 	public static void renderRoundedBorder(float x, float y, int w, int h, int radius, int width, Color c) {
 
-		x *= game.getWidthDiff();
-		y *= game.getHeightDiff();
+		if(resize) {
 		
-		w *= game.getWidthDiff();
-		h *= game.getHeightDiff();
+			x *= game.getWidthDiff();
+			y *= game.getHeightDiff();
+			
+			x += game.getxDiff();
+			y += game.getyDiff();
+		
+			w *= game.getWidthDiff();
+			h *= game.getHeightDiff();
+		
+		}
 		
 		int hradius = (int) (radius * game.getWidthDiff());
 		int vradius = (int) (radius * game.getHeightDiff());

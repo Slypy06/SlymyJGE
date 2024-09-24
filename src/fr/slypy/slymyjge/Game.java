@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Cursor;
 import org.lwjgl.input.Mouse;
@@ -35,6 +37,8 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.glu.GLU;
 
+import com.codedisaster.steamworks.SteamAPI;
+import com.codedisaster.steamworks.SteamException;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -68,10 +72,11 @@ public abstract class Game extends GameState {
 	
 	protected boolean showFPS = false;
 	
-	protected  long showedFPS = 0;
+	protected long showedFPS = 0;
 
 	protected boolean autoResizeHeight = true;
 	protected boolean autoResizeWidth = true;
+	protected boolean fixedAspectRatio = false;
 	
 	protected String title;
 
@@ -86,31 +91,36 @@ public abstract class Game extends GameState {
 	
 	protected float widthDiff = 1;
 	protected float heightDiff = 1;
+	
+	protected int xDiff;
+	protected int yDiff;
 
 	protected boolean showTPS = false;
 	
 	protected long showedTPS = 0;
 	
-	protected static Map<Integer, GameState> states = new HashMap<Integer, GameState>();
+	protected Map<Integer, GameState> states = new HashMap<Integer, GameState>();
 	
-	protected static GameState state;
-	protected static boolean changeState;
-	protected static GameState newState;
+	protected GameState state;
+	protected boolean changeState;
+	protected GameState newState;
 	
-	protected static long wait = 0;
+	protected long wait = 0;
 	
-	protected static Client client;
+	protected Client client;
 	
-	protected static long frameCap = Integer.MAX_VALUE;
-	protected static long tickCap = Integer.MAX_VALUE;
+	protected long frameCap = Integer.MAX_VALUE;
+	protected long tickCap = Integer.MAX_VALUE;
 	
-	protected static boolean closeRequested = false;
+	protected boolean closeRequested = false;
 	
-	protected static Cursor defaultCursor = Mouse.getNativeCursor();
+	protected Cursor defaultCursor = Mouse.getNativeCursor();
 	
 	protected Thread ut;
 	
-	protected static List<Runnable> toExecute = new ArrayList<Runnable>();
+	protected List<Runnable> toExecute = new ArrayList<Runnable>();
+	
+	protected boolean steamLinked = false;
 	
 	public Game(int width, int height, String title) {
 		
@@ -150,15 +160,71 @@ public abstract class Game extends GameState {
 		
 	}
 	
+	public void setAutoResizeType(boolean autoResizeWidth, boolean autoResizeHeight, boolean fixedAspectRatio) {
+		
+		if(fixedAspectRatio) {
+			
+			autoResizeHeight = true;
+			autoResizeWidth = true;
+			
+		}
+		
+		this.autoResizeHeight = autoResizeHeight;
+		this.autoResizeWidth = autoResizeWidth;
+		this.fixedAspectRatio = fixedAspectRatio;
+		
+		if(!fixedAspectRatio) {
+			
+			xDiff = 0;
+			yDiff = 0;
+			
+		}
+		
+		if(!autoResizeHeight) {
+			
+			heightDiff = 1;
+			
+		}
+		
+		if(!autoResizeWidth) {
+			
+			widthDiff = 1;
+			
+		}
+		
+	}
+	
 	public InitType getInitType() {
 		
 		return InitType.MANUALY_INIT;
 		
 	}
 	
-	public Game getGame() {
+	public Game getGame() { //Useless looking function here but mandatory since Game extends from GameState (if not present, the user will need to implement it which is even sillier)
 		
-		return this;
+		return this;  //THIS FUNCTION MAY SOUND SILLY BUT DO NOT REMOVE, THIS FUNCTION IS MANDATORY
+		
+	}
+	
+	public void initSteam(boolean optional) {
+		
+		try {
+			
+		    SteamAPI.loadLibraries();
+		    
+		    if (!SteamAPI.init() && !optional) {
+		        
+		    	JOptionPane.showMessageDialog(null, "Impossible to initialize steamworks API. Make sure Steam is running.\n", "Steamworks Error", JOptionPane.ERROR_MESSAGE);
+		    	System.exit(0);
+		    	
+		    }
+		    
+		} catch (SteamException e) {
+		    
+			e.printStackTrace();
+			System.exit(0);
+			
+		}
 		
 	}
 	
@@ -306,7 +372,7 @@ public abstract class Game extends GameState {
 	
 	public void exit() {
 		
-		Logger.log("Arret du système");
+		Logger.log("Arret du systï¿½me");
 		
 		closeRequested = true;
 		
@@ -322,7 +388,7 @@ public abstract class Game extends GameState {
 		
 		init();
 		
-		Logger.log("Démarage de la boucle principale du jeu");
+		Logger.log("Dï¿½marage de la boucle principale du jeu");
 		
 		Game game = this;
 		
@@ -348,6 +414,12 @@ public abstract class Game extends GameState {
 					
 					if(alpha > gamma) {
 
+						if(steamLinked && SteamAPI.isSteamRunning()) {
+							
+							SteamAPI.runCallbacks();
+							
+						}
+						
 						gamma = 1D / (double) tickCap;
 						
 						alpha = (double) (System.nanoTime() - before) / 1000000000D;
@@ -511,6 +583,26 @@ public abstract class Game extends GameState {
 				state.render(alpha);
 				
 				state.componentsRender();
+				
+				if(fixedAspectRatio) {
+					
+					if(yDiff != 0) {
+						
+						Renderer.doNotResize();
+							Renderer.renderQuad(0, 0, width, yDiff, backgroundColor);
+							Renderer.renderQuad(0, height - yDiff, width, yDiff, backgroundColor);
+						Renderer.nowYouCanResize();
+						
+					} else if(xDiff != 0) {
+						
+						Renderer.doNotResize();
+							Renderer.renderQuad(0, 0, xDiff, height, backgroundColor);
+							Renderer.renderQuad(width - xDiff, 0, xDiff, height, backgroundColor);
+						Renderer.nowYouCanResize();
+						
+					}
+					
+				}
 						
 				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
 							
@@ -719,11 +811,23 @@ public abstract class Game extends GameState {
 	
 	public int getWidth() {
 		
-		return width;
+		return startWidth;
 		
 	}
 	
 	public int getHeight() {
+		
+		return startHeight;
+		
+	}
+	
+	public int getCurrentWidth() {
+		
+		return width;
+		
+	}
+	
+	public int getCurrentHeight() {
 		
 		return height;
 		
@@ -756,6 +860,25 @@ public abstract class Game extends GameState {
 			heightDiff = 1;
 		
 		}
+
+		
+		if(fixedAspectRatio) {
+			
+			if(widthDiff < heightDiff) {
+				
+				heightDiff = widthDiff;
+				xDiff = 0;
+				yDiff = (int) ((height - startHeight*heightDiff) / 2.0d);
+				
+			} else if(widthDiff > heightDiff) {
+				
+				widthDiff = heightDiff;
+				yDiff = 0;
+				xDiff = (int) ((width - startWidth*widthDiff) / 2.0d);
+				
+			}
+			
+		}
 		
 	}
 	
@@ -763,7 +886,7 @@ public abstract class Game extends GameState {
 	
 	public void display() {
 		
-		Logger.log("Création de la fenètre");
+		Logger.log("Crï¿½ation de la fenï¿½tre");
 		
 		try {
 			
@@ -864,6 +987,18 @@ public abstract class Game extends GameState {
 		
 	}
 	
+	public int getxDiff() {
+		
+		return xDiff;
+		
+	}
+
+	public int getyDiff() {
+		
+		return yDiff;
+		
+	}
+
 	public void setFrameCap(long cap) {
 		
 		frameCap = cap;

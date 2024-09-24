@@ -13,18 +13,12 @@ import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.Texture;
 import fr.slypy.slymyjge.media.MediaPlayer;
+import fr.slypy.slymyjge.utils.Logger;
 import uk.co.caprica.vlcj.player.base.State;
 
 public class TestGame extends Game {
 
 	public static Game game;
-	public static SlymyFont f;
-	public static Texture img;
-	public static BufferedImage baseImg;
-	public static AudioSource textClick;
-	public static Texture background;
-	public static Texture logo;
-	public static Texture textfield;
 	
 	public TestGame(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
@@ -46,76 +40,36 @@ public class TestGame extends Game {
 		
 		Renderer.init(game);
 		
-		game.setFrameCap(60);
+		game.setFrameCap(120);
 		game.setTickCap(20);
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 		
-		AudioMaster.init();
-		textClick = new AudioSource(AudioMaster.loadSound("click.wav"));
-		textClick.setPitch(2.5f);
-		
-		TextFieldComponent username = new TextFieldComponent(490, 200, 300, 75, game, new SlymyFont(new Font("", 0, 30), Color.black)) {
-			
-			@Override
-			public void renderForeground() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void renderBackground() {
-				
-				Renderer.renderTexturedQuad(getX(), getY(), getW(), getH(), textfield);
-				
-			}
-			
-			@Override
-			public void textChanged() {
-				
-				textClick.play();
-				
-			}
-			
-		};
-		
-		username.setMargin(16);
-		
-		game.addComponent(username, "username");
-		
-		background = Texture.loadTexture("background.jpg");
-		logo = Texture.loadTexture("logo.png");
-		textfield = Texture.loadTexture("textfield.png");
+		game.initSteam(true);
 		
 	}
 
 	@Override
 	public void update(double alpha) {
 
-		
+		System.out.println(game.getHeightDiff());
 		
 	}
 	
 	@Override
 	public void render(double alpha) {
 		
-		Renderer.renderTexturedQuad(0, 0, 1280, 720, background);
-		Renderer.renderTexturedQuad(384, 150, 512, 64, logo);
-
+		Renderer.renderQuad(10, 10, game.getWidth() - 20, game.getHeight() - 20, Color.cyan);
+		
+		Renderer.renderQuad(100, 100, game.getWidth() - 200, game.getHeight() - 200, Color.blue);
+		
 	}
-	
+
 	@Override
 	public void stop() {
 		
-		AudioMaster.cleanUp();
+
 		
 	}
 	
-	@Override
-	public void keyPressed(int key) {
-		
-		
-		
-	}
-
 }
