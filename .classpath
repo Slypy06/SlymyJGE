@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Jre 8">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_202">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SlymyJGE/libs"/>
 			<attribute name="module" value="true"/>
@@ -20,5 +20,6 @@
 	<classpathentry kind="lib" path="lib/animated-gif-lib-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/filters-2.0.235-1.jar"/>
 	<classpathentry kind="lib" path="lib/vlcj-4.x-fixed.jar"/>
+	<classpathentry kind="lib" path="lib/steamworks4j-1.9.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
