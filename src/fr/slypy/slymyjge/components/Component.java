@@ -158,7 +158,7 @@ public abstract class Component extends KeyboardInputs {
 		
 		float x = xCursor;
 		float y = yCursor;
-	
+		
 		if(renderType == RenderType.HUD) {
 			
 			x = xCursor + game.getXCam();

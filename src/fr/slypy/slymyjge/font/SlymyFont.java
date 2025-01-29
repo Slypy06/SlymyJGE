@@ -19,15 +19,18 @@ public class SlymyFont {
 	
 	public Color c;
 	
+	public String charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#&()_-+=:;'\\" + '"' + "[]{}<>|/~`"
+			+ "áàâäãåāçćčđéèêëēėęíìîïīłñńóòôöõøōśšúùûüūÿýżžÁÀÂÄÃÅĀÇĆČĐÉÈÊËĒĖĘÍÌÎÏĪŁÑŃÓÒÔÖÕØŌŚŠÚÙÛÜŪŸÝŻŽ€$£µ§%$²°¤*";
+	
 	public SlymyFont(Font f, Color c) {
 		
 		this.f = f;
 		
 		this.c = c;
 		
-		for(int i = 0; i < 256; i++) {
+		for(int i = 0; i < charset.length(); i++) {
 			
-			createCharTexture(i);
+			createCharTexture((int) charset.charAt(i));
 			
 		}
 		
@@ -67,7 +70,7 @@ public class SlymyFont {
 		
 		int i = (int) c;
 		
-		if(i > 0 && i < 256) {
+		if(charset.contains(c + "")) {
 			
 			Texture charTexture = characters.get(i);
 			
@@ -83,7 +86,7 @@ public class SlymyFont {
 		
 		int i = (int) c;
 		
-		if(i > 0 && i < 256) {
+		if(charset.contains(c + "")) {
 			
 			return characters.get(i);
 			
@@ -118,13 +121,12 @@ public class SlymyFont {
 		
 		for(char c : text.toCharArray()) {
 			
-			int i = (int) c;
+			if(!charset.contains(c + ""))
+				continue;
 			
-			if(i > 0 && i < 256) {
+			int i = (int) c;
 				
-				width += getCharData(c).getWidth();
-				
-			}
+			width += getCharData(c).getWidth();
 			
 		}
 		
@@ -168,6 +170,18 @@ public class SlymyFont {
 		g.drawString(String.valueOf((char) i), (charx), (chary) + fontMetrics.getAscent());
 		
 		characters.put(i, Texture.loadTexture(tempImg));
+		
+	}
+
+	public String getCharset() {
+
+		return charset;
+		
+	}
+
+	public void setCharset(String charset) {
+		
+		this.charset = charset;
 		
 	}
 	

@@ -32,7 +32,7 @@ public abstract class GameState extends KeyboardInputs {
 		
 		for(Component comp : components.values()) {
 			
-			if(comp.isPossiblyHover(Mouse.getX(), getGame().getHeight() - Mouse.getY()) && comp.isVisible()) {
+			if(comp.isPossiblyHover(Mouse.getX() - getGame().getxDiff(), getGame().getCurrentHeight() - Mouse.getY() - getGame().getyDiff()) && comp.isVisible()) {
 				
 				return comp;
 				
@@ -106,7 +106,7 @@ public abstract class GameState extends KeyboardInputs {
 			
 			if(comp.isActivated()) {
 				
-				comp.update(Mouse.getX(), getGame().getHeight() - Mouse.getY(), getGame());
+				comp.update(Mouse.getX() - getGame().getxDiff(), getGame().getCurrentHeight() - Mouse.getY() - getGame().getyDiff(), getGame());
 				
 			}
 			
