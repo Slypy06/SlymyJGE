@@ -1,36 +1,34 @@
 package fr.slypy.test;
 
 import java.awt.Color;
-import java.awt.Font;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+
+import org.davidmoten.hilbert.HilbertCurve;
+import org.davidmoten.hilbert.SmallHilbertCurve;
+import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.components.ButtonComponent;
-import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.graphics.Texture;
 
 public class TestGame extends Game {
 
 	public static Game game;
-	public int m;
-	public int n;
-	public SlymyFont f;
-	public SlymyFont f2;
-	public SlymyFont f3;
 	
-	public static double Gamma = 0.80;
-	public static double IntensityMax = 255;
+	private Texture baseTexture;
+	private Texture goalTexture;
 	
-	public int color = 0;
-	public Color[] colors = {
-        new Color(148, 0, 211),  // Violet
-        new Color(75, 0, 130),   // Indigo
-        new Color(0, 0, 255),    // Blue
-        new Color(0, 255, 0),    // Green
-        new Color(255, 255, 0),  // Yellow
-        new Color(255, 127, 0),  // Orange
-        new Color(255, 0, 0)     // Red
-    };
+	private List<Pixel> pixels = new ArrayList<>();
+	private double transitionProgress = -0.2; // 0 to 1
+	private double transitionSpeed = 1.0/8.0;  // 2 seconds transition
 	
 	public TestGame(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
@@ -42,7 +40,7 @@ public class TestGame extends Game {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
-		game = new TestGame(1280, 720, "Test Game Title", Color.white, true);
+		game = new TestGame(1920, 1080, "Test Game Title", Color.white, true);
 		game.start();
 		
 	}
@@ -57,157 +55,40 @@ public class TestGame extends Game {
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 
-		game.setAutoResizeType(true, true, true);
+		baseTexture = Texture.loadTexture("miniedt.png");
+		goalTexture = Texture.loadTexture("minirick.png");
+		//newTexture = Texture.loadTexture(transform(baseTexture.getImage(), goalTexture.getImage()));
 		
-		f = new SlymyFont(new Font("", Font.PLAIN, 30), Color.white);
-		f2 = new SlymyFont(new Font("", Font.BOLD, 120), Color.white);
-		f3 = new SlymyFont(new Font("", Font.PLAIN, 60), Color.white);
-		
-		ButtonComponent comp = new ButtonComponent(180, 400, 150, 75, game) {
-			
-			@Override
-			public void render() {
-				
-				Renderer.renderQuad(this.getX(), this.getY(), this.getW(), this.getH(), this.isHover() ? (this.isPressed() ? new Color(120, 120, 120) : new Color(180, 180, 180)) : new Color(220, 220, 220));
-				Renderer.renderBorder(this.getX(), this.getY(), this.getW(), this.getH(), 2, Color.DARK_GRAY);
-				
-				String text = "YES";
-				
-				Renderer.renderText(this.getX() + (this.getW() - f.getWidth(text)) / 2, this.getY() + (this.getH() - f.getHeight()) / 2, f, text);
+	    Map<Vector2f, Vector2f> transformMap = getTransformMap(baseTexture.getImage(), goalTexture.getImage());
 
-			}
-			
-			@Override
-			public void componentActivated() {
-				
-				this.setVisible(false);
-				this.setActivated(false);
-				
-			}
-			
-		};
-		
-		game.addComponent(comp, "yes");
-		
-		ButtonComponent comp2 = new ButtonComponent(950, 400, 150, 75, game) {
-			
-			@Override
-			public void render() {
-				
-				Renderer.renderQuad(this.getX(), this.getY(), this.getW(), this.getH(), this.isHover() ? (this.isPressed() ? new Color(120, 120, 120) : new Color(180, 180, 180)) : new Color(220, 220, 220));
-				Renderer.renderBorder(this.getX(), this.getY(), this.getW(), this.getH(), 2, Color.DARK_GRAY);
-				
-				String text = "NO";
-				
-				Renderer.renderText(this.getX() + (this.getW() - f.getWidth(text)) / 2, this.getY() + (this.getH() - f.getHeight()) / 2, f, text);
-
-				
-			}
-			
-			@Override
-			public void onMouseEntering() {
-				
-				super.onMouseEntering();
-				
-				this.setActivated(false);
-				this.setVisible(false);
-				
-			}
-			
-		};
-		
-		game.addComponent(comp2, "no");
+	    for (Map.Entry<Vector2f, Vector2f> entry : transformMap.entrySet()) {
+	        Vector2f start = entry.getKey();
+	        Vector2f end = entry.getValue();
+	        Color c = new Color(baseTexture.getImage().getRGB((int) start.x, (int) start.y));
+	        pixels.add(new Pixel(start.x, start.y, end.x, end.y, c));
+	    }
 
 	}
 
 	@Override
 	public void update(double alpha) {
 
-		color += alpha * 400;
-		
-		ButtonComponent no = (ButtonComponent) game.getComponent("no");
-		
-		int x = (int) (no.getX() + (no.getW() / 2.0f));
-		int y = (int) (no.getY() + (no.getH() / 2.0f));
-		
-		int xCursor = (int) game.getXCursor();
-		int yCursor = (int) game.getYCursor();
-		
-		int deltaX = x - xCursor;
-		int deltaY = y - yCursor;
+	    transitionProgress += alpha * transitionSpeed;
+	    if (transitionProgress > 1) transitionProgress = 1;
 
-		// Calculate the distance between the object and the cursor
-		double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-		// Define the maximum distance for movement and a speed factor for tuning
-		double maxDistance = 350;
-		double speedFactor = 400;
-
-		// Check if the distance is within the threshold
-		if (distance < maxDistance && distance > 10) {  // Move only within a reasonable distance range
-		    // Calculate the movement strength inversely related to the distance
-		    double strength = 1 / (Math.pow(distance / speedFactor, 4));
-
-		    // Move x and y away from the cursor by inverting the direction of deltaX and deltaY
-		    x += (int) (strength * (deltaX / distance));
-		    y += (int) (strength * (deltaY / distance));
-		    
-		    x -= (no.getW() / 2.0f);
-		    y -= (no.getH() / 2.0f);
-		    
-		    if(x < 0) {
-		    	
-		    	x = 0;
-		    	
-		    }
-		    
-		    if(y < 0) {
-		    	
-		    	y = 0;
-		    	
-		    }
-		    
-		    if(x > 1130) {
-		    	
-		    	x = 1130;
-		    	
-		    }
-		    
-		    if(y > 645) {
-		    	
-		    	y = 645;
-		    	
-		    }
-		    
-		    no.setX(x);
-		    no.setY(y);
-		    
-		}
+	    for (Pixel p : pixels) {
+	        p.update(transitionProgress);
+	    }
 		
 	}
 	
 	@Override
 	public void render(double alpha) {
 		
-		Renderer.renderText(640 - f3.getWidth("Are you gay ?") / 2, 100, f3, "Are you gay ?", Color.black);
-		
-		if(!game.getComponent("no").isVisible()) {
-			
-			Renderer.renderText(640 - f.getWidth("Get fucked sucker") / 2, 50, f, "Get fucked sucker", Color.red);
-			
-		}
-		
-		if(!game.getComponent("yes").isVisible()) {
-
-	        for (int i = 0; i < 1000; i++) {
-	            // Determine the current and next color for interpolation
-	            Renderer.renderQuad(i*1.28f, 0, 2, 720, sineWaveColor((((i+color) % 1500)/1500.0f)));
-	            
-	        }
-			
-			Renderer.renderText(640 - f2.getWidth("I KNEW IT") / 2, 150, f2, "I KNEW IT", Color.white);
-			
-		}
+		//Renderer.renderTexturedQuad(0, 0, width, height, newTexture);
+	    for (Pixel p : pixels) {
+	        p.render();
+	    }
 		
 	}
 
@@ -218,50 +99,121 @@ public class TestGame extends Game {
 		
 	}
 	
-    public static Color sineWaveColor(double t) {
-        // Adjust 't' to cycle from 0 to 1, where t can be a value from 0 to 1
-        double frequency = 5*Math.PI/6.0f;  // Full cycle for smoother transitions
-        
-        // Apply sine waves to hue, saturation, and brightness to smooth out transitions
-        float hue = (float) (0.5 + 0.5 * Math.sin(frequency * t + Math.PI/2+Math.PI/12));  // Centered around 0.5, oscillating [0, 1]
-        float saturation = 1;  // Oscillates around 0.8
-        float brightness = (float) 1;  // Oscillates around 0.9
-        
-        // Convert to Color
-        return Color.getHSBColor(hue, saturation, brightness);
-    }
+	private BufferedImage transform(BufferedImage from, BufferedImage to) {
+		
+		if(from.getWidth() != to.getWidth() || from.getHeight() != to.getHeight()) {
+			
+			return null;
+			
+		}
+		
+		BufferedImage output = new BufferedImage(from.getWidth(), from.getHeight(), from.getType());
+		
+		Map<Vector2f, Vector2f> transformMap = getTransformMap(from, to);
+		
+		for(Vector2f originPixel : transformMap.keySet()) {
+			
+			Vector2f goalPixel = transformMap.get(originPixel);
+			
+			output.setRGB((int) goalPixel.getX(), (int) goalPixel.getY(), from.getRGB((int) originPixel.getX(), (int) originPixel.getY()));
+			
+		}
+		
+		return output;
+		
+	}
+
+	private Map<Vector2f, Vector2f> getTransformMap(BufferedImage from, BufferedImage to) {
+		
+		if(from.getWidth() != to.getWidth() || from.getHeight() != to.getHeight()) {
+			
+			return null;
+			
+		}
+		
+		List<Entry<Vector2f, Long>> fromList = toHilbertCurveSorted(from);
+		List<Entry<Vector2f, Long>> toList = toHilbertCurveSorted(to);
+		
+		Map<Vector2f, Vector2f> output = new HashMap<Vector2f, Vector2f>();
+		
+		for(int i = 0; i < fromList.size(); i++) {
+			
+			output.put(fromList.get(i).getKey(), toList.get(i).getKey());
+			
+		}
+		
+		return output;
+		
+	}
+	
+	private List<Entry<Vector2f, Long>> toHilbertCurveSorted(BufferedImage img) {
+		
+		int noiseRange = 1000;
+		Random r = new Random();
+		
+		SmallHilbertCurve smallHilbertCurve = HilbertCurve.small().bits(8).dimensions(3);
+		
+		List<Entry<Vector2f, Long>> output = new ArrayList<Entry<Vector2f, Long>>();
+		
+		for(int i = 0; i < img.getHeight(); i++) {
+			
+			for(int j = 0; j < img.getWidth(); j++) {
+				
+				Color c = new Color(img.getRGB(j, i));
+				
+				output.add(new AbstractMap.SimpleEntry<Vector2f, Long>(new Vector2f(j, i), (r.nextInt(2*noiseRange) - noiseRange) + smallHilbertCurve.index(c.getRed(), c.getGreen(), c.getBlue())));
+				
+			}
+			
+		}
+		
+		output.sort(Map.Entry.comparingByValue());
+		
+		return output;
+		
+	}
+	
+	public static class Pixel {
+		
+	    public float startX, startY;
+	    public float targetX, targetY;
+	    public Color color;
+	    public float currentX, currentY;
+	    
+	    private float scale = 7.5f;
+
+	    public Pixel(float startX, float startY, float targetX, float targetY, Color color) {
+	    	
+	        this.startX = startX;
+	        this.startY = startY;
+	        this.targetX = targetX;
+	        this.targetY = targetY;
+	        this.color = color;
+	        this.currentX = startX;
+	        this.currentY = startY;
+	        
+	    }
+
+	    /** 
+	     * alpha = 0 -> start, alpha = 1 -> target
+	     */
+	    public void update(double alpha) {
+	    	
+	    	alpha = Math.max(alpha, 0);
+	    	
+	    	alpha = 126*Math.pow(alpha,5) - 420*Math.pow(alpha,6) + 540*Math.pow(alpha,7) - 315*Math.pow(alpha,8) + 70*Math.pow(alpha,9); // smoothstep
+	    	
+	        currentX = (float) (startX + (targetX - startX) * alpha);
+	        currentY = (float) (startY + (targetY - startY) * alpha);
+	        
+	    }
+
+	    public void render() {
+	    	
+	        Renderer.renderQuad(currentX*scale-1, currentY*scale-1, (int) Math.ceil(scale + 2), (int) Math.ceil(scale + 2), color);
+	        
+	    }
+	    
+	}
 	
 }
-/*
-		ButtonComponent c = new ButtonComponent(540, 500, 200, 100, game) {
-			
-			@Override
-			public void render() {
-				
-				Renderer.renderQuad(this.getX(), this.getY(), this.getW(), this.getH(), this.isHover() ? (this.isPressed() ? new Color(120, 120, 120) : new Color(180, 180, 180)) : new Color(220, 220, 220));
-				Renderer.renderBorder(this.getX(), this.getY(), this.getW(), this.getH(), 2, Color.DARK_GRAY);
-				
-				String text = "CONFIRM";
-				
-				Renderer.renderText(this.getX() + (this.getW() - f.getWidth(text)) / 2, this.getY() + (this.getH() - f.getHeight()) / 2, f, text);
-				
-			}
-			
-			@Override
-			public void componentActivated() {
-				
-				this.setVisible(false);
-				this.setActivated(false);
-				
-				m = Integer.parseInt(t1.getText().isEmpty() ? "1" : t2.getText());
-				n = Integer.parseInt(t2.getText().isEmpty() ? "1" : t2.getText());
-				
-				t1.setVisible(false);
-				t1.setActivated(false);
-				
-				t2.setVisible(false);
-				t2.setActivated(false);
-				
-			}
-			
-		};*/
