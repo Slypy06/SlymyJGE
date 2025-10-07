@@ -3,12 +3,14 @@ package fr.slypy.test;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
+import java.util.Arrays;
 
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.components.ButtonComponent;
 import fr.slypy.slymyjge.components.TextFieldComponent;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.utils.ResizingRules;
 
 public class TextFieldTest extends Game {
 
@@ -25,7 +27,7 @@ public class TextFieldTest extends Game {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
-		game = new TextFieldTest(1280, 720, "Test Game Title", Color.white, true);
+		game = new TextFieldTest(1280, 720, "Test Game Title", Color.black, true);
 		game.start();
 		
 	}
@@ -40,7 +42,7 @@ public class TextFieldTest extends Game {
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 
-		game.setAutoResizeType(true, true, true);
+		game.setResizingRules(new ResizingRules(true, true, true));
 		
 		f = new SlymyFont(new Font("Arial", Font.PLAIN, 30), Color.white);
 		
@@ -66,7 +68,7 @@ public class TextFieldTest extends Game {
 		
 		t.setAllowMultilines(true);
 		
-		t.setText(f.getCharset());
+		t.setText(Arrays.asList("abcde", "fgh", "\ta"));
 		
 		game.addComponent(t, "t");
 

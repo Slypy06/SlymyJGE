@@ -400,7 +400,7 @@ public class Renderer {
 		renderTexturedQuad(x, y, w, h, texture, Color.white);
 		
 	}
-	
+
 	public static void renderTexturedQuad(float x, float y, int w, int h, int texture, Color color) {
 		
 		if(resize) {

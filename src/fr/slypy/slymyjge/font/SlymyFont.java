@@ -13,14 +13,13 @@ import fr.slypy.slymyjge.graphics.Texture;
 
 public class SlymyFont {
 
-	public Map<Integer, Texture> characters = new HashMap<Integer, Texture>();
+	private Map<Integer, Texture> characters = new HashMap<Integer, Texture>();
 	
-	public Font f;
+	private Font f;
 	
-	public Color c;
+	private Color c;
 	
-	public String charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#&()_-+=:;'\\" + '"' + "[]{}<>|/~`"
-			+ "áàâäãåāçćčđéèêëēėęíìîïīłñńóòôöõøōśšúùûüūÿýżžÁÀÂÄÃÅĀÇĆČĐÉÈÊËĒĖĘÍÌÎÏĪŁÑŃÓÒÔÖÕØŌŚŠÚÙÛÜŪŸÝŻŽ€$£µ§%$²°¤*";
+	private String charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#&()_-+=:;'\\\"[]{}<>|/~`áàâäãåāçćčđéèêëēėęíìîïīłñńóòôöõøōśšúùûüūÿýżžÁÀÂÄÃÅĀÇĆČĐÉÈÊËĒĖĘÍÌÎÏĪŁÑŃÓÒÔÖÕØŌŚŠÚÙÛÜŪŸÝŻŽ€$£µ§%$²°¤*";
 	
 	public SlymyFont(Font f, Color c) {
 		
@@ -123,8 +122,6 @@ public class SlymyFont {
 			
 			if(!charset.contains(c + ""))
 				continue;
-			
-			int i = (int) c;
 				
 			width += getCharData(c).getWidth();
 			

@@ -14,68 +14,56 @@ public class Animation {
 	
 	private List<AnimationFrame> frames = new ArrayList<AnimationFrame>();
 	
-	private long lastUpdate = 0;
+	private double lastUpdate = 0;
+	private double currentTime;
 	
 	private int frame = 0;
 	
 	private boolean playing;
 
-	public Animation(AnimationFrame[] frames) {
+	public Animation(AnimationFrame... frames) {
 		
 		this.frames.addAll(Arrays.asList(frames));
 		
 	}
 	
-	public void render(float x, float y, int w, int h, Color color) {
+	public void update(double delta) {
+
+		currentTime += delta;
 			
-		if(frames.size() < 1) {
-			
-			return;
-			
-		} else if(frame >= frames.size()) {
-			
+		if(lastUpdate == 0) {
+					
+			lastUpdate = currentTime;
 			frame = 0;
-			
+					
+		} else {
+					
+			if(playing) {
+				
+				double alpha = currentTime - lastUpdate;
+					
+				if(alpha > 1.0f / frames.get(frame).getSpeed()) {
+						
+					frame = (frame + (int) Math.floor(alpha / (1.0f / frames.get(frame).getSpeed()))) % frames.size();
+					currentTime = currentTime - (alpha % (1.0f / frames.get(frame).getSpeed()));
+						
+				}
+				
+			} else {
+					
+				lastUpdate = currentTime;
+					
+			}
+				
 		}
 		
-		if(lastUpdate == 0) {
-				
-			lastUpdate = System.nanoTime();
-			frame = 0;
-				
-		} else {
-				
-			if(playing) {
+	}
+	
+	public void render(float x, float y, int w, int h, Color color) {
 			
-				long alpha = System.nanoTime() - lastUpdate;
-				
-				if(alpha > frames.get(frame).speed) {
-					
-					while(alpha > frames.get(frame).speed) {
-						
-						alpha -= frames.get(frame).speed;
-						
-						if(frame < frames.size() - 1) {
-							
-							frame++;
-							
-						} else {
-							
-							frame = 0;
-							
-						}
-						
-					}
-						
-					lastUpdate = System.nanoTime();
-					
-				}
+		if(frames.isEmpty()) {
 			
-			} else {
-				
-				lastUpdate = System.nanoTime();
-				
-			}
+			return;
 			
 		}
 		
@@ -141,13 +129,25 @@ public class Animation {
 		
 	}
 	
-	public void setFrame(int frame) {
+	public void setCurrentFrame(int frame) {
 		
 		long rounds = Math.floorDiv(frame, frames.size());
 		
 		frame -= rounds * (frames.size());
 			
 		this.frame = (int) frame;
+		
+	}
+	
+	public int getCurrentFrame() {
+		
+		return frame;
+		
+	}
+	
+	public void setFrame(int index, AnimationFrame frame) {
+		
+		this.frames.set(index, frame);
 		
 	}
 
@@ -180,7 +180,7 @@ public class Animation {
 		
 		for (int i = 0; i < frames; i++) {
 			
-			animationFrames[i] = new TexturedAnimationFrame(0, 0, 1, 1, Texture.loadTexture(decoder.getFrame(i)), (float) (1000000000D / (float) (decoder.getDelay(i) * 1000000)));
+			animationFrames[i] = new TexturedAnimationFrame(0, 0, 1, 1, Texture.loadTexture(decoder.getFrame(i)), (float) (1000000000D / (float) (decoder.getDelay(i) * 10000000)));
 			
 		}
 		

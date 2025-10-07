@@ -3,21 +3,20 @@ package fr.slypy.test;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.davidmoten.hilbert.HilbertCurve;
-import org.davidmoten.hilbert.SmallHilbertCurve;
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
+import fr.slypy.slymyjge.animations.Animation;
+import fr.slypy.slymyjge.animations.AnimationFrame;
+import fr.slypy.slymyjge.animations.TexturedAnimationFrame;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.test.imagematching.Genetic;
 
 public class TestGame extends Game {
 
@@ -25,10 +24,13 @@ public class TestGame extends Game {
 	
 	private Texture baseTexture;
 	private Texture goalTexture;
+	private Animation anim;
 	
 	private List<Pixel> pixels = new ArrayList<>();
 	private double transitionProgress = -0.2; // 0 to 1
 	private double transitionSpeed = 1.0/8.0;  // 2 seconds transition
+	private BufferedImage[] animImgs;
+	private AtomicInteger counter = new AtomicInteger(1);
 	
 	public TestGame(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
@@ -40,7 +42,7 @@ public class TestGame extends Game {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
-		game = new TestGame(1920, 1080, "Test Game Title", Color.white, true);
+		game = new TestGame(1800, 1800, "Test Game Title", Color.white, true);
 		game.start();
 		
 	}
@@ -55,12 +57,60 @@ public class TestGame extends Game {
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 
-		baseTexture = Texture.loadTexture("miniedt.png");
-		goalTexture = Texture.loadTexture("minirick.png");
-		//newTexture = Texture.loadTexture(transform(baseTexture.getImage(), goalTexture.getImage()));
+		baseTexture = Texture.loadTexture("square_sablkik.png");
+		//goalTexture = Texture.loadTexture("origin3.png");
+		anim = new Animation(Animation.loadAnimationFromGif("square_rick.gif"));
+		goalTexture = ((TexturedAnimationFrame) anim.getFrames().get(0)).getTexture();
+		anim.setSpeed(10);
 		
-	    Map<Vector2f, Vector2f> transformMap = getTransformMap(baseTexture.getImage(), goalTexture.getImage());
+		animImgs = new BufferedImage[anim.getFrames().size()];
+		
+	    Map<Vector2f, Vector2f> transformMap = Genetic.geneticAssignment(baseTexture.getImage(), goalTexture.getImage(), 0.5f, 200000);
+	    
+	    animImgs[0] = Genetic.applyTransformMap(baseTexture.getImage(), transformMap);
+		
+		for(int i = 1; i < anim.getFrames().size(); i++) {
+			
+			final int index = i;
+			
+			new Thread(() -> {
+				
+				BufferedImage img = Genetic.transform(animImgs[0], ((TexturedAnimationFrame) anim.getFrames().get(index)).getTexture().getImage(), 0.5f, 200000);
+				animImgs[index] = img;
+				counter.incrementAndGet();
+				
+			}).start();
+			
+		}
+		
+		//newTexture = Texture.loadTexture(transform(baseTexture.getImage(), goalTexture.getImage()));
+	    
+	    while(counter.get() < anim.getFrames().size()) {
+	    	
+	    	System.out.println(counter.get() + "/" + anim.getFrames().size() + " frames calculated");
+	    	
+	    	try {
 
+				Thread.sleep(1000);
+
+			} catch (InterruptedException e) {
+
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+
+			}
+	    	
+	    }
+	    
+	    for(int i = 0; i < anim.getFrames().size(); i++) {
+	    	
+	    	((TexturedAnimationFrame) anim.getFrames().get(i)).setTexture(Texture.loadTexture(animImgs[i]));
+	    	
+	    }
+	    
+	    //Map<Vector2f, Vector2f> transformMap = Hilbert.getTransformMap(baseTexture.getImage(), goalTexture.getImage());
+	    //Map<Vector2f, Vector2f> transformMap = Hungarian.optimalAssignment(baseTexture.getImage(), goalTexture.getImage(), 0);
+	    
 	    for (Map.Entry<Vector2f, Vector2f> entry : transformMap.entrySet()) {
 	        Vector2f start = entry.getKey();
 	        Vector2f end = entry.getValue();
@@ -74,11 +124,18 @@ public class TestGame extends Game {
 	public void update(double alpha) {
 
 	    transitionProgress += alpha * transitionSpeed;
-	    if (transitionProgress > 1) transitionProgress = 1;
+	    if (transitionProgress > 1) {
+	    	
+	    	transitionProgress = 1;
+	    	anim.setPlaying(true);
+	    	
+	    }
 
 	    for (Pixel p : pixels) {
 	        p.update(transitionProgress);
 	    }
+	    
+	    anim.update(alpha);
 		
 	}
 	
@@ -86,90 +143,27 @@ public class TestGame extends Game {
 	public void render(double alpha) {
 		
 		//Renderer.renderTexturedQuad(0, 0, width, height, newTexture);
-	    for (Pixel p : pixels) {
-	        p.render();
-	    }
+		
+		if(anim.isPlaying()) {
+			
+			anim.render(0, 0, getWidth(), getHeight());
+			
+		} else {
+		
+		    for (Pixel p : pixels) {
+		    	
+		        p.render();
+		        
+		    }
+	    
+		}
 		
 	}
 
 	@Override
 	public void stop() {
 		
-
 		
-	}
-	
-	private BufferedImage transform(BufferedImage from, BufferedImage to) {
-		
-		if(from.getWidth() != to.getWidth() || from.getHeight() != to.getHeight()) {
-			
-			return null;
-			
-		}
-		
-		BufferedImage output = new BufferedImage(from.getWidth(), from.getHeight(), from.getType());
-		
-		Map<Vector2f, Vector2f> transformMap = getTransformMap(from, to);
-		
-		for(Vector2f originPixel : transformMap.keySet()) {
-			
-			Vector2f goalPixel = transformMap.get(originPixel);
-			
-			output.setRGB((int) goalPixel.getX(), (int) goalPixel.getY(), from.getRGB((int) originPixel.getX(), (int) originPixel.getY()));
-			
-		}
-		
-		return output;
-		
-	}
-
-	private Map<Vector2f, Vector2f> getTransformMap(BufferedImage from, BufferedImage to) {
-		
-		if(from.getWidth() != to.getWidth() || from.getHeight() != to.getHeight()) {
-			
-			return null;
-			
-		}
-		
-		List<Entry<Vector2f, Long>> fromList = toHilbertCurveSorted(from);
-		List<Entry<Vector2f, Long>> toList = toHilbertCurveSorted(to);
-		
-		Map<Vector2f, Vector2f> output = new HashMap<Vector2f, Vector2f>();
-		
-		for(int i = 0; i < fromList.size(); i++) {
-			
-			output.put(fromList.get(i).getKey(), toList.get(i).getKey());
-			
-		}
-		
-		return output;
-		
-	}
-	
-	private List<Entry<Vector2f, Long>> toHilbertCurveSorted(BufferedImage img) {
-		
-		int noiseRange = 1000;
-		Random r = new Random();
-		
-		SmallHilbertCurve smallHilbertCurve = HilbertCurve.small().bits(8).dimensions(3);
-		
-		List<Entry<Vector2f, Long>> output = new ArrayList<Entry<Vector2f, Long>>();
-		
-		for(int i = 0; i < img.getHeight(); i++) {
-			
-			for(int j = 0; j < img.getWidth(); j++) {
-				
-				Color c = new Color(img.getRGB(j, i));
-				
-				output.add(new AbstractMap.SimpleEntry<Vector2f, Long>(new Vector2f(j, i), (r.nextInt(2*noiseRange) - noiseRange) + smallHilbertCurve.index(c.getRed(), c.getGreen(), c.getBlue())));
-				
-			}
-			
-		}
-		
-		output.sort(Map.Entry.comparingByValue());
-		
-		return output;
 		
 	}
 	
@@ -180,7 +174,7 @@ public class TestGame extends Game {
 	    public Color color;
 	    public float currentX, currentY;
 	    
-	    private float scale = 7.5f;
+	    private float scale = 5f;
 
 	    public Pixel(float startX, float startY, float targetX, float targetY, Color color) {
 	    	

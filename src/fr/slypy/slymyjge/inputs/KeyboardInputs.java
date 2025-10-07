@@ -8,7 +8,7 @@ import org.lwjgl.input.Keyboard;
 
 public class KeyboardInputs extends MouseInputs {
 	
-	public int escapeGameKey = -1;
+	protected int escapeGameKey = -1;
 
 	private HashMap<Integer, Integer> keys = new HashMap<Integer, Integer>();
 	
@@ -72,15 +72,21 @@ public class KeyboardInputs extends MouseInputs {
 		
 	}
 	
-	public void keyPressed(int key) {}
-	
-	public void keyReleased(int key) {}
+	public void setEscapeGameKey(int escapeGameKey) {
+		
+		this.escapeGameKey = escapeGameKey;
+		
+	}
 
 	public boolean isCloseRequested() {
 
 		return escapeGameKey != -1 && Keyboard.isKeyDown(escapeGameKey);
 		
 	}
+	
+	public void keyPressed(int key) {}
+	
+	public void keyReleased(int key) {}
 	
 	public void keyTyped(char key, boolean eventState) {}
 	

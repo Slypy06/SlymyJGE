@@ -19,13 +19,10 @@ import static org.lwjgl.opengl.GL11.glTranslatef;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.awt.Color;
-import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JOptionPane;
 
@@ -39,44 +36,22 @@ import org.lwjgl.util.glu.GLU;
 
 import com.codedisaster.steamworks.SteamAPI;
 import com.codedisaster.steamworks.SteamException;
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
 
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.Texture;
-import fr.slypy.slymyjge.network.AuthentifiedPacket;
-import fr.slypy.slymyjge.network.NetworkRegister;
-import fr.slypy.slymyjge.network.Packet;
 import fr.slypy.slymyjge.utils.Logger;
+import fr.slypy.slymyjge.utils.RepeatedScheduler;
+import fr.slypy.slymyjge.utils.ResizingRules;
 
 public abstract class Game extends GameState {
 	
-	protected boolean changeDisplaymode = false;
-	
-	protected NewDisplayMode newDisplay;
-	
-	protected boolean changeIcon = false;
-	
-	protected ByteBuffer[] icons;
-	
-	protected boolean changeCursor = false;
-	
-	protected Cursor cursor;
-	
-	protected boolean resizable;
-	
 	protected boolean showFPS = false;
-	
-	protected long showedFPS = 0;
+	protected long fps = 0;
 
-	protected boolean autoResizeHeight = true;
-	protected boolean autoResizeWidth = true;
-	protected boolean fixedAspectRatio = false;
+	protected ResizingRules resizingRules;
 	
 	protected String title;
 
@@ -96,18 +71,15 @@ public abstract class Game extends GameState {
 	protected int yDiff;
 
 	protected boolean showTPS = false;
+	protected long tps = 0;
 	
-	protected long showedTPS = 0;
-	
-	protected Map<Integer, GameState> states = new HashMap<Integer, GameState>();
+	protected Map<Integer, GameState> states = new ConcurrentHashMap<>();
 	
 	protected GameState state;
-	protected boolean changeState;
-	protected GameState newState;
 	
 	protected long wait = 0;
 	
-	protected Client client;
+	//protected Client client;
 	
 	protected long frameCap = Integer.MAX_VALUE;
 	protected long tickCap = Integer.MAX_VALUE;
@@ -118,7 +90,7 @@ public abstract class Game extends GameState {
 	
 	protected Thread ut;
 	
-	protected List<Runnable> toExecute = new ArrayList<Runnable>();
+	protected ConcurrentLinkedQueue<Runnable> toExecute = new ConcurrentLinkedQueue<>();
 	
 	protected boolean steamLinked = false;
 	
@@ -152,7 +124,15 @@ public abstract class Game extends GameState {
 		
 		this.backgroundColor = backgroundColor;
 		
-		this.resizable = resizable;
+		if(resizable) {
+			
+			resizingRules = ResizingRules.DefaultRules;
+			
+		} else {
+			
+			resizingRules = ResizingRules.NotResizable;
+			
+		}
 		
 		states.put(0, this);
 		
@@ -160,33 +140,26 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	public void setAutoResizeType(boolean autoResizeWidth, boolean autoResizeHeight, boolean fixedAspectRatio) {
+	public abstract void stop();
+	
+	public void setResizingRules(ResizingRules rules) {
 		
-		if(fixedAspectRatio) {
-			
-			autoResizeHeight = true;
-			autoResizeWidth = true;
-			
-		}
+		this.resizingRules = rules;
 		
-		this.autoResizeHeight = autoResizeHeight;
-		this.autoResizeWidth = autoResizeWidth;
-		this.fixedAspectRatio = fixedAspectRatio;
-		
-		if(!fixedAspectRatio) {
+		if(!resizingRules.isFixedAspectRatio()) {
 			
 			xDiff = 0;
 			yDiff = 0;
 			
 		}
 		
-		if(!autoResizeHeight) {
+		if(!resizingRules.isResizeHeight()) {
 			
 			heightDiff = 1;
 			
 		}
 		
-		if(!autoResizeWidth) {
+		if(!resizingRules.isResizeWidth()) {
 			
 			widthDiff = 1;
 			
@@ -246,14 +219,27 @@ public abstract class Game extends GameState {
 		
 		if(states.containsKey(id)) {
 			
-			changeState = true;
-			newState = states.get(id);
+			executeInRenderThread(() -> {
+				
+				state.isInitialised = false;
+				
+				state = states.get(id);
+				
+				if(state.getInitType() == InitType.INIT_ON_LOAD || state.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
+					
+					state.init();
+					
+				}
+				
+				state.isInitialised = true;
+				
+			});
 			
 		}
 		
 	}
 	
-	public void setupClientForMultiplayer(NetworkRegister networkRegister) {
+	/*public void setupClientForMultiplayer(NetworkRegister networkRegister) {
 		
 		Game game = this;
 			
@@ -349,7 +335,7 @@ public abstract class Game extends GameState {
 	public void connected(Connection c) {}
 	public void disconnected(Connection c) {}
 	public void packetReceived(Connection c, Packet p, long ping) {}
-	public void authentified(Connection c) {}
+	public void authentified(Connection c) {}*/
 	
 	public void setEscapeGameKey(int escapeGameKey) {
 		
@@ -373,7 +359,6 @@ public abstract class Game extends GameState {
 	public void exit() {
 		
 		Logger.log("Arret du syst�me");
-		
 		closeRequested = true;
 		
 	}
@@ -381,8 +366,6 @@ public abstract class Game extends GameState {
 	public void loop() {
 		
 		Logger.log("Initialisation du jeu");
-		
-		escapeGameKey = getEscapeGameKey();
 		
 		Renderer.init(this);
 		
@@ -398,46 +381,25 @@ public abstract class Game extends GameState {
 			
 			public void run() {
 				
-				long lastTpsUpdate = System.nanoTime();
-				
+				RepeatedScheduler tpsUpdateScheduler = new RepeatedScheduler(1);
 				long tps = 0;
 				
-				long before = System.nanoTime();
-				
-				double alpha = (double) (System.nanoTime() - before) / 1000000000D;
-				
 				double gamma = 1D / (double) tickCap;
+				double alpha;
+				long before = System.nanoTime() - (long) (gamma*1000000000); // we substract gamma so we are sure that the renderLoop get it's first iteration right away
 				
-				while(true) {
+				while(!closeRequested) {
 					
 					alpha = (double) (System.nanoTime() - before) / 1000000000D;
 					
 					if(alpha > gamma) {
+						
+						gamma = 1D / (double) tickCap; //we update gamma in case tickCap changed
+						before = System.nanoTime();
 
 						if(steamLinked && SteamAPI.isSteamRunning()) {
 							
 							SteamAPI.runCallbacks();
-							
-						}
-						
-						gamma = 1D / (double) tickCap;
-						
-						alpha = (double) (System.nanoTime() - before) / 1000000000D;
-						
-						before = System.nanoTime();
-						
-						if(game.isCloseRequested()) {
-							
-							Logger.log("Arret du jeu (keyboard)");
-							game.stop();
-							game.exit();
-							break;
-							
-						}
-						
-						if(closeRequested) {
-							
-							break;
 							
 						}
 						
@@ -453,14 +415,20 @@ public abstract class Game extends GameState {
 						
 						}
 						
-						if (System.nanoTime() - lastTpsUpdate > 1000000000L) {
+						if (tpsUpdateScheduler.isReady()) {
 							
-							showedTPS = (int) tps;
-							
-							lastTpsUpdate = System.nanoTime();
+							Game.this.tps = tps;
 							
 							tps = 0;
 	
+						}
+						
+						if(game.isCloseRequested()) {
+							
+							Logger.log("Arret du jeu (keyboard)");
+							game.stop();
+							game.exit(); //this will update closeRequested and exit the while
+							
 						}
 					
 					}
@@ -473,83 +441,27 @@ public abstract class Game extends GameState {
 		
 		ut.start();
 				
+		RepeatedScheduler fpsUpdateScheduler = new RepeatedScheduler(1);
 		long fps = 0;
 				
-		long lastFpsUpdate = System.nanoTime();
-				
-		long before = System.nanoTime();
-				
-		double alpha = (double) (System.nanoTime() - before) / 1000000000D;
 		double gamma = 1D / (double) frameCap;
+		double alpha;
+		long before = System.nanoTime() - (long) (gamma*1000000000);
 		
 		while(true) {
 			
 			alpha = (double) (System.nanoTime() - before) / 1000000000D;
 			
 			if(alpha > gamma) {
-
-				if(changeDisplaymode) {
-					
-					try {
-						
-						changeDisplayMode(newDisplay);
-						
-					} catch (LWJGLException e) {
-
-						e.printStackTrace();
-						
-					}
-					
-					changeDisplaymode = false;
-					
-				}
-				
-				if(changeIcon) {
-					
-					changeIcon(icons);
-					changeIcon = false;
-					
-				}
-				
-				if(changeCursor) {
-					
-					changeCursor(cursor);
-					changeCursor = false;
-					
-				}
-				
-				if(changeState) {
-					
-					state.isInitialised = false;
-					
-					state = newState;
-					
-					if(state.getInitType() == InitType.INIT_ON_LOAD || state.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
-						
-						state.init();
-						
-					}
-					
-					state.isInitialised = true;
-					
-					changeState = false;
-					
-				}
-				
-				List<Runnable> tempExecute = new ArrayList<Runnable>(toExecute);
-				toExecute = new ArrayList<Runnable>();
-				
-				for(Runnable exec : tempExecute) {
-					
-					exec.run();
-					
-				}
 				
 				gamma = 1D / (double) frameCap;
-				
-				alpha = (double) (System.nanoTime() - before) / 1000000000D;
-				
 				before = System.nanoTime();
+				
+				while(!toExecute.isEmpty()) {
+					
+					toExecute.poll().run();
+					
+				}
 			
 				if (Display.isCloseRequested()) {
 					
@@ -562,7 +474,6 @@ public abstract class Game extends GameState {
 				if(closeRequested) {
 					
 					Display.destroy();
-					
 					System.exit(0);
 					
 				}
@@ -584,7 +495,7 @@ public abstract class Game extends GameState {
 				
 				state.componentsRender();
 				
-				if(fixedAspectRatio) {
+				if(resizingRules.isFixedAspectRatio()) {
 					
 					if(yDiff != 0) {
 						
@@ -604,17 +515,15 @@ public abstract class Game extends GameState {
 					
 				}
 						
-				if (System.nanoTime() - lastFpsUpdate > 1000000000L) {
+				if (fpsUpdateScheduler.isReady()) {
 							
-					showedFPS = fps;
-							
-					lastFpsUpdate = System.nanoTime();
+					this.fps = fps;
 					
 					fps = 0;
 	
 				}
 				
-				Display.setTitle(title + (showFPS ? " || FPS: " + showedFPS : "") + (showTPS ? " || TPS: " + showedTPS : ""));
+				Display.setTitle(title + (showFPS ? " || FPS: " + this.fps : "") + (showTPS ? " || TPS: " + this.tps : ""));
 			
 			}
 					
@@ -630,13 +539,13 @@ public abstract class Game extends GameState {
 	
 	public long getFps() {
 		
-		return showedFPS;
+		return fps;
 		
 	}
 	
 	public long getTps() {
 		
-		return showedTPS;
+		return tps;
 		
 	}
 	
@@ -697,9 +606,11 @@ public abstract class Game extends GameState {
 			
 		}
 		
-		changeIcon = true;
-		
-		this.icons = icons;
+		executeInRenderThread(() -> {
+			
+			changeIcon(icons);
+			
+		});
 		
 	}
 	
@@ -719,18 +630,20 @@ public abstract class Game extends GameState {
 	
 	public void setCursor(int w, int h, int pointerX, int pointerY, Texture c) {
 		
-		changeCursor = true;
-		
-		try {
+		executeInRenderThread(() -> {
 			
-			cursor = new Cursor(w, h, pointerX, pointerY, 1, c.getBuffer().asIntBuffer(), null);
-			
-		} catch (LWJGLException e) {
+			try {
+				
+				changeCursor(new Cursor(w, h, pointerX, pointerY, 1, c.getBuffer().asIntBuffer(), null));
+				
+			} catch (LWJGLException e) {
 
-			e.printStackTrace();
+				e.printStackTrace();
+				
+			}
 			
-		}
-		
+		});
+
 	}
 	
 	private void changeDisplayMode(NewDisplayMode newDisplaymode) throws LWJGLException {
@@ -759,9 +672,19 @@ public abstract class Game extends GameState {
 			
 		}
 		
-		newDisplay = new NewDisplayMode(fullscreen, resizable, width, height);
-		
-		changeDisplaymode = true;
+		executeInRenderThread(() -> {
+			
+			try {
+				
+				changeDisplayMode(new NewDisplayMode(fullscreen, resizingRules != null && !fullscreen, width, height));
+				
+			} catch (LWJGLException e) {
+
+				e.printStackTrace();
+				
+			}
+			
+		});
 		
 	}
 	
@@ -781,9 +704,19 @@ public abstract class Game extends GameState {
 
 		boolean fullscreen = Display.isFullscreen();
 		
-		newDisplay = new NewDisplayMode(fullscreen, resizable, width, height);
-		
-		changeDisplaymode = true;
+		executeInRenderThread(() -> {
+			
+			try {
+				
+				changeDisplayMode(new NewDisplayMode(fullscreen, resizable, width, height));
+				
+			} catch (LWJGLException e) {
+
+				e.printStackTrace();
+				
+			}
+			
+		});
 	    
 	}
 	
@@ -803,9 +736,19 @@ public abstract class Game extends GameState {
 			
 		}
 		
-		newDisplay = new NewDisplayMode(false, resizable, width, height);
-		
-		changeDisplaymode = true;
+		executeInRenderThread(() -> {
+			
+			try {
+				
+				changeDisplayMode(new NewDisplayMode(false, resizingRules != null, width, height));
+				
+			} catch (LWJGLException e) {
+
+				e.printStackTrace();
+				
+			}
+			
+		});
 		
 	}
 	
@@ -841,7 +784,7 @@ public abstract class Game extends GameState {
 		width = Display.getWidth();
 		height = Display.getHeight();
 		
-		if(autoResizeWidth) {
+		if(resizingRules.isResizeWidth()) {
 		
 			widthDiff = width / (float) startWidth;
 		
@@ -851,7 +794,7 @@ public abstract class Game extends GameState {
 			
 		}
 		
-		if(autoResizeHeight) {
+		if(resizingRules.isResizeHeight()) {
 		
 			heightDiff = height / (float) startHeight;
 		
@@ -862,7 +805,7 @@ public abstract class Game extends GameState {
 		}
 
 		
-		if(fixedAspectRatio) {
+		if(resizingRules.isFixedAspectRatio()) {
 			
 			if(widthDiff < heightDiff) {
 				
@@ -882,8 +825,6 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	public abstract void stop();
-	
 	public void display() {
 		
 		Logger.log("Cr�ation de la fen�tre");
@@ -891,7 +832,7 @@ public abstract class Game extends GameState {
 		try {
 			
 			Display.setDisplayMode(new DisplayMode(width, height));
-			Display.setResizable(resizable);
+			Display.setResizable(resizingRules != null);
 			Display.setTitle(title);
 			Display.create(new PixelFormat(32, 0, 24, 0, 16));
 			
