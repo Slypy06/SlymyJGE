@@ -5,112 +5,166 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.lwjgl.util.vector.Vector2f;
+
+import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
 
 public class SlymyFont {
+	
+	public static final String DEFAULT_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#&()_-+=:;'\\\"[]{}<>|/~`áàâäãåāçćčđéèêëēėęíìîïīłñńóòôöõøōśšúùûüūÿýżžÁÀÂÄÃÅĀÇĆČĐÉÈÊËĒĖĘÍÌÎÏĪŁÑŃÓÒÔÖÕØŌŚŠÚÙÛÜŪŸÝŻŽ€$£µ§%$²°¤*";
 
-	private Map<Integer, Texture> characters = new HashMap<Integer, Texture>();
+	private static final double HEIGHT_MARGIN = 0.1;
 	
-	private Font f;
+	private final Map<Character, CharData> characters = new HashMap<>();
+	private final Texture charAtlas;
 	
-	private Color c;
+	private final Font font;
+	private final int height;
 	
-	private String charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#&()_-+=:;'\\\"[]{}<>|/~`áàâäãåāçćčđéèêëēėęíìîïīłñńóòôöõøōśšúùûüūÿýżžÁÀÂÄÃÅĀÇĆČĐÉÈÊËĒĖĘÍÌÎÏĪŁÑŃÓÒÔÖÕØŌŚŠÚÙÛÜŪŸÝŻŽ€$£µ§%$²°¤*";
+	private Color color;
+	
+	private final String charset;
 	
 	public SlymyFont(Font f, Color c) {
 		
-		this.f = f;
+		this(f, c, DEFAULT_CHARSET);
 		
-		this.c = c;
+	}
+	
+	public SlymyFont(Font f, Color c, String charset) {
 		
-		for(int i = 0; i < charset.length(); i++) {
+		this.font = f;
+		this.color = c;
+		this.charset = charset;
+		
+		BufferedImage tempImg = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D tempG = tempImg.createGraphics();
+		tempG.setFont(font);
+		tempG.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		tempG.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		tempG.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+		FontRenderContext frc = tempG.getFontRenderContext();
+		FontMetrics fm = tempG.getFontMetrics();
+		
+		this.height = fm.getHeight();
+		int heightMargin = (int) (height * HEIGHT_MARGIN);
+
+		String[] atlas = getAtlasString(fm, charset).split("\n");
+
+		int width = 0;
+		for (String line : atlas) {
 			
-			createCharTexture((int) charset.charAt(i));
-			
+		    int lineWidth = atlasLineLength(font, frc, line);
+		    width = Math.max(lineWidth, width);
+		    
 		}
+		
+		int totalHeight = height * atlas.length + heightMargin * (atlas.length - 1);
+		BufferedImage atlasImg = new BufferedImage(width, totalHeight, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = atlasImg.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setFont(font);
+		g.setColor(color);
+
+		for (int i = 0; i < atlas.length; i++) {
+			
+		    String line = atlas[i];
+		    
+		    float y = i*(height+heightMargin);
+		    float x = 0;
+
+		    for(int j = 0; j < line.length(); j++) {
+		    	
+		    	GlyphVector charVector = font.createGlyphVector(frc, "" + line.charAt(j));
+		    	
+		    	int charWidth = fm.charWidth(line.charAt(j));
+		    	int visualWidth = (int) Math.ceil(charVector.getGlyphOutline(0).getBounds2D().getWidth()) + 1; //The +1 is to account for rounding error of the advance of the glyph
+		    	
+		    	g.fill(charVector.getGlyphOutline(0, x - (int) Math.floor(charVector.getGlyphOutline(0).getBounds2D().getX()), y+fm.getAscent()));
+		    	
+		        Vector2f[] coords = new Vector2f[4];
+		        coords[0] = new Vector2f(x / width, y / totalHeight);
+		        coords[1] = new Vector2f((x + visualWidth) / width, y / totalHeight);
+		        coords[2] = new Vector2f((x + visualWidth) / width, (y + height) / totalHeight);
+		        coords[3] = new Vector2f(x / width, (y + height) / totalHeight);
+		    	
+		        characters.put(line.charAt(j), new CharData(charWidth,  visualWidth, (int) Math.floor(charVector.getGlyphOutline(0).getBounds2D().getX()), height, line.charAt(j), new TexCoords(coords)));
+		        
+		    	x+=visualWidth+2;
+		    	
+		    }
+		    
+		}
+		
+		charAtlas = Texture.loadTexture(atlasImg);
+		
+	}
+	
+	public String getCharset() {
+
+		return charset;
 		
 	}
 	
 	public Color getColor() {
 		
-		return c;
+		return color;
 		
 	}
 
-	public Map<Integer, Texture> getCharacters() {
+	public Map<Character, CharData> getCharacters() {
 		
 		return characters;
 		
 	}
 
-	public void setCharacters(Map<Integer, Texture> characters) {
+	public Font getFont() {
 		
-		this.characters = characters;
-		
-	}
-
-	public Font getF() {
-		
-		return f;
-		
-	}
-
-	public void setF(Font f) {
-		
-		this.f = f;
+		return font;
 		
 	}
 	
-	public CharData getCharData(char c) {
+	public Texture getCharAtlas() {
 		
-		int i = (int) c;
-		
-		if(charset.contains(c + "")) {
-			
-			Texture charTexture = characters.get(i);
-			
-			return new CharData(charTexture.getWidth(), charTexture.getHeight(), c);
-			
-		}
-		
-		return null;
-		
-	}
-	
-	public Texture getCharTexture(char c) {
-		
-		int i = (int) c;
-		
-		if(charset.contains(c + "")) {
-			
-			return characters.get(i);
-			
-		}
-		
-		return null;
+		return charAtlas;
 		
 	}
 	
 	public int getHeight() {
+
+		return height;
 		
-		BufferedImage tempImg = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D tempG = (Graphics2D) tempImg.getGraphics();
-		tempG.setFont(f);
-		FontMetrics fontMetrics = tempG.getFontMetrics();
+	}
+	
+	public int getVisualWidth(char c) {
 		
-		int charheight = fontMetrics.getHeight();
+		CharData data = getCharData(c);
+
+		if(data != null)
+			return data.getVisualWidth();
+		else 
+			return 0;
 		
-		if (charheight <= 0) {
-			
-			charheight = f.getSize();
-			
-		}
+	}
+	
+	public int getWidth(char c) {
 		
-		return charheight;
+		CharData data = getCharData(c);
+
+		if(data != null)
+			return data.getWidth();
+		else 
+			return 0;
 		
 	}
 	
@@ -118,67 +172,91 @@ public class SlymyFont {
 		
 		int width = 0;
 		
-		for(char c : text.toCharArray()) {
-			
-			if(!charset.contains(c + ""))
-				continue;
-				
-			width += getCharData(c).getWidth();
-			
-		}
+		for(char c : text.toCharArray())
+			width += getWidth(c);
 		
 		return width;
 		
 	}
 	
-	private void createCharTexture(int i) {
+	public CharData getCharData(char c) {
 		
-		BufferedImage tempImg = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D tempG = (Graphics2D) tempImg.getGraphics();
-		tempG.setFont(f);
-		FontMetrics fontMetrics = tempG.getFontMetrics();
-		int charwidth = fontMetrics.charWidth((char) i);
-
-		if (charwidth <= 0) {
+		if(charset.contains(c + "")) {
 			
-			charwidth = 1;
+			return characters.get(c);
 			
 		}
 		
-		int charheight = fontMetrics.getHeight();
+		return null;
 		
-		if (charheight <= 0) {
+	}
+	
+	public static String getAtlasString(FontMetrics f, String charset) {
+		
+		int height = f.getHeight();
+		
+		int totalLength = 0;
+		for(int i = 0; i < charset.length(); i++)
+			totalLength += f.charWidth(charset.charAt(i));
+		
+		int sqrt = (int) Math.ceil(Math.sqrt(height*totalLength));
+		
+		int target = sqrt - (sqrt % height) + height;
+		int length = target;
+		
+		StringBuilder build = new StringBuilder();
+		
+		int lineLength = 0;
+		
+		for(char c : charset.toCharArray()) {
 			
-			charheight = f.getSize();
+			if(lineLength < target) {
+				
+				lineLength += f.charWidth(c);
+				build.append(c);
+				
+				if(lineLength > length) {
+					
+					length = lineLength;
+					
+				}
+				
+			} else {
+				
+				build.append('\n').append(c);
+				lineLength = f.charWidth(c);
+				
+				if(lineLength > length) {
+					
+					length = lineLength;
+					
+				}
+
+			}
 			
 		}
-
 		
-		tempImg = new BufferedImage(charwidth, charheight, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = (Graphics2D) tempImg.getGraphics();
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		g.setFont(f);
-		
-		g.setColor(c);
-		int charx = 0;
-		int chary = 0;
-		g.drawString(String.valueOf((char) i), (charx), (chary) + fontMetrics.getAscent());
-		
-		characters.put(i, Texture.loadTexture(tempImg));
+		return build.toString();
 		
 	}
-
-	public String getCharset() {
-
-		return charset;
+	
+	private int atlasLineLength(Font f, FontRenderContext frc, String line) {
 		
-	}
-
-	public void setCharset(String charset) {
+		int width = 0;
 		
-		this.charset = charset;
+	    for(int j = 0; j < line.length(); j++) {
+	    	
+	    	GlyphVector charVector = font.createGlyphVector(frc, "" + line.charAt(j));
+	    	
+	    	int visualWidth = (int) Math.ceil(charVector.getGlyphOutline(0).getBounds().getWidth());
+	    	
+	    	
+	    	
+	    	width += visualWidth + (j < line.length()-1 ? 10 : 0);
+	    	
+	    }
+	    
+	    return width;
 		
 	}
 	

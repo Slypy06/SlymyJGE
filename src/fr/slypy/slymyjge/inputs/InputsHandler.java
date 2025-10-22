@@ -6,15 +6,15 @@ import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 
-public class KeyboardInputs extends MouseInputs {
+public class InputsHandler extends MouseInputs {
 	
 	protected int escapeGameKey = -1;
 
 	private HashMap<Integer, Integer> keys = new HashMap<Integer, Integer>();
 	
-	private static List<KeyboardInputs> instances = new ArrayList<KeyboardInputs>();
+	private static List<InputsHandler> instances = new ArrayList<InputsHandler>();
 	
-	public KeyboardInputs() {
+	public InputsHandler() {
 		
 		instances.add(this);
 		
@@ -36,7 +36,7 @@ public class KeyboardInputs extends MouseInputs {
 		
 	}
 	
-	public void keyUpdate() {
+	public void updateInputs() {
 		
 		mouseUpdate();
 		
@@ -62,7 +62,7 @@ public class KeyboardInputs extends MouseInputs {
 		
 		while(Keyboard.next()) {
 			
-			for(KeyboardInputs instance : instances) {
+			for(InputsHandler instance : instances) {
 				
 				instance.keyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKeyState());
 				

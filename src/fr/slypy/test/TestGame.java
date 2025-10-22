@@ -3,6 +3,7 @@ package fr.slypy.test;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.animations.Animation;
-import fr.slypy.slymyjge.animations.AnimationFrame;
-import fr.slypy.slymyjge.animations.TexturedAnimationFrame;
+import fr.slypy.slymyjge.animations.framed.Animation;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.Texture;
-import fr.slypy.test.imagematching.Genetic;
+import fr.slypy.test.imagematching.Hilbert;
 
 public class TestGame extends Game {
 
@@ -32,6 +31,9 @@ public class TestGame extends Game {
 	private BufferedImage[] animImgs;
 	private AtomicInteger counter = new AtomicInteger(1);
 	
+	private FloatBuffer buffer;
+	private int bufferId;
+	
 	public TestGame(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
 		super(width, height, title, backgroundColor, resizable);
@@ -42,7 +44,7 @@ public class TestGame extends Game {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
-		game = new TestGame(1800, 1800, "Test Game Title", Color.white, true);
+		game = new TestGame(1920, 1080, "Test Game Title", Color.white, true);
 		game.start();
 		
 	}
@@ -52,24 +54,24 @@ public class TestGame extends Game {
 		
 		Renderer.init(game);
 		
-		game.setFrameCap(120);
+		game.setFrameCap(360);
 		game.setTickCap(20);
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 
-		baseTexture = Texture.loadTexture("square_sablkik.png");
-		//goalTexture = Texture.loadTexture("origin3.png");
-		anim = new Animation(Animation.loadAnimationFromGif("square_rick.gif"));
-		goalTexture = ((TexturedAnimationFrame) anim.getFrames().get(0)).getTexture();
-		anim.setSpeed(10);
+		baseTexture = Texture.loadTexture("origin1.png");
+		goalTexture = Texture.loadTexture("origin2.png");
+		//anim = new Animation(Animation.loadAnimationFromGif("square_rick.gif"));
+		//goalTexture = ((TexturedAnimationFrame) anim.getFrames().get(0)).getTexture();
+		//anim.setSpeed(10);
 		
-		animImgs = new BufferedImage[anim.getFrames().size()];
+		//animImgs = new BufferedImage[anim.getFrames().size()];
 		
-	    Map<Vector2f, Vector2f> transformMap = Genetic.geneticAssignment(baseTexture.getImage(), goalTexture.getImage(), 0.5f, 200000);
+	    //Map<Vector2f, Vector2f> transformMap = Genetic.geneticAssignment(baseTexture.getImage(), goalTexture.getImage(), 0.5f, 200000);
 	    
-	    animImgs[0] = Genetic.applyTransformMap(baseTexture.getImage(), transformMap);
+	    //animImgs[0] = Genetic.applyTransformMap(baseTexture.getImage(), transformMap);
 		
-		for(int i = 1; i < anim.getFrames().size(); i++) {
+		/*for(int i = 1; i < anim.getFrames().size(); i++) {
 			
 			final int index = i;
 			
@@ -106,9 +108,9 @@ public class TestGame extends Game {
 	    	
 	    	((TexturedAnimationFrame) anim.getFrames().get(i)).setTexture(Texture.loadTexture(animImgs[i]));
 	    	
-	    }
+	    }*/
 	    
-	    //Map<Vector2f, Vector2f> transformMap = Hilbert.getTransformMap(baseTexture.getImage(), goalTexture.getImage());
+	    Map<Vector2f, Vector2f> transformMap = Hilbert.getTransformMap(baseTexture.getImage(), goalTexture.getImage());
 	    //Map<Vector2f, Vector2f> transformMap = Hungarian.optimalAssignment(baseTexture.getImage(), goalTexture.getImage(), 0);
 	    
 	    for (Map.Entry<Vector2f, Vector2f> entry : transformMap.entrySet()) {
@@ -116,7 +118,10 @@ public class TestGame extends Game {
 	        Vector2f end = entry.getValue();
 	        Color c = new Color(baseTexture.getImage().getRGB((int) start.x, (int) start.y));
 	        pixels.add(new Pixel(start.x, start.y, end.x, end.y, c));
-	    }
+	    } 
+	    
+	    //buffer = BufferUtils.createFloatBuffer(6*4*pixels.size());
+	    //bufferId = Renderer.genBuffer(pixels.size());
 
 	}
 
@@ -127,36 +132,40 @@ public class TestGame extends Game {
 	    if (transitionProgress > 1) {
 	    	
 	    	transitionProgress = 1;
-	    	anim.setPlaying(true);
+	    	//anim.setPlaying(true);
 	    	
 	    }
+	    
+	    System.out.println(transitionProgress);
 
 	    for (Pixel p : pixels) {
 	        p.update(transitionProgress);
 	    }
 	    
-	    anim.update(alpha);
+	    //anim.update(alpha);
 		
 	}
 	
 	@Override
 	public void render(double alpha) {
 		
+		//buffer.clear();
+		
 		//Renderer.renderTexturedQuad(0, 0, width, height, newTexture);
 		
-		if(anim.isPlaying()) {
+		/*if(anim.isPlaying()) {
 			
 			anim.render(0, 0, getWidth(), getHeight());
 			
-		} else {
+		} else {*/
 		
-		    for (Pixel p : pixels) {
+		    //for (Pixel p : pixels) {
 		    	
-		        p.render();
+		       // p.render();
 		        
-		    }
+		    //}
 	    
-		}
+		//}
 		
 	}
 
@@ -174,7 +183,7 @@ public class TestGame extends Game {
 	    public Color color;
 	    public float currentX, currentY;
 	    
-	    private float scale = 5f;
+	    private float scale = 3f;
 
 	    public Pixel(float startX, float startY, float targetX, float targetY, Color color) {
 	    	

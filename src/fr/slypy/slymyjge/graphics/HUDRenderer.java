@@ -9,15 +9,15 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 
 import java.awt.Color;
 
-import fr.slypy.slymyjge.animations.Animation;
+import fr.slypy.slymyjge.animations.framed.Animation;
 import fr.slypy.slymyjge.font.SlymyFont;
 
 public class HUDRenderer extends Renderer {
 	
 	public static void renderQuad(float x, float y, int w, int h, Color color) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -63,8 +63,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderBorder(float x, float y, int w, int h, int width, Color color) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -104,14 +104,14 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderTriangle(float ax, float ay, float bx, float by, float cx, float cy, Color color) {
 		
-		ax -= game.getXCam();
-		ay -= game.getYCam();
+		ax += game.getXCam();
+		ay += game.getYCam();
 		
-		bx -= game.getXCam();
-		by -= game.getYCam();
+		bx += game.getXCam();
+		by += game.getYCam();
 		
-		cx -= game.getXCam();
-		cy -= game.getYCam();
+		cx += game.getXCam();
+		cy += game.getYCam();
 		
 		ax *= game.getWidthDiff();
 		ay *= game.getHeightDiff();
@@ -148,11 +148,11 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderLine(float ax, float ay, float bx, float by, int width, Color color) {
 		
-		ax -= game.getXCam();
-		ay -= game.getYCam();
+		ax += game.getXCam();
+		ay += game.getYCam();
 		
-		bx -= game.getXCam();
-		by -= game.getYCam();
+		bx += game.getXCam();
+		by += game.getYCam();
 		
 		ax *= game.getWidthDiff();
 		ay *= game.getHeightDiff();
@@ -199,8 +199,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderTexturedQuad(float x, float y, int w, int h, Texture texture, Color color) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -240,8 +240,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderTexturePart(float x, float y, int w, int h, Color color, int xo, int yo, int maxXo, int maxYo, Texture texture) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -293,8 +293,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderAnimation(float x, float y, int w, int h, Animation animation, Color color) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -320,8 +320,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderAnimation(float x, float y, int w, int h, Animation animation) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		x *= game.getWidthDiff();
 		y *= game.getHeightDiff();
@@ -347,8 +347,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderText(float x, float y, SlymyFont font, String text) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		for(int i = 0; i < text.length(); i++) {
 			
@@ -364,8 +364,8 @@ public class HUDRenderer extends Renderer {
 	
 	public static void renderText(float x, float y, SlymyFont font, String text, Color color) {
 		
-		x -= game.getXCam();
-		y -= game.getYCam();
+		x += game.getXCam();
+		y += game.getYCam();
 		
 		for(int i = 0; i < text.length(); i++) {
 			

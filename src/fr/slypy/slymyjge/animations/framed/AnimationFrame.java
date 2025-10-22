@@ -1,4 +1,4 @@
-package fr.slypy.slymyjge.animations;
+package fr.slypy.slymyjge.animations.framed;
 
 import java.awt.Color;
 

@@ -1,16 +1,30 @@
 package fr.slypy.slymyjge.font;
 
+import fr.slypy.slymyjge.graphics.TexCoords;
+
 public class CharData {
 
-	public int width;
-	public int height;
-	public char character;
+	public final int width;
+	public final int visualWidth;
+	public final int height;
+	public final char character;
+	public final int advance;
+	public final TexCoords atlasCoord;
 	
-	public CharData(int width, int height, char character) {
+	public CharData(int width, int visualWidth, int advance, int height, char character, TexCoords atlasCoord) {
 
 		this.width = width;
+		this.visualWidth = visualWidth;
+		this.advance = advance;
 		this.height = height;
 		this.character = character;
+		this.atlasCoord = atlasCoord;
+		
+	}
+	
+	public CharData(int width, int height, char character, TexCoords atlasCoord) {
+
+		this(width, width, 0, height, character, atlasCoord);
 		
 	}
 
@@ -20,9 +34,9 @@ public class CharData {
 		
 	}
 	
-	public void setWidth(int width) {
+	public int getVisualWidth() {
 		
-		this.width = width;
+		return visualWidth;
 		
 	}
 	
@@ -32,22 +46,20 @@ public class CharData {
 		
 	}
 	
-	public void setHeight(int height) {
-		
-		this.height = height;
-		
-	}
-	
 	public char getCharacter() {
 		
 		return character;
 		
 	}
 	
-	public void setCharacter(char character) {
+	public int getAdvance() {
 		
-		this.character = character;
+		return advance;
 		
+	}
+
+	public TexCoords getAtlasCoord() {
+		return atlasCoord;
 	}
 	
 }

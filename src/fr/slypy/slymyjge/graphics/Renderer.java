@@ -1,25 +1,33 @@
 package fr.slypy.slymyjge.graphics;
 
-import static org.lwjgl.opengl.GL11.GL_LINE_STRIP;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_COLOR_ARRAY;
+import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineWidth;
+import static org.lwjgl.opengl.GL11.glColorPointer;
+import static org.lwjgl.opengl.GL11.glDisableClientState;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnableClientState;
 import static org.lwjgl.opengl.GL11.glRotated;
-import static org.lwjgl.opengl.GL11.glTexCoord2f;
+import static org.lwjgl.opengl.GL11.glTexCoordPointer;
 import static org.lwjgl.opengl.GL11.glTranslated;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.glVertexPointer;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.GL_WRITE_ONLY;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
+import static org.lwjgl.opengl.GL15.glMapBuffer;
+import static org.lwjgl.opengl.GL15.glUnmapBuffer;
 
 import java.awt.Color;
+import java.awt.Shape;
+import java.nio.ByteBuffer;
 
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.animations.Animation;
+import fr.slypy.slymyjge.animations.framed.Animation;
 import fr.slypy.slymyjge.font.SlymyFont;
 
 public class Renderer {
@@ -93,6 +101,48 @@ public class Renderer {
 	public static double getRotation() {
 		
 		return d;
+		
+	}
+	
+	
+	public static void renderShapeBundle(ShapeBundle<?> bundle) {
+		
+		if(bundle.getSize() == 0) 
+			return;
+		
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+
+        glBindBuffer(GL_ARRAY_BUFFER, bundle.getBufferId());
+        
+        if(bundle.awaitingPush()) {
+        
+	        ByteBuffer mapped = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY, null);
+	        	bundle.fillBuffer(mapped);
+	        glUnmapBuffer(GL_ARRAY_BUFFER);
+        
+        }
+        
+        glVertexPointer(2, GL_FLOAT, bundle.getInfos().vertexSize(), 0);
+        if(bundle.getInfos().useTexCoords()) glTexCoordPointer(2, GL_FLOAT, bundle.getInfos().vertexSize(), 2*Float.BYTES);
+        glColorPointer(4, GL_UNSIGNED_BYTE, bundle.getInfos().vertexSize(), bundle.getInfos().colorPointerOffset());
+
+        glBindTexture(GL_TEXTURE_2D, bundle.getTexture());
+        
+        glDrawArrays(bundle.getInfos().getGlMode(), 0, bundle.getInfos().vertexSize()*bundle.getSize());
+        
+        glBindTexture(GL_TEXTURE_2D, 0);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
+		
+	}
+	
+	public static void renderShape(Shape shape) {
+		
+		
 		
 	}
 

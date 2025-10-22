@@ -9,8 +9,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.Point;
 
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.animations.Animation;
-import fr.slypy.slymyjge.animations.AnimationFrame;
+import fr.slypy.slymyjge.animations.framed.Animation;
+import fr.slypy.slymyjge.animations.framed.AnimationFrame;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.utils.MouseButtons;
@@ -52,8 +52,6 @@ public abstract class TextFieldComponent extends Component {
 	}
 	
 	public TextFieldComponent(float x, float y, int w, int h, Game game, SlymyFont font, RenderType type) {
-		
-		
 		
 		super(x, y, w, h, game, type);
 		

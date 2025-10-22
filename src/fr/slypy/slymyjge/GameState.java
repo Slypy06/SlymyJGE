@@ -7,9 +7,9 @@ import java.util.Map;
 import org.lwjgl.input.Mouse;
 
 import fr.slypy.slymyjge.components.Component;
-import fr.slypy.slymyjge.inputs.KeyboardInputs;
+import fr.slypy.slymyjge.inputs.InputsHandler;
 
-public abstract class GameState extends KeyboardInputs {
+public abstract class GameState extends InputsHandler {
 	
 	public abstract void render(double alpha);
 	public abstract void init();

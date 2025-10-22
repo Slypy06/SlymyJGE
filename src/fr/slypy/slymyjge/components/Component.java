@@ -1,10 +1,10 @@
 package fr.slypy.slymyjge.components;
 
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.inputs.KeyboardInputs;
+import fr.slypy.slymyjge.inputs.InputsHandler;
 import fr.slypy.slymyjge.utils.RenderType;
 
-public abstract class Component extends KeyboardInputs {
+public abstract class Component extends InputsHandler {
 
 	protected Game game;
 	
@@ -197,7 +197,7 @@ public abstract class Component extends KeyboardInputs {
 			
 		}
 		
-		this.keyUpdate();
+		this.updateInputs();
 		this.mouseUpdate();
 		
 		boolean lastHover = hover;

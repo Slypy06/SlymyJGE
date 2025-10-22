@@ -21,7 +21,8 @@
 	<classpathentry kind="lib" path="lib/filters-2.0.235-1.jar"/>
 	<classpathentry kind="lib" path="lib/vlcj-4.x-fixed.jar"/>
 	<classpathentry kind="lib" path="lib/steamworks4j-1.9.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Enzo/Downloads/hilbert-curve-0.2.3.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Enzo/Downloads/guava-mini-0.1.7.jar"/>
+	<classpathentry kind="lib" path="C:/Users/enzom/Downloads/guava-mini-0.1.7.jar"/>
+	<classpathentry kind="lib" path="C:/Users/enzom/Downloads/hilbert-curve-0.2.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Administrateur/Downloads/DelaunayTriangulator-v1.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

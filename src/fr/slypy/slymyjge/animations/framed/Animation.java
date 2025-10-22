@@ -1,4 +1,4 @@
-package fr.slypy.slymyjge.animations;
+package fr.slypy.slymyjge.animations.framed;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -180,7 +180,7 @@ public class Animation {
 		
 		for (int i = 0; i < frames; i++) {
 			
-			animationFrames[i] = new TexturedAnimationFrame(0, 0, 1, 1, Texture.loadTexture(decoder.getFrame(i)), (float) (1000000000D / (float) (decoder.getDelay(i) * 10000000)));
+			animationFrames[i] = new TexturedAnimationFrame(Texture.loadTexture(decoder.getFrame(i)), (float) (1000000000D / (float) (decoder.getDelay(i) * 10000000)));
 			
 		}
 		

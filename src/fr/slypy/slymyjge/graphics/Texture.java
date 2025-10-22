@@ -11,15 +11,23 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.imageio.ImageIO;
 
@@ -30,11 +38,59 @@ import net.sf.image4j.codec.ico.ICOImage;
 
 public class Texture {
 	
-	int width;
-	int height;
-	int id;
-	BufferedImage image;
-	ByteBuffer byteBuffer;
+	public static final BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> DEFAULT = (dim, buffer) -> ((coord, rgb) -> {
+		
+		buffer.put((byte) ((rgb >> 16) & 0xFF));
+		buffer.put((byte) ((rgb >> 8) & 0xFF));
+		buffer.put((byte) ((rgb) & 0xFF));
+		buffer.put((byte) ((rgb >> 24) & 0xFF));
+		
+	});
+	
+	public static final BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> BLACK_AND_WHITE = (dim, buffer) -> ((coord, rgb) -> {
+		
+		int color = (((rgb >> 16) & 0xFF) + ((rgb >> 8) & 0xFF) + ((rgb) & 0xFF)) / 3;
+		
+		buffer.put((byte) color);
+		buffer.put((byte) color);
+		buffer.put((byte) color);
+		buffer.put((byte) ((rgb >> 24) & 0xFF));
+		
+	});
+	
+	public static final Function<BufferedImage, BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>>> MASK = (originalImg) -> (targetSize, buffer) -> {
+
+		BufferedImage scaled = new BufferedImage(targetSize.width, targetSize.height, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = scaled.createGraphics();
+		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.drawImage(originalImg, 0, 0, targetSize.width, targetSize.height, null);
+		g2d.dispose();
+
+		return (coord, rgb) -> {
+			
+			int maskRgb = scaled.getRGB(coord.x, coord.y);
+
+			int r = ((rgb >> 16) & 0xFF) * ((maskRgb >> 16) & 0xFF) / 255;
+			int g = ((rgb >> 8) & 0xFF) * ((maskRgb >> 8) & 0xFF) / 255;
+			int b = (rgb & 0xFF) * (maskRgb & 0xFF) / 255;
+			int a = ((rgb >> 24) & 0xFF) * ((maskRgb >> 24) & 0xFF) / 255;
+
+			buffer.put((byte) r);
+			buffer.put((byte) g);
+			buffer.put((byte) b);
+			buffer.put((byte) a);
+			
+		};
+		    
+	};
+	
+	private final int width;
+	private final int height;
+	private final int id;
+	private final BufferedImage image;
+	private final ByteBuffer byteBuffer;
 	
 	public Texture(int width, int height, int id, BufferedImage image, ByteBuffer byteBuffer) {
 		
@@ -43,185 +99,6 @@ public class Texture {
 		this.id = id;
 		this.image = image;
 		this.byteBuffer = byteBuffer;
-		
-	}
-	
-	public static Texture loadTexture(String path) {
-		
-		return loadTexture(path, false);
-		
-	}
-	
-	public static Texture loadTexture(String path, boolean blackAndWhite) {
-		
-		BufferedImage image = null;
-		
-		try {
-
-			image = ImageIO.read(Texture.class.getResource("/" + path));
-
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-			
-		}
-		
-		int w = image.getWidth();
-		int h = image.getHeight();
-		
-		int[] pixels = new int[w * h];
-		image.getRGB(0, 0, w, h, pixels, 0, w);
-		
-		ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
-		
-		if(blackAndWhite) {
-			
-			for (int y = 0; y < h; y++) {
-				
-				for (int x = 0; x < w; x++) {
-					
-					int i = pixels[x + y * w];
-					
-					int color = (((i >> 16) & 0xFF) + ((i >> 8) & 0xFF) + ((i) & 0xFF)) / 3;
-					
-					buffer.put((byte) color);
-					buffer.put((byte) color);
-					buffer.put((byte) color);
-					buffer.put((byte) ((i >> 24) & 0xFF));
-					
-				}
-				
-			}	
-			
-		} else {
-		
-			for (int y = 0; y < h; y++) {
-				
-				for (int x = 0; x < w; x++) {
-					
-					int i = pixels[x + y * w];
-					
-					
-					buffer.put((byte) ((i >> 16) & 0xFF));
-					buffer.put((byte) ((i >> 8) & 0xFF));
-					buffer.put((byte) ((i) & 0xFF));
-					buffer.put((byte) ((i >> 24) & 0xFF));
-					
-				}
-				
-			}
-		
-		}
-		
-		buffer.flip();
-		
-		int id = glGenTextures();
-		glBindTexture(GL_TEXTURE_2D, id);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-		
-		glBindTexture(GL_TEXTURE_2D, 0);
-		
-		return new Texture(w, h, id, image, buffer);
-		
-	}
-	
-	public static Texture loadTexture(BufferedImage image) {
-		
-		return loadTexture(image, false);
-		
-	}
-	
-	public static Texture loadTexture(BufferedImage image, boolean blackAndWhite) {
-		
-		int w = image.getWidth();
-		int h = image.getHeight();
-		
-		int[] pixels = new int[w * h];
-		image.getRGB(0, 0, w, h, pixels, 0, w);
-		
-		ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
-		
-		if(blackAndWhite) {
-			
-			for (int y = 0; y < h; y++) {
-				
-				for (int x = 0; x < w; x++) {
-					
-					int i = pixels[x + y * w];
-					
-					int color = (((i >> 16) & 0xFF) + ((i >> 8) & 0xFF) + ((i) & 0xFF)) / 3;
-					
-					buffer.put((byte) color);
-					buffer.put((byte) color);
-					buffer.put((byte) color);
-					buffer.put((byte) ((i >> 24) & 0xFF));
-					
-				}
-				
-			}	
-			
-		} else {
-		
-			for (int y = 0; y < h; y++) {
-				
-				for (int x = 0; x < w; x++) {
-					
-					int i = pixels[x + y * w];
-					
-					
-					buffer.put((byte) ((i >> 16) & 0xFF));
-					buffer.put((byte) ((i >> 8) & 0xFF));
-					buffer.put((byte) ((i) & 0xFF));
-					buffer.put((byte) ((i >> 24) & 0xFF));
-					
-				}
-				
-			}
-		
-		}
-		
-		buffer.flip();
-		
-		int id = glGenTextures();
-		glBindTexture(GL_TEXTURE_2D, id);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-		
-		glBindTexture(GL_TEXTURE_2D, 0);
-		
-		return new Texture(w, h, id, image, buffer);
-
-	}
-	
-	public static int loadTexture(ByteBuffer b, int w, int h) {
-		
-		int id = glGenTextures();
-		glBindTexture(GL_TEXTURE_2D, id);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, b);
-		
-		glBindTexture(GL_TEXTURE_2D, 0);
-		
-		return id;
 		
 	}
 	
@@ -267,13 +144,19 @@ public class Texture {
 
 	}
 	
-	public Texture getTexturePart(int x, int y, int endX, int endY) {
+	public void free() {
 		
-		return getTexturePart(x, y, endX, endY, false);
+		glDeleteTextures(id);
 		
 	}
 	
-	public Texture getTexturePart(int x, int y, int w, int h, boolean blackAndWhite) {
+	public Texture getTexturePart(int x, int y, int w, int h) {
+		
+		return getTexturePart(x, y, w, h, DEFAULT);
+		
+	}
+	
+	public Texture getTexturePart(int x, int y, int w, int h, BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> consummer) {
 		
 		BufferedImage img = image.getSubimage(x, y, w, h);
 		
@@ -282,45 +165,88 @@ public class Texture {
 		
 		ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
 		
-		if(blackAndWhite) {
+		BiConsumer<Point, Integer> pixelConsumer = consummer.apply(new Dimension(w, h), buffer);
 			
-			for (int yPos = 0; yPos < h; yPos++) {
+		for (int yPos = 0; yPos < h; yPos++) {
 				
-				for (int xPos = 0; xPos < w; xPos++) {
+			for (int xPos = 0; xPos < w; xPos++) {
 					
-					int i = pixels[xPos + yPos * w];
+				pixelConsumer.accept(new Point(xPos, yPos), pixels[xPos + yPos * w]);
 					
-					int color = (((i >> 16) & 0xFF) + ((i >> 8) & 0xFF) + ((i) & 0xFF)) / 3;
-					
-					buffer.put((byte) color);
-					buffer.put((byte) color);
-					buffer.put((byte) color);
-					buffer.put((byte) ((i >> 24) & 0xFF));
-					
-				}
-				
-			}	
-			
-		} else {
-		
-			for (int yPos = 0; yPos < h; yPos++) {
-				
-				for (int xPos = 0; xPos < w; xPos++) {
-					
-					int i = pixels[xPos + yPos * w];
-					
-					buffer.put((byte) ((i >> 16) & 0xFF));
-					buffer.put((byte) ((i >> 8) & 0xFF));
-					buffer.put((byte) ((i) & 0xFF));
-					buffer.put((byte) ((i >> 24) & 0xFF));
-					
-				}
-				
 			}
+				
+		}	
 		
+		buffer.flip();
+		
+		int id = loadTexture(buffer, w, h);
+		
+		return new Texture(w, h, id, img, buffer);
+		
+	}
+	
+	public static Texture loadTexture(String path) {
+		
+		return loadTexture(path, DEFAULT);
+		
+	}
+	
+	public static Texture loadTexture(String path, BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> consumer) {
+		
+		BufferedImage image = null;
+		
+		try {
+
+			image = ImageIO.read(Texture.class.getResource("/" + path));
+
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+			return null;
+			
+		}
+		
+		return Texture.loadTexture(image, consumer);
+		
+	}
+	
+	public static Texture loadTexture(BufferedImage image) {
+		
+		return loadTexture(image, DEFAULT);
+		
+	}
+	
+	public static Texture loadTexture(BufferedImage img, BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> consummer) {
+		
+		int w = img.getWidth();
+		int h = img.getHeight();
+		
+		int[] pixels = new int[w * h];
+		img.getRGB(0, 0, w, h, pixels, 0, w);
+		
+		ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
+		
+		BiConsumer<Point, Integer> pixelConsumer = consummer.apply(new Dimension(w, h), buffer);
+		
+		for (int y = 0; y < h; y++) {
+				
+			for (int x = 0; x < w; x++) {
+					
+				pixelConsumer.accept(new Point(x, y), pixels[x + y * w]);
+					
+			}
+				
 		}
 		
 		buffer.flip();
+		
+		int id = loadTexture(buffer, w, h);
+		
+		return new Texture(w, h, id, img, buffer);
+		
+	}
+	
+	public static int loadTexture(ByteBuffer b, int w, int h) {
 		
 		int id = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, id);
@@ -331,11 +257,11 @@ public class Texture {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, b);
 		
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
-		return new Texture(w, h, id, img, buffer);
+		return id;
 		
 	}
 	
@@ -360,7 +286,7 @@ public class Texture {
 	        	
 	        	if(ico.getWidth() == ico.getHeight()) {
 	        		
-	        		if(ico.getWidth() == 16) {
+	        		if(ico.getWidth() == 16 || ico.getWidth() == 32 || ico.getWidth() == 128) {
 	        			
 	        			BufferedImage image = ico.getImage();
 	        			
@@ -371,18 +297,14 @@ public class Texture {
 	        			image.getRGB(0, 0, w, h, pixels, 0, w);
 	        			
 	        			ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
+	        			
+	        			BiConsumer<Point, Integer> pixelConsumer = DEFAULT.apply(new Dimension(w, h), buffer);
 
 	        			for (int y = 0; y < h; y++) {
 	        				
 	        				for (int x = 0; x < w; x++) {
 	        					
-	        					int i = pixels[x + y * w];
-	        					
-	        					
-	        					buffer.put((byte) ((i >> 16) & 0xFF));
-	        					buffer.put((byte) ((i >> 8) & 0xFF));
-	        					buffer.put((byte) ((i) & 0xFF));
-	        					buffer.put((byte) ((i >> 24) & 0xFF));
+	        					pixelConsumer.accept(new Point(x, y), pixels[x + y * w]);
 	        					
 	        				}
 	        				
@@ -390,70 +312,7 @@ public class Texture {
 	        			
 	        			buffer.flip();
 	        			
-	        			icon.addIcon(IconResolution.X16, buffer);
-	        			
-	        		} else if(ico.getWidth() == 32) {
-	        			
-	        			BufferedImage image = ico.getImage();
-	        			
-	        			int w = image.getWidth();
-	        			int h = image.getHeight();
-	        			
-	        			int[] pixels = new int[w * h];
-	        			image.getRGB(0, 0, w, h, pixels, 0, w);
-	        			
-	        			ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
-
-	        			for (int y = 0; y < h; y++) {
-	        				
-	        				for (int x = 0; x < w; x++) {
-	        					
-	        					int i = pixels[x + y * w];
-	        					
-	        					
-	        					buffer.put((byte) ((i >> 16) & 0xFF));
-	        					buffer.put((byte) ((i >> 8) & 0xFF));
-	        					buffer.put((byte) ((i) & 0xFF));
-	        					buffer.put((byte) ((i >> 24) & 0xFF));
-	        					
-	        				}
-	        				
-	        			}
-	        			
-	        			buffer.flip();
-	        			
-	        			icon.addIcon(IconResolution.X32, buffer);
-	        			
-	        		} else if(ico.getWidth() == 128) {
-	        			
-	        			BufferedImage image = ico.getImage();
-	        			
-	        			int w = image.getWidth();
-	        			int h = image.getHeight();
-	        			
-	        			int[] pixels = new int[w * h];
-	        			image.getRGB(0, 0, w, h, pixels, 0, w);
-	        			
-	        			ByteBuffer buffer = BufferUtils.createByteBuffer(w * h * 4);
-
-	        			for (int y = 0; y < h; y++) {
-	        				
-	        				for (int x = 0; x < w; x++) {
-	        					
-	        					int i = pixels[x + y * w];
-	        					
-	        					buffer.put((byte) ((i >> 16) & 0xFF));
-	        					buffer.put((byte) ((i >> 8) & 0xFF));
-	        					buffer.put((byte) ((i) & 0xFF));
-	        					buffer.put((byte) ((i >> 24) & 0xFF));
-	        					
-	        				}
-	        				
-	        			}
-	        			
-	        			buffer.flip();
-	        			
-	        			icon.addIcon(IconResolution.X128, buffer);
+	        			icon.addIcon(switch(ico.getWidth()) {case 32 -> IconResolution.X32; case 128-> IconResolution.X128; default->IconResolution.X16; }, buffer);
 	        			
 	        		}
 	        		
