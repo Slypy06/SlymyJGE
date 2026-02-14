@@ -16,6 +16,8 @@ import static org.lwjgl.opengl.GL11.glMatrixMode;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
 import static org.lwjgl.opengl.GL11.glPushMatrix;
 import static org.lwjgl.opengl.GL11.glTranslatef;
+import static org.lwjgl.opengl.GL11.glRotatef;
+import static org.lwjgl.opengl.GL11.glScalef;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.awt.Color;
@@ -61,7 +63,7 @@ public abstract class Game extends GameState {
 	
 	protected int lastWidth;
 	protected int lastHeight;
-	
+	//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
 	protected int width;
 	protected int height;
 	
@@ -474,12 +476,6 @@ public abstract class Game extends GameState {
 			fps++;
 						
 			Display.update();
-			
-			while(!toExecute.isEmpty()) {
-				
-				toExecute.poll().run();
-					
-			}
 						
 			updateSize();
 						
@@ -487,8 +483,14 @@ public abstract class Game extends GameState {
 						
 			translateView(state.getXCam(), state.getYCam());
 						
-			glClearColor((float) backgroundColor.getRed() / 255F, (float) backgroundColor.getGreen() / 255F, (float) backgroundColor.getBlue() / 255F, 1);
+			glClearColor(backgroundColor.getRed() / 255F, backgroundColor.getGreen() / 255F, backgroundColor.getBlue() / 255F, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
+			
+			while(!toExecute.isEmpty()) {
+				
+				toExecute.poll().run();
+					
+			}
 			
 			state.render(frameSync.getDelta());
 				
@@ -875,9 +877,25 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	private void translateView(float xa, float ya) {
+	public void translateView(float xa, float ya) {
 	
-		glTranslatef(-xa * getWidthDiff(), -ya * getHeightDiff(), 0);
+		glTranslatef(-xa, -ya, 0);
+		
+	}
+	
+	public void rotateView(float angle, float x, float y) {
+		
+		glTranslatef(x, y, 0);
+		glRotatef(-angle, 0, 0, 1);
+		glTranslatef(-x, -y, 0);
+		
+	}
+	
+	public void scaleView(float dx, float dy, float x, float y) {
+		
+		glTranslatef(x, y, 0);
+		glScalef(dx, dy, 1);
+		glTranslatef(-x, -y, 0);
 		
 	}
 	

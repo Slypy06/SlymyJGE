@@ -1,18 +1,30 @@
 package fr.slypy.slymyjge.graphics;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL11.GL_COLOR_ARRAY;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_COORD_ARRAY;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glColorPointer;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDisableClientState;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
+import static org.lwjgl.opengl.GL11.glScissor;
 import static org.lwjgl.opengl.GL11.glTexCoordPointer;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
+import static org.lwjgl.opengl.GL11.glTranslatef;
+import static org.lwjgl.opengl.GL11.glRotatef;
+import static org.lwjgl.opengl.GL11.glScalef;
+import static org.lwjgl.opengl.GL11.glPushMatrix;
+import static org.lwjgl.opengl.GL11.glPopMatrix;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_WRITE_ONLY;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
@@ -20,6 +32,8 @@ import static org.lwjgl.opengl.GL15.glMapBuffer;
 import static org.lwjgl.opengl.GL15.glUnmapBuffer;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.slypy.slymyjge.graphics.shape.Shape;
 
@@ -60,8 +74,6 @@ public class NewGenRenderer {
         glDisableClientState(GL_VERTEX_ARRAY);
         if(bundle.getInfos().useTexCoords()) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         glDisableClientState(GL_COLOR_ARRAY);
-        
-        return;
 		
 	}
 	
@@ -71,15 +83,13 @@ public class NewGenRenderer {
 		
 	}
 	
-	public static boolean renderOnSurface(Runnable render, ISurface surface) {
+	public static void renderOnSurface(Runnable render, ISurface surface) {
 		
 		surface.bind();
 		
 			render.run();
 		
 		surface.unbind();
-		
-		return true;
 		
 	}
 	
@@ -90,6 +100,79 @@ public class NewGenRenderer {
 			render.run();
 		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
+	}
+	
+	public static void renderInsideArea(int x, int y, int w, int h, Runnable render) {
+		
+		glScissor(x, y, w, h);
+		glEnable(GL_SCISSOR_TEST);
+
+			render.run();
+		
+		glDisable(GL_SCISSOR_TEST);
+	}
+	
+	public static void renderWithTransform(Transform t, Runnable render) {
+		
+		glPushMatrix();
+		t.transform();
+		
+			render.run();
+		
+		glPopMatrix();
+		
+	}
+	
+	public static class Transform {
+		
+		private List<Runnable> transforms = new ArrayList<>();
+		
+		public void transform() {
+			
+			transforms.forEach(t -> t.run());
+			
+		}
+		
+		public Transform translate(float x, float y) {
+			
+			transforms.add(() -> {
+				
+				glTranslatef(x, y, 0);
+				
+			});
+			
+			return this;
+			
+		}
+		
+		public Transform rotate(float angle, float x, float y) {
+			
+			transforms.add(() -> {
+				
+				glTranslatef(x, y, 0);
+				glRotatef(angle, 0, 0, 1);
+				glTranslatef(-x, -y, 0);
+				
+			});
+			
+			return this;
+			
+		}
+		
+		public Transform scale(float dx, float dy, float x, float y) {
+			
+			transforms.add(() -> {
+				
+				glTranslatef(x, y, 0);
+				glScalef(dx, dy, 1);
+				glTranslatef(-x, -y, 0);
+				
+			});
+			
+			return this;
+			
+		}
 		
 	}
 	

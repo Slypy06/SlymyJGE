@@ -4,8 +4,11 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
+import java.util.function.BinaryOperator;
 
 import org.lwjgl.util.vector.Vector2f;
+
+import fr.slypy.slymyjge.graphics.TexCoords;
 
 public class Quad implements Shape {
 
@@ -58,6 +61,20 @@ public class Quad implements Shape {
 
 		return vertexes;
 
+	}
+	
+	@Override
+	public Quad color(Color newColor) {
+		
+		return color(newColor, (c1, c2) -> c2);
+		
+	}
+	
+	@Override
+	public Quad color(Color newColor, BinaryOperator<Color> blendFunction) {
+		
+		return new Quad(vertexes[0], vertexes[1], vertexes[2], vertexes[3], blendFunction.apply(color, newColor));
+		
 	}
 	
 	@Override

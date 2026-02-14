@@ -150,12 +150,51 @@ public class Texture {
 		
 	}
 	
+	/**
+	 * Returns a subregion of the current texture as a new {@link Texture} object.
+	 * <p>
+	 * This method extracts a rectangular portion of the texture defined by the specified
+	 * coordinates and dimensions. The subregion starts at the top-left corner
+	 * (<code>x</code>, <code>y</code>) and spans a width of <code>w</code> pixels
+	 * and a height of <code>h</code> pixels. The resulting {@link Texture} will share
+	 * the same texture data but represent only the selected area.
+	 * </p>
+	 *
+	 * <p>
+	 * This overload uses the default texture sampling or wrapping mode defined by
+	 * {@link #DEFAULT}.
+	 * </p>
+	 *
+	 * @param x the x-coordinate of the top-left corner of the subregion, in pixels
+	 * @param y the y-coordinate of the top-left corner of the subregion, in pixels
+	 * @param w the width of the subregion, in pixels
+	 * @param h the height of the subregion, in pixels
+	 * @return a new {@link Texture} representing the specified subregion of the current texture
+	 */
 	public Texture getTexturePart(int x, int y, int w, int h) {
 		
 		return getTexturePart(x, y, w, h, DEFAULT);
 		
 	}
 	
+	/**
+	 * Extracts a portion of the current image and converts it into a texture.
+	 *
+	 * <p>This method allows you to specify a rectangular area within the image using
+	 * the (x, y) coordinates for the top-left corner and the width (w) and height (h)
+	 * of the area. It applies a custom pixel processing function provided via a
+	 * {@link BiFunction} that generates a {@link BiConsumer} to handle each pixel's
+	 * color data before creating the texture.</p>
+	 *
+	 * @param x the x-coordinate of the top-left corner of the texture part
+	 * @param y the y-coordinate of the top-left corner of the texture part
+	 * @param w the width of the texture part
+	 * @param h the height of the texture part
+	 * @param consummer a function that accepts the dimensions and a byte buffer, returning
+	 *                  a consumer that processes each pixel's color data
+	 * @return a {@link Texture} representing the specified portion of the image, including
+	 *         its dimensions, pixel data, and texture ID
+	 */
 	public Texture getTexturePart(int x, int y, int w, int h, BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> consummer) {
 		
 		BufferedImage img = image.getSubimage(x, y, w, h);

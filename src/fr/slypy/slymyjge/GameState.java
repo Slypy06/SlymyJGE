@@ -56,8 +56,6 @@ public abstract class GameState extends InputsHandler {
 			
 			components.remove(key);
 			
-			return;
-			
 		} else {
 			
 			for(String s : components.keySet()) {

@@ -4,7 +4,9 @@ import static org.lwjgl.opengl.GL11.*;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
+import java.util.function.BinaryOperator;
 
+import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.graphics.TexCoords;
@@ -130,6 +132,20 @@ public class TexturedQuad implements TexturedShape {
 	}
 	
 	@Override
+	public TexturedQuad color(Color newColor) {
+		
+		return color(newColor, (c1, c2) -> c2);
+		
+	}
+	
+	@Override
+	public TexturedQuad color(Color newColor, BinaryOperator<Color> blendFunction) {
+		
+		return new TexturedQuad(vertexes[0], vertexes[1], vertexes[2], vertexes[3], texture, blendFunction.apply(color, newColor), new TexCoords(texCoords));
+		
+	}
+	
+	@Override
 	public TexturedQuad rotate(float angle) {
 		
 		return rotate(angle, getCenter());
@@ -139,7 +155,7 @@ public class TexturedQuad implements TexturedShape {
 	@Override
 	public TexturedQuad rotate(float angle, Vector2f center) {
 		
-		Vector2f[] rotatedVertexes = Shape.rotateVertexes(vertexes, center, angle);
+		Vector2f[] rotatedVertexes = Shape.applyTransform(vertexes, Shape.rotationMatrix(angle), center);
 		
 		return new TexturedQuad(rotatedVertexes[0], rotatedVertexes[1], rotatedVertexes[2], rotatedVertexes[3], texture, color, new TexCoords(texCoords));
 		
@@ -161,6 +177,75 @@ public class TexturedQuad implements TexturedShape {
 	public int getTexture() {
 		
 		return texture;
+		
+	}
+	
+	
+
+	@Override
+	public TexturedQuad transform(float[][] transform) {
+		
+		return transform(Shape.getMatrix(transform), getCenter());
+		
+	}
+
+	@Override
+	public TexturedQuad transform(Matrix2f transform) {
+
+		return transform(transform, getCenter());
+		
+	}
+	
+	@Override
+	public TexturedQuad transform(float[][] transform, Vector2f center) {
+		
+		return transform(Shape.getMatrix(transform), center);
+		
+	}
+
+	@Override
+	public TexturedQuad transform(Matrix2f transform, Vector2f center) {
+
+		Vector2f[] transformedVertexes = Shape.applyTransform(vertexes, transform, center);
+		
+		return new TexturedQuad(transformedVertexes[0], transformedVertexes[1], transformedVertexes[2], transformedVertexes[3], texture, color, new TexCoords(texCoords));
+		
+	}
+	
+	@Override
+	public TexturedQuad sheer(Vector2f sheer, Vector2f center) {
+		
+		return transform(Shape.shearMatrix(sheer.x, sheer.y),center);
+		
+	}
+
+	@Override
+	public TexturedQuad sheer(Vector2f sheer) {
+		
+		return sheer(sheer, getCenter());
+		
+	}
+
+	@Override
+	public TexturedQuad scale(Vector2f scale) {
+
+		return scale(scale, getCenter());
+		
+	}
+	
+	@Override
+	public TexturedQuad scale(Vector2f scale, Vector2f center) {
+
+		return transform(Shape.scalingMatrix(scale.x, scale.y), center);
+		
+	}
+
+	@Override
+	public TexturedQuad translate(Vector2f translation) {
+		
+		Vector2f[] translatedVertexes = Shape.applyTranslate(vertexes, translation);
+		
+		return new TexturedQuad(translatedVertexes[0], translatedVertexes[1], translatedVertexes[2], translatedVertexes[3], texture, color, new TexCoords(texCoords));
 		
 	}
 

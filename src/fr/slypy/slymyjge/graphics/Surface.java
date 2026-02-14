@@ -35,6 +35,7 @@ import static org.lwjgl.opengl.GL30.glDeleteFramebuffers;
 import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 
+import java.awt.Color;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.util.glu.GLU;
@@ -48,13 +49,15 @@ public class Surface implements ISurface {
     private final int width;
     private final int height;
     private final Game g;
+    private final Color clearColor;
 
-    public Surface(int width, int height, Game g) {
+    public Surface(int width, int height, Color clearColor, Game g) {
     	
         this.width = width;
         this.height = height;
         this.g = g;
-
+        this.clearColor = clearColor;
+        
         // Create texture
         textureId = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureId);
@@ -75,6 +78,12 @@ public class Surface implements ISurface {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
+    public Surface(int width, int height, Game g) {
+    	
+    	this(width, height, new Color(0, 0, 0, 0), g);
+    	
+    }
+    
     @Override
     public void bind() {
     	
@@ -96,7 +105,7 @@ public class Surface implements ISurface {
         glEnable(GL_LINE_SMOOTH);   // only useful without MSAA
         glEnable(GL_POINT_SMOOTH);  // only useful without MSAA
 
-        glClearColor(0f, 0f, 0f, 0f);
+        glClearColor(clearColor.getRed() / 255F, clearColor.getGreen() / 255F, clearColor.getBlue() / 255F, clearColor.getAlpha() / 255F);
         glClear(GL_COLOR_BUFFER_BIT);
         
     }

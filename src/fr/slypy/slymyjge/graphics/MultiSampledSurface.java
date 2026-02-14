@@ -35,23 +35,17 @@ import static org.lwjgl.opengl.GL30.glBindRenderbuffer;
 import static org.lwjgl.opengl.GL30.glBlitFramebuffer;
 import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
 import static org.lwjgl.opengl.GL30.glDeleteFramebuffers;
+import static org.lwjgl.opengl.GL30.glDeleteRenderbuffers;
 import static org.lwjgl.opengl.GL30.glFramebufferRenderbuffer;
 import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 import static org.lwjgl.opengl.GL30.glGenRenderbuffers;
-import static org.lwjgl.opengl.GL30.glDeleteRenderbuffers;
 import static org.lwjgl.opengl.GL30.glRenderbufferStorageMultisample;
-import static org.lwjgl.opengl.GL32.GL_SYNC_FLUSH_COMMANDS_BIT;
-import static org.lwjgl.opengl.GL32.GL_SYNC_GPU_COMMANDS_COMPLETE;
-import static org.lwjgl.opengl.GL32.glClientWaitSync;
-import static org.lwjgl.opengl.GL32.glFenceSync;
-import static org.lwjgl.opengl.GL42.GL_TEXTURE_FETCH_BARRIER_BIT;
-import static org.lwjgl.opengl.GL42.glMemoryBarrier;
 
+import java.awt.Color;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLSync;
 import org.lwjgl.util.glu.GLU;
 
 import fr.slypy.slymyjge.Game;
@@ -66,8 +60,11 @@ public class MultiSampledSurface implements ISurface {
     private final int height;
     private final Game g;
     private final int samples;
+    private final Color color;
 
-    public MultiSampledSurface(int width, int height, Game g, int samples) {
+    public MultiSampledSurface(int width, int height, Color background, int samples, Game g) {
+    	
+    	this.color = background;
     	
         this.width = width;
         this.height = height;
@@ -102,6 +99,12 @@ public class MultiSampledSurface implements ISurface {
             throw new RuntimeException("Resolve FBO incomplete!");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    
+    public MultiSampledSurface(int width, int height, int samples, Game g) {
+    	
+    	this(width, height, new Color(0,0,0,0), samples, g);
+    	
     }
 
     @Override

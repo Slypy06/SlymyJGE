@@ -15,6 +15,8 @@ public class Animator {
 	private float max = 0;
 	private boolean loop = false;
 	
+	private float speed = 1;
+	
 	public Animator(Shape s) {
 		
 		this.s = s;
@@ -31,6 +33,8 @@ public class Animator {
 	
 	public Shape apply() {
 		
+		float snapshot = t;
+		
 		Shape ret = s;
 		
 		for(Entry<BiFunction<Shape, ?, Shape>, AnimationTrack<?>> entry : tracks.entrySet()) {
@@ -40,7 +44,7 @@ public class Animator {
 	        @SuppressWarnings("unchecked")
 			AnimationTrack<Object> track = (AnimationTrack<Object>) entry.getValue();
 
-	        ret = func.apply(ret, track.get(t));
+	        ret = func.apply(ret, track.get(snapshot));
 			
 		}
 		
@@ -50,23 +54,71 @@ public class Animator {
 	
 	public void update(float alpha) {
 		
-		t += alpha;
+		float time = t + speed*alpha;
 		
 		if(loop) {
 			
-			t = t % max;
+			time = time%max > 0 ? time%max : (time%max)+max;
 			
-		} else if(t > max) {
+		} else if(time > max) {
 			
-			t = max;
+			time = max;
+			
+		} else if(time < 0) {
+			
+			time = 0;
 			
 		}
+		
+		t = time;
+		
+	}
+	
+	public void setSpeed(float speed) {
+		
+		this.speed = speed;
+		
+	}
+	
+	public float getSpeed() {
+		
+		return speed;
+		
+	}
+	
+	public void reverse() {
+		
+		speed = -speed;
 		
 	}
 	
 	public void setLooping(boolean loop) {
 		
 		this.loop = loop;
+		
+	}
+	
+	public float getTime() {
+		
+		return t;
+		
+	}
+	
+	public float getDuration() {
+		
+		return max;
+		
+	}
+	
+	public void setDuration(float duration) {
+		
+		max = duration;
+		
+	}
+	
+	public boolean isFinished() {
+		
+		return !loop && ((speed > 0 && t == max) || (speed < 0 && t == 0) || speed == 0);
 		
 	}
 

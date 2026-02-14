@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 import org.lwjgl.util.vector.Vector2f;
-
 public class AnimationTrack<T> {
 
 	private List<KeyFrame<T>> keyFrames = new ArrayList<>();
@@ -27,6 +26,9 @@ public class AnimationTrack<T> {
 		KeyFrame<T> lastKf = keyFrames.get(0);
 		
 		for(KeyFrame<T> kf : keyFrames) {
+			
+			if(kf.getT() == t)
+				return kf.getValue();
 			
 			if(kf.getT() >= t) {
 				
@@ -159,11 +161,13 @@ public class AnimationTrack<T> {
 	    }
 		
 	    public Color interpolate(Color a, Color b, float t) {
+	    	System.out.println("A : " + a.getRed() + " / b : " + b.getRed() + " t : " + t + " / func : " + func.apply(t));
+	    	System.out.println((int) (a.getRed() + (b.getRed() - a.getRed()) * func.apply(t)));
 	        return new Color(
-	            a.getRed() + (b.getRed() - a.getRed()) * func.apply(t),
-	            a.getGreen() + (b.getGreen() - a.getGreen()) * func.apply(t),
-	            a.getBlue() + (b.getBlue() - a.getBlue()) * func.apply(t),
-	            a.getAlpha() + (b.getAlpha() - a.getAlpha()) * func.apply(t)
+	            (int) (a.getRed() + (b.getRed() - a.getRed()) * func.apply(t)),
+	            (int) (a.getGreen() + (b.getGreen() - a.getGreen()) * func.apply(t)),
+	            (int) (a.getBlue() + (b.getBlue() - a.getBlue()) * func.apply(t)),
+	            (int) (a.getAlpha() + (b.getAlpha() - a.getAlpha()) * func.apply(t))
 	        );
 	    }
 	    
