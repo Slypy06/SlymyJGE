@@ -114,7 +114,7 @@ public class Surface implements ISurface {
     public void unbind() {
     	
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        Game.setViewport(g.getWidth(), g.getHeight());
+        g.updateView2D();
         Game.restoreMatrix();
         
     }

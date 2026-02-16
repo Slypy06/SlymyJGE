@@ -58,20 +58,8 @@ public abstract class Game extends GameState {
 	
 	protected String title;
 
-	protected int startWidth;
-	protected int startHeight;
-	
-	protected int lastWidth;
-	protected int lastHeight;
-	//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
 	protected int width;
 	protected int height;
-	
-	protected float widthDiff = 1;
-	protected float heightDiff = 1;
-	
-	protected int xDiff;
-	protected int yDiff;
 
 	protected boolean showTPS = false;
 	protected long tps = 0;
@@ -81,8 +69,6 @@ public abstract class Game extends GameState {
 	protected GameState state;
 	
 	protected long wait = 0;
-	
-	//protected Client client;
 	
 	protected Synchronizer frameSync = new Synchronizer(Integer.MAX_VALUE);
 	protected Synchronizer tickSync = new Synchronizer(Integer.MAX_VALUE);
@@ -98,6 +84,8 @@ public abstract class Game extends GameState {
 	protected boolean steamLinked = false;
 	
 	private long renderThreadId;
+	
+	private boolean resizable;
 	
 	//TODO Modify the resizingRule
 	
@@ -121,25 +109,16 @@ public abstract class Game extends GameState {
 	
 	public Game(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
-		this.startWidth = width;
-		this.startHeight = height;
-		
-		this.width = this.startWidth;
-		this.height = this.startHeight;
+		this.width = width;
+		this.height = height;
 		
 		this.title = title;
 		
 		this.backgroundColor = backgroundColor;
 		
-		if(resizable) {
-			
-			resizingRules = ResizingRules.DefaultRules;
-			
-		} else {
-			
-			resizingRules = ResizingRules.NotResizable;
-			
-		}
+		resizingRules = ResizingRules.DefaultRules;
+		
+		this.resizable = resizable;
 		
 		states.put(0, this);
 		
@@ -154,34 +133,6 @@ public abstract class Game extends GameState {
 	}
 	
 	public abstract void stop();
-	
-	public void setResizingRules(ResizingRules rules) {
-		
-		this.resizingRules = rules;
-		
-		if(resizingRules == null)
-			return;
-		
-		if(!resizingRules.isFixedAspectRatio()) {
-			
-			xDiff = 0;
-			yDiff = 0;
-			
-		}
-		
-		if(!resizingRules.isResizeHeight()) {
-			
-			heightDiff = 1;
-			
-		}
-		
-		if(!resizingRules.isResizeWidth()) {
-			
-			widthDiff = 1;
-			
-		}
-		
-	}
 	
 	public InitType getInitType() {
 		
@@ -475,11 +426,7 @@ public abstract class Game extends GameState {
 				
 			fps++;
 						
-			Display.update();
-						
-			updateSize();
-						
-			resetModelViewMatrix();
+			updateView2D();
 						
 			translateView(state.getXCam(), state.getYCam());
 						
@@ -505,6 +452,8 @@ public abstract class Game extends GameState {
 			}
 				
 			Display.setTitle(title + (showFPS ? " || FPS: " + this.fps : "") + (showTPS ? " || TPS: " + this.tps : ""));
+			
+			Display.update();
 					
 		}
 		
@@ -638,14 +587,13 @@ public abstract class Game extends GameState {
 	    	Display.setDisplayMode(new DisplayMode(newDisplaymode.getW(), newDisplaymode.getH()));
 	    		
 	    }
-	    	
-		Display.setResizable(!newDisplaymode.isResizable());
+		
 		Display.setResizable(newDisplaymode.isResizable());
+		resizable = newDisplaymode.isResizable();
+		
 		Display.setTitle(title);
 		
-		updateSize();
-		
-		setView2D(width, height);
+		updateView2D();
 		
 	}
 	
@@ -686,14 +634,12 @@ public abstract class Game extends GameState {
 			return;
 			
 		}
-
-		boolean fullscreen = Display.isFullscreen();
 		
 		executeInRenderThread(() -> {
 			
 			try {
 				
-				changeDisplayMode(new NewDisplayMode(fullscreen, resizable, width, height));
+				changeDisplayMode(new NewDisplayMode(Display.isFullscreen(), resizable, width, height));
 				
 			} catch (LWJGLException e) {
 
@@ -708,6 +654,14 @@ public abstract class Game extends GameState {
 	public boolean isResizable() {
 		
 		return Display.isResizable();
+		
+	}
+	
+	public void setVirtualSize(int width, int height) {
+		
+		System.out.println("Set virtual size : " + width + ", " + height);
+		
+		GLU.gluOrtho2D(0, width, height, 0);
 		
 	}
 	
@@ -739,77 +693,28 @@ public abstract class Game extends GameState {
 	
 	public int getWidth() {
 		
-		return startWidth;
+		return width;
 		
 	}
 	
 	public int getHeight() {
 		
-		return startHeight;
-		
-	}
-	
-	public int getCurrentWidth() {
-		
-		return width;
-		
-	}
-	
-	public int getCurrentHeight() {
-		
 		return height;
 		
 	}
-
-	private void updateSize() {
+	
+	public int getRealWidth() {
 		
-		lastWidth = width;
-		lastHeight = height;
-		
-		width = Display.getWidth();
-		height = Display.getHeight();
-		
-		if(resizingRules != null && resizingRules.isResizeWidth()) {
-		
-			widthDiff = width / (float) startWidth;
-		
-		} else {
-			
-			widthDiff = 1;
-			
-		}
-		
-		if(resizingRules != null && resizingRules.isResizeHeight()) {
-		
-			heightDiff = height / (float) startHeight;
-		
-		} else {
-			
-			heightDiff = 1;
-		
-		}
-
-		
-		if(resizingRules != null && resizingRules.isFixedAspectRatio()) {
-			
-			if(widthDiff < heightDiff) {
-				
-				heightDiff = widthDiff;
-				xDiff = 0;
-				yDiff = (int) ((height - startHeight*heightDiff) / 2.0d);
-				
-			} else if(widthDiff > heightDiff) {
-				
-				widthDiff = heightDiff;
-				yDiff = 0;
-				xDiff = (int) ((width - startWidth*widthDiff) / 2.0d);
-				
-			}
-			
-		}
+		return Display.getWidth();
 		
 	}
 	
+	public int getRealHeight() {
+		
+		return Display.getHeight();
+		
+	}
+
 	public void display() {
 		
 		Logger.log("Cr�ation de la fen�tre");
@@ -817,13 +722,11 @@ public abstract class Game extends GameState {
 		try {
 			
 			Display.setDisplayMode(new DisplayMode(width, height));
-			Display.setResizable(resizingRules != null);
+			Display.setResizable(resizable);
 			Display.setTitle(title);
 			Display.create(new PixelFormat(32, 0, 24, 0, 8));
 			
-			updateSize();
-		 
-			setView2D(width, height);
+			updateView2D();
 			
 		} catch (LWJGLException e) {
 			
@@ -840,25 +743,64 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	public static void setView2D(int width, int height) {
+	public void updateView2D() {
 		
-		setViewport(width, height);
+		int x = 0;
+		int y = 0;
+		int w = Display.getWidth();
+		int h = Display.getHeight();
+		
+		if(!resizingRules.resizeWidth()) {
+			
+			x = (w - width) / 2;
+			x = x < 0 ? 0 : x;
+			
+			w = width;
+			
+		}
+		
+		if(!resizingRules.resizeHeight()) {
+			
+			y = (h - height) / 2;
+			y = y < 0 ? 0 : y;
+			
+			h = height;
+			
+		} else if(resizingRules.fixedAspectRatio()) {
+			
+			float coef = w / (float) width;
+			coef = Math.min(h / (float) height, coef);
+			
+			x = (w - (int) (width*coef)) / 2;
+			x = x < 0 ? 0 : x;
+			
+			w = (int) (width*coef);
+			
+			y = (h - (int) (height*coef)) / 2;
+			y = y < 0 ? 0 : y;
+			
+			h = (int) (height*coef);
+			
+		}
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		
+		setVirtualSize(width, height);
+		
+		setView2D(x, y, w, h);
+		
+	}
+	
+	public static void setView2D(int x, int y, int width, int height) {
+
+		glViewport(x, y, width, height);
 		
 		resetModelViewMatrix();
 		
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
-	}
-	
-	public static void setViewport(int width, int height) {
-		
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		
-		glViewport(0, 0, width, height);
-		GLU.gluOrtho2D(0, width, height, 0);
 		
 	}
 	
@@ -899,27 +841,27 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	public float getXCursor() {
+	public float getRelativeXCursor() {
 		
-		return (Mouse.getX() / getWidthDiff()) + xCam;
-		
-	}
-	
-	public float getYCursor() {
-		
-		return ((-Mouse.getY() + Display.getHeight()) / getHeightDiff()) + yCam;
+		return (Mouse.getX() / (float) getRealWidth()) * getWidth() + xCam;
 		
 	}
 	
-	public float getXCursorOnScreen() {
+	public float getRelativeYCursor() {
 		
-		return (Mouse.getX() / getWidthDiff());
+		return ((-Mouse.getY() + Display.getHeight()) / (float) getRealHeight()) * getHeight() + yCam;
 		
 	}
 	
-	public float getYCursorOnScreen() {
+	public float getAbsoluteXCursor() {
 		
-		return ((-Mouse.getY() + Display.getHeight()) / getHeightDiff());
+		return (Mouse.getX() / (float) getRealWidth()) * getWidth();
+		
+	}
+	
+	public float getAbsoluteYCursor() {
+		
+		return ((-Mouse.getY() + Display.getHeight()) / (float) getRealHeight()) * getHeight();
 		
 	}
 	
@@ -944,30 +886,6 @@ public abstract class Game extends GameState {
 	public boolean showTPS() {
 		
 		return showTPS;
-		
-	}
-	
-	public float getWidthDiff() {
-		
-		return widthDiff;
-		
-	}
-
-	public float getHeightDiff() {
-		
-		return heightDiff;
-		
-	}
-	
-	public int getxDiff() {
-		
-		return xDiff;
-		
-	}
-
-	public int getyDiff() {
-		
-		return yDiff;
 		
 	}
 

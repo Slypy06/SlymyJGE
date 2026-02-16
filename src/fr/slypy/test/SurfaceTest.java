@@ -12,8 +12,10 @@ import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Surface;
 import fr.slypy.slymyjge.graphics.shape.Point;
+import fr.slypy.slymyjge.graphics.shape.Rectangle;
 import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.graphics.shape.Triangle;
+import fr.slypy.slymyjge.utils.ResizingRules;
 
 public class SurfaceTest extends Game {
 	
@@ -44,7 +46,7 @@ public class SurfaceTest extends Game {
 
 	@Override
 	public void render(double alpha) {
-		
+
 		NewGenRenderer.renderOnSurface(() -> {
 			
 			glTranslatef(10, 10, 0);
@@ -85,6 +87,8 @@ public class SurfaceTest extends Game {
 		
 		setTickCap(20);
 		setFrameCap(240);
+		
+		this.resizingRules = new ResizingRules(true, true, true);
 		
 		s1 = new Surface(512, 512, this);
 		s2 = new Surface(256, 256, new Color(0, 0, 128, 255), this);

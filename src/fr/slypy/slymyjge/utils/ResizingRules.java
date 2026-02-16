@@ -3,7 +3,6 @@ package fr.slypy.slymyjge.utils;
 
 public class ResizingRules {
 	
-	public static final ResizingRules NotResizable = null;
 	public static final ResizingRules DefaultRules = new ResizingRules(true, true, false);
 
 	private boolean resizeWidth;
@@ -28,21 +27,20 @@ public class ResizingRules {
 
 	}
 
-	public boolean isResizeWidth() {
+	public boolean resizeWidth() {
 	
 		return resizeWidth;
 	
 	}
 
 	
-	public boolean isResizeHeight() {
+	public boolean resizeHeight() {
 	
 		return resizeHeight;
 	
 	}
-
 	
-	public boolean isFixedAspectRatio() {
+	public boolean fixedAspectRatio() {
 	
 		return fixedAspectRatio;
 	
