@@ -15,9 +15,9 @@ import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glMatrixMode;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
 import static org.lwjgl.opengl.GL11.glPushMatrix;
-import static org.lwjgl.opengl.GL11.glTranslatef;
 import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glScalef;
+import static org.lwjgl.opengl.GL11.glTranslatef;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 import java.awt.Color;
@@ -532,15 +532,10 @@ public abstract class Game extends GameState {
 		if(icon.hasIcon(IconResolution.X128)) {
 			
 			icons[iconsStored] = icon.getIcon(IconResolution.X128);
-			iconsStored++;
 			
 		}
 		
-		executeInRenderThread(() -> {
-			
-			changeIcon(icons);
-			
-		});
+		executeInRenderThread(() -> changeIcon(icons));
 		
 	}
 	
@@ -932,5 +927,5 @@ public abstract class Game extends GameState {
 		toExecute.add(run);
 		
 	}
-	
+
 }

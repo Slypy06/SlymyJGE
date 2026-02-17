@@ -25,6 +25,7 @@ import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glScalef;
 import static org.lwjgl.opengl.GL11.glPushMatrix;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_WRITE_ONLY;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
@@ -123,6 +124,7 @@ public class NewGenRenderer {
 		glPopMatrix();
 		
 	}
+
 	
 	public static class Transform {
 		
@@ -131,6 +133,14 @@ public class NewGenRenderer {
 		public void transform() {
 			
 			transforms.forEach(t -> t.run());
+			
+		}
+		
+		public Transform identity() {
+			
+			transforms.add(() -> glLoadIdentity());
+			
+			return this;
 			
 		}
 		

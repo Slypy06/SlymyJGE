@@ -127,6 +127,8 @@ public class MultiSampledSurface implements ISurface {
         glClearColor(0f, 0f, 0f, 0f);
         glClear(GL_COLOR_BUFFER_BIT);
         
+        glClearColor(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, color.getAlpha() / 255F);
+        
     }
 
     /** Resolve MSAA buffer to texture */
@@ -144,7 +146,7 @@ public class MultiSampledSurface implements ISurface {
     	
         resolve();  // automatically resolve before unbinding
         
-        Game.setViewport(g.getWidth(), g.getHeight());
+        g.updateView2D();
         Game.restoreMatrix();
         
         GL11.glFinish();

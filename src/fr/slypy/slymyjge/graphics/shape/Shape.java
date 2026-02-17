@@ -102,8 +102,7 @@ public interface Shape {
     }
 	
 	/**
-     * Applies a linear transformation represented by a 2x2 matrix, plus an optional translation,
-     * to an array of vertices.
+     * Applies a linear translation to an array of vertices.
      *
      * @param vertexes the array of vertices to transform
      * @param matrix   the 2x2 transformation matrix (m00 m01 / m10 m11)

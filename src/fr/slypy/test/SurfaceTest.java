@@ -12,7 +12,6 @@ import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Surface;
 import fr.slypy.slymyjge.graphics.shape.Point;
-import fr.slypy.slymyjge.graphics.shape.Rectangle;
 import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.graphics.shape.Triangle;
 import fr.slypy.slymyjge.utils.ResizingRules;
@@ -40,7 +39,8 @@ public class SurfaceTest extends Game {
 
 	@Override
 	public void stop() {
-		// TODO Auto-generated method stub
+		
+		
 		
 	}
 
@@ -49,7 +49,7 @@ public class SurfaceTest extends Game {
 
 		NewGenRenderer.renderOnSurface(() -> {
 			
-			glTranslatef(10, 10, 0);
+			//glTranslatef(10, 10, 0);
 			
 			NewGenRenderer.renderShape(new Point(new Vector2f(0+10, 0+10), 20, Color.red));
 			NewGenRenderer.renderShape(new Point(new Vector2f(512-10, 512-10), 20, Color.red));
@@ -58,7 +58,7 @@ public class SurfaceTest extends Game {
 			
 		}, s1);
 		
-		NewGenRenderer.renderOnSurface(() -> {
+		NewGenRenderer.renderOnSurface(() -> 
 			
 			NewGenRenderer.renderInsideArea(0, 0, 60, 150, () -> {
 				
@@ -70,9 +70,9 @@ public class SurfaceTest extends Game {
 				NewGenRenderer.renderShape(new Point(new Vector2f(0+10, 256-10), 20, Color.green));
 				NewGenRenderer.renderShape(new Triangle(new Vector2f(50, 200), new Vector2f(100, 100), new Vector2f(25, 75), Color.pink));
 				
-			});
+			}),
 			
-		}, s2);
+		s2);
 		
 		NewGenRenderer.renderShape(s1Rect);
 		NewGenRenderer.renderShape(s2Rect);
@@ -101,7 +101,8 @@ public class SurfaceTest extends Game {
 
 	@Override
 	public void update(double alpha) {
-		// TODO Auto-generated method stub
+		
+		
 		
 	}
 

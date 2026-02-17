@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.lwjgl.input.Mouse;
-
 import fr.slypy.slymyjge.components.Component;
 import fr.slypy.slymyjge.inputs.InputsHandler;
 
@@ -154,6 +152,15 @@ public abstract class GameState extends InputsHandler {
 	public void setYCam(float yCam) {
 		
 		this.yCam = yCam;
+		
+	}
+	
+	public enum InitType {
+
+		INIT_ON_LOAD,
+		INIT_ON_REGISTER,
+		MANUALY_INIT,
+		INIT_ON_LOAD_AND_ON_REGISTER
 		
 	}
 	

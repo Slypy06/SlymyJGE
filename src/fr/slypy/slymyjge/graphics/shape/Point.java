@@ -7,7 +7,9 @@ import static org.lwjgl.opengl.GL11.glPointSize;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
+import java.util.function.BinaryOperator;
 
+import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
 
 public class Point implements Shape {
@@ -44,10 +46,31 @@ public class Point implements Shape {
 		
 	}
 	
+	public int getSize() {
+		
+		return size;
+		
+	}
+	
 	@Override
 	public void fillBuffer(ByteBuffer b) {
 		
 		b.putFloat(vertex.x).putFloat(vertex.y).put((byte) color.getRed()).put((byte) color.getGreen()).put((byte) color.getBlue()).put((byte) color.getAlpha());
+
+	}
+	
+	
+	@Override
+	public void glData() {
+		
+		glPointSize(size);
+		
+		glBegin(INFOS.getGlMode());
+			Shape.glColor(color);
+			Shape.glVertexes(getVertexes());
+		glEnd();
+		
+		glPointSize(1);
 
 	}
 	
@@ -82,29 +105,86 @@ public class Point implements Shape {
 	@Override
 	public Point rotate(float angle, Vector2f center) {
 		
-		Vector2f[] rotatedVertexes = Shape.rotateVertexes(getVertexes(), center, angle);
+		Vector2f[] rotatedVertexes = Shape.applyTransform(getVertexes(), Shape.rotationMatrix(angle), center);
 		
 		return new Point(rotatedVertexes[0], size, color);
 		
 	}
-	
-	@Override
-	public void glData() {
-		
-		glPointSize(size);
-		
-		glBegin(INFOS.getGlMode());
-			Shape.glColor(color);
-			Shape.glVertexes(getVertexes());
-		glEnd();
-		
-		glPointSize(1);
 
-	}
-	
-	public int getSize() {
+	@Override
+	public Shape transform(float[][] transform, Vector2f center) {
 		
-		return size;
+		return transform(Shape.getMatrix(transform), center);
+		
+	}
+
+	@Override
+	public Shape transform(Matrix2f transform, Vector2f center) {
+
+		return new Point(Shape.applyTransform(getVertexes(), transform, center)[0], size, color);
+		
+	}
+
+	@Override
+	public Shape transform(float[][] transform) {
+		
+		return transform(Shape.getMatrix(transform), getCenter());
+		
+	}
+
+	@Override
+	public Shape transform(Matrix2f transform) {
+
+		return transform(transform, getCenter());
+		
+	}
+
+	@Override
+	public Shape sheer(Vector2f sheer, Vector2f center) {
+
+		return new Point(Shape.applyTransform(getVertexes(), Shape.shearMatrix(sheer.getX(), sheer.getY()), center)[0], size, color);
+		
+	}
+
+	@Override
+	public Shape sheer(Vector2f sheer) {
+
+		return sheer(sheer, getCenter());
+		
+	}
+
+	@Override
+	public Shape scale(Vector2f scale, Vector2f center) {
+
+		return new Point(Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center)[0], size, color);
+		
+	}
+
+	@Override
+	public Shape scale(Vector2f scale) {
+
+		return scale(scale, getCenter());
+		
+	}
+
+	@Override
+	public Shape translate(Vector2f translation) {
+
+		return new Point(Shape.applyTranslate(getVertexes(), translation)[0], size, color);
+		
+	}
+
+	@Override
+	public Shape color(Color newColor) {
+
+		return new Point(getVertexes()[0], size, newColor);
+		
+	}
+
+	@Override
+	public Shape color(Color newColor, BinaryOperator<Color> blend) {
+
+		return new Point(getVertexes()[0], size, blend.apply(color, newColor));
 		
 	}
 	
