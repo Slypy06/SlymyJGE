@@ -8,20 +8,13 @@ import java.util.function.BiFunction;
 import fr.slypy.slymyjge.graphics.shape.Shape;
 
 public class Animator {
-	
-	private final Shape s;
+
 	private float t = 0;
 	private Map<BiFunction<Shape, ?, Shape>, AnimationTrack<?>> tracks = new HashMap<>();
 	private float max = 0;
 	private boolean loop = false;
 	
 	private float speed = 1;
-	
-	public Animator(Shape s) {
-		
-		this.s = s;
-		
-	}
 	
 	public <T> void addTrack(AnimationTrack<T> track, BiFunction<Shape, T, Shape> applicator) {
 		
@@ -31,9 +24,23 @@ public class Animator {
 		
 	}
 	
-	public Shape apply() {
+	public Shape apply(Shape s, float delay) {
 		
-		float snapshot = t;
+		float time = t + speed*delay;
+		
+		if(loop) {
+			
+			time = time%max > 0 ? time%max : (time%max)+max;
+			
+		} else if(time > max) {
+			
+			time = max;
+			
+		} else if(time < 0) {
+			
+			time = 0;
+			
+		}
 		
 		Shape ret = s;
 		
@@ -44,7 +51,7 @@ public class Animator {
 	        @SuppressWarnings("unchecked")
 			AnimationTrack<Object> track = (AnimationTrack<Object>) entry.getValue();
 
-	        ret = func.apply(ret, track.get(snapshot));
+	        ret = func.apply(ret, track.get(time));
 			
 		}
 		
@@ -52,7 +59,13 @@ public class Animator {
 		
 	}
 	
-	public void update(float alpha) {
+	public Shape apply(Shape s) {
+		
+		return apply(s, 0);
+		
+	}
+	
+	public void step(float alpha) {
 		
 		float time = t + speed*alpha;
 		
@@ -113,6 +126,12 @@ public class Animator {
 	public void setDuration(float duration) {
 		
 		max = duration;
+		
+	}
+	
+	public void reset() {
+		
+		t = 0;
 		
 	}
 	

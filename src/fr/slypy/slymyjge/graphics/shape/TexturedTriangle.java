@@ -118,6 +118,56 @@ public class TexturedTriangle implements TexturedShape {
 	}
 	
 	@Override
+	public Vector2f getOrigin() {
+		
+		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			origin.setX(Math.min(vertex.x, origin.x));
+			origin.setY(Math.min(vertex.y, origin.y));
+			
+		}
+		
+		return origin;
+		
+	}
+	
+	@Override
+	public float getWidth() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.x, min);
+			max = Math.max(vertex.x, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
+	public float getHeight() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.y, min);
+			max = Math.max(vertex.y, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
 	public void glData() {
 		
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -131,25 +181,25 @@ public class TexturedTriangle implements TexturedShape {
 
 	}
 	
+	public int getTexture() {
+		
+		return texture;
+		
+	}
+
 	@Override
-	public TexturedTriangle rotate(float angle) {
+	public Shape rotate(float angle) {
 		
 		return rotate(angle, getCenter());
 		
 	}
 	
 	@Override
-	public TexturedTriangle rotate(float angle, Vector2f center) {
+	public Shape rotate(float angle, Vector2f center) {
 		
 		Vector2f[] rotatedVertexes = Shape.applyTransform(getVertexes(), Shape.rotationMatrix(angle), center);
 		
 		return new TexturedTriangle(rotatedVertexes[0], rotatedVertexes[1], rotatedVertexes[2], texture, color, new TexCoords(texCoords));
-		
-	}
-	
-	public int getTexture() {
-		
-		return texture;
 		
 	}
 
@@ -186,7 +236,9 @@ public class TexturedTriangle implements TexturedShape {
 	@Override
 	public Shape sheer(Vector2f sheer, Vector2f center) {
 
-		return new Point(Shape.applyTransform(getVertexes(), Shape.shearMatrix(sheer.getX(), sheer.getY()), center)[0], size, color);
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.shearMatrix(sheer.getX(), sheer.getY()), center);
+		
+		return new TexturedTriangle(newVertexes[0], newVertexes[1], newVertexes[2], texture, color, new TexCoords(texCoords));
 		
 	}
 
@@ -200,7 +252,9 @@ public class TexturedTriangle implements TexturedShape {
 	@Override
 	public Shape scale(Vector2f scale, Vector2f center) {
 
-		return new Point(Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center)[0], size, color);
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center);
+		
+		return new TexturedTriangle(newVertexes[0], newVertexes[1], newVertexes[2], texture, color, new TexCoords(texCoords));
 		
 	}
 
@@ -214,21 +268,30 @@ public class TexturedTriangle implements TexturedShape {
 	@Override
 	public Shape translate(Vector2f translation) {
 
-		return new Point(Shape.applyTranslate(getVertexes(), translation)[0], size, color);
+		Vector2f[] newVertexes = Shape.applyTranslate(getVertexes(), translation);
+		
+		return new TexturedTriangle(newVertexes[0], newVertexes[1], newVertexes[2], texture, color, new TexCoords(texCoords));
 		
 	}
 
 	@Override
 	public Shape color(Color newColor) {
 
-		return new Point(getVertexes()[0], size, newColor);
+		return new TexturedTriangle(getVertexes()[0], getVertexes()[1], getVertexes()[2], texture, newColor, new TexCoords(texCoords));
 		
 	}
 
 	@Override
 	public Shape color(Color newColor, BinaryOperator<Color> blend) {
 
-		return new Point(getVertexes()[0], size, blend.apply(color, newColor));
+		return new TexturedTriangle(getVertexes()[0], getVertexes()[1], getVertexes()[2], texture, blend.apply(color, newColor), new TexCoords(texCoords));
+		
+	}
+
+	@Override
+	public TexCoords getTexCoords() {
+
+		return new TexCoords(texCoords);
 		
 	}
 

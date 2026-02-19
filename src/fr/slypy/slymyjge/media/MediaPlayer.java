@@ -19,7 +19,8 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 
-import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
+import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 import uk.co.caprica.vlcj.player.base.State;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
@@ -104,7 +105,10 @@ public class MediaPlayer {
 				
 			glBindTexture(GL_TEXTURE_2D, 0);
 	
-			Renderer.renderTexturedQuad(x, y, w, h, id, c);	
+			TexturedRectangle rect = new TexturedRectangle(x, y, w, h, c);
+			rect.setTexture(id);
+			
+			NewGenRenderer.renderShape(rect);
 				
 		}
 		

@@ -117,6 +117,57 @@ public class TexturedQuad implements TexturedShape {
 		
 	}
 	
+	
+	@Override
+	public Vector2f getOrigin() {
+		
+		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			origin.setX(Math.min(vertex.x, origin.x));
+			origin.setY(Math.min(vertex.y, origin.y));
+			
+		}
+		
+		return origin;
+		
+	}
+	
+	@Override
+	public float getWidth() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.x, min);
+			max = Math.max(vertex.x, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
+	public float getHeight() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.y, min);
+			max = Math.max(vertex.y, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
 	@Override
 	public void glData() {
 		
@@ -249,4 +300,11 @@ public class TexturedQuad implements TexturedShape {
 		
 	}
 
+	@Override
+	public TexCoords getTexCoords() {
+
+		return new TexCoords(texCoords);
+		
+	}
+	
 }

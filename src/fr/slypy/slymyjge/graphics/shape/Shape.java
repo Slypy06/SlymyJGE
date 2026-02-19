@@ -18,6 +18,9 @@ public interface Shape {
 	public Vector2f[] getVertexes();
 	public Color getColor();
 	public Vector2f getCenter();
+	public Vector2f getOrigin();
+	public float getWidth();
+	public float getHeight();
 	
 	public Shape transform(float[][] transform, Vector2f center);
 	public Shape transform(Matrix2f transform, Vector2f center);
@@ -115,7 +118,7 @@ public interface Shape {
 
         for (int i = 0; i < vertexes.length; i++) {
         	
-        	transformed[i] = Vector2f.add(transformed[i], translation, new Vector2f());
+        	transformed[i] = Vector2f.add(translation, vertexes[i], null);
         	
         }
 
@@ -197,7 +200,7 @@ public interface Shape {
      */
     private static Vector2f multiplyMatrixVector(Matrix2f matrix, Vector2f vec) {
  
-        return Matrix2f.transform(matrix, vec, new Vector2f());
+        return Matrix2f.transform(matrix, vec, null);
         
     }
 
@@ -227,5 +230,3 @@ public interface Shape {
     }
 
 }
-
-

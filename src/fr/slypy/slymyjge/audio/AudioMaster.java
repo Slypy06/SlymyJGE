@@ -27,10 +27,15 @@ public class AudioMaster {
 		
 	}
 	
-	public static void setListener(float x, float y, float z) {
+	public static void setListenerPosition(float x, float y, float z) {
 
 		AL10.alListener3f(AL10.AL_POSITION, x, y, z);
-		AL10.alListener3f(AL10.AL_VELOCITY, 0, 0, 0);
+		
+	}
+	
+	public static void setListenerVelocity(float x, float y, float z) {
+
+		AL10.alListener3f(AL10.AL_VELOCITY, x, y, z);
 		
 	}
 	

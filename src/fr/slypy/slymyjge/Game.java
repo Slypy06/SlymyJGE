@@ -42,7 +42,6 @@ import com.codedisaster.steamworks.SteamException;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
-import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.Texture;
 import fr.slypy.slymyjge.utils.Logger;
 import fr.slypy.slymyjge.utils.RepeatedScheduler;
@@ -333,8 +332,6 @@ public abstract class Game extends GameState {
 	public void loop() {
 		
 		Logger.log("Initialisation du jeu");
-		
-		Renderer.init(this);
 		
 		init();
 		
@@ -653,9 +650,7 @@ public abstract class Game extends GameState {
 	}
 	
 	public void setVirtualSize(int width, int height) {
-		
-		System.out.println("Set virtual size : " + width + ", " + height);
-		
+
 		GLU.gluOrtho2D(0, width, height, 0);
 		
 	}

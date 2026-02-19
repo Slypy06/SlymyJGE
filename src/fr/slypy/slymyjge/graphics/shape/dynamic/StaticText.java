@@ -2,6 +2,8 @@ package fr.slypy.slymyjge.graphics.shape.dynamic;
 
 import java.awt.Color;
 
+import org.lwjgl.util.vector.Vector2f;
+
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
@@ -63,7 +65,7 @@ public class StaticText {
 	public void updateSurfaceSize() {
 		
 		sur.free();
-		sur = new Surface((int) Math.ceil(size*font.getWidth(text)), (int) Math.ceil(size*font.getHeight()), game);
+		sur = new Surface((int) Math.max(1, Math.ceil(size*font.getWidth(text))), (int) Math.max(1, Math.ceil(size*font.getHeight())), game);
 		
 	}
 	
@@ -131,11 +133,25 @@ public class StaticText {
 		
 	}
 	
+	public int getWidth() {
+		
+		return (int) (size*font.getWidth(text));
+		
+	}
+	
 	public void setSize(int size) {
 		
 		this.size = (float) size / font.getHeight();
 		
 		game.executeInRenderThread(this::redraw);
+		
+	}
+	
+	public TexturedRectangle getTextShape(Vector2f position) {
+		
+		TexturedRectangle rect = new TexturedRectangle(position.getX(), position.getY(), size*font.getWidth(text), size*font.getHeight());
+		rect.setTexture(sur.getTextureId());
+		return rect;
 		
 	}
 	

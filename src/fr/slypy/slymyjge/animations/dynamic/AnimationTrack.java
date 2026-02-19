@@ -161,8 +161,6 @@ public class AnimationTrack<T> {
 	    }
 		
 	    public Color interpolate(Color a, Color b, float t) {
-	    	System.out.println("A : " + a.getRed() + " / b : " + b.getRed() + " t : " + t + " / func : " + func.apply(t));
-	    	System.out.println((int) (a.getRed() + (b.getRed() - a.getRed()) * func.apply(t)));
 	        return new Color(
 	            (int) (a.getRed() + (b.getRed() - a.getRed()) * func.apply(t)),
 	            (int) (a.getGreen() + (b.getGreen() - a.getGreen()) * func.apply(t)),

@@ -96,6 +96,27 @@ public class Point implements Shape {
 	}
 	
 	@Override
+	public Vector2f getOrigin() {
+		
+		return vertex;
+		
+	}
+	
+	@Override
+	public float getWidth() {
+		
+		return 0;
+		
+	}
+	
+	@Override
+	public float getHeight() {
+
+		return 0;
+		
+	}
+	
+	@Override
 	public Point rotate(float angle) {
 		
 		return new Point(vertex, size, color);

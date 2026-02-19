@@ -2,10 +2,7 @@ package fr.slypy.slymyjge.animations.framed;
 
 import java.awt.Color;
 
-import org.lwjgl.util.vector.Vector2f;
-
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
-import fr.slypy.slymyjge.graphics.Renderer;
 import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
 import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;

@@ -159,6 +159,12 @@ public class ShapeBundle<T extends Shape> {
 
 	}
 	
+	public void empty() {
+		
+		shapes.clear();
+		
+	}
+	
 	@Override
 	public String toString() {
 		

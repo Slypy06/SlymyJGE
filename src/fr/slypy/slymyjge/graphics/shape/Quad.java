@@ -1,14 +1,15 @@
 package fr.slypy.slymyjge.graphics.shape;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glEnd;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.function.BinaryOperator;
 
+import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
-
-import fr.slypy.slymyjge.graphics.TexCoords;
 
 public class Quad implements Shape {
 
@@ -64,6 +65,56 @@ public class Quad implements Shape {
 	}
 	
 	@Override
+	public Vector2f getOrigin() {
+		
+		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			origin.setX(Math.min(vertex.x, origin.x));
+			origin.setY(Math.min(vertex.y, origin.y));
+			
+		}
+		
+		return origin;
+		
+	}
+	
+	@Override
+	public float getWidth() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.x, min);
+			max = Math.max(vertex.x, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
+	public float getHeight() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.y, min);
+			max = Math.max(vertex.y, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
 	public Quad color(Color newColor) {
 		
 		return color(newColor, (c1, c2) -> c2);
@@ -78,16 +129,16 @@ public class Quad implements Shape {
 	}
 	
 	@Override
-	public Quad rotate(float angle) {
+	public Shape rotate(float angle) {
 		
 		return rotate(angle, getCenter());
 		
 	}
 	
 	@Override
-	public Quad rotate(float angle, Vector2f center) {
+	public Shape rotate(float angle, Vector2f center) {
 		
-		Vector2f[] rotatedVertexes = Shape.rotateVertexes(vertexes, center, angle);
+		Vector2f[] rotatedVertexes = Shape.applyTransform(getVertexes(), Shape.rotationMatrix(angle), center);
 		
 		return new Quad(rotatedVertexes[0], rotatedVertexes[1], rotatedVertexes[2], rotatedVertexes[3], color);
 		
@@ -101,6 +152,77 @@ public class Quad implements Shape {
 			Shape.glVertexes(vertexes);
 		glEnd();
 
+	}
+
+	@Override
+	public Shape transform(float[][] transform, Vector2f center) {
+		
+		return transform(Shape.getMatrix(transform), center);
+		
+	}
+
+	@Override
+	public Shape transform(Matrix2f transform, Vector2f center) {
+
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), transform, center);
+		
+		return new Quad(newVertexes[0], newVertexes[1], newVertexes[2], newVertexes[3], color);
+		
+	}
+
+	@Override
+	public Shape transform(float[][] transform) {
+		
+		return transform(Shape.getMatrix(transform), getCenter());
+		
+	}
+
+	@Override
+	public Shape transform(Matrix2f transform) {
+
+		return transform(transform, getCenter());
+		
+	}
+
+	@Override
+	public Shape sheer(Vector2f sheer, Vector2f center) {
+
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.shearMatrix(sheer.getX(), sheer.getY()), center);
+		
+		return new Quad(newVertexes[0], newVertexes[1], newVertexes[2], newVertexes[3], color);
+		
+	}
+
+	@Override
+	public Shape sheer(Vector2f sheer) {
+
+		return sheer(sheer, getCenter());
+		
+	}
+
+	@Override
+	public Shape scale(Vector2f scale, Vector2f center) {
+
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center);
+		
+		return new Quad(newVertexes[0], newVertexes[1], newVertexes[2], newVertexes[3], color);
+		
+	}
+
+	@Override
+	public Shape scale(Vector2f scale) {
+
+		return scale(scale, getCenter());
+		
+	}
+
+	@Override
+	public Shape translate(Vector2f translation) {
+
+		Vector2f[] newVertexes = Shape.applyTranslate(getVertexes(), translation);
+		
+		return new Quad(newVertexes[0], newVertexes[1], newVertexes[2], newVertexes[3], color);
+		
 	}
 
 }

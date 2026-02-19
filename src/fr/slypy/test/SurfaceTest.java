@@ -1,27 +1,29 @@
 package fr.slypy.test;
 
-import static org.lwjgl.opengl.GL11.glTranslatef;
-import static org.lwjgl.opengl.GL11.glRotatef;
-
 import java.awt.Color;
+import java.awt.Font;
 import java.io.File;
 
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
+import fr.slypy.slymyjge.animations.dynamic.AnimationTrack;
+import fr.slypy.slymyjge.animations.dynamic.AnimationTrack.KeyFrame;
+import fr.slypy.slymyjge.animations.dynamic.Animator;
+import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
-import fr.slypy.slymyjge.graphics.Surface;
-import fr.slypy.slymyjge.graphics.shape.Point;
-import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
-import fr.slypy.slymyjge.graphics.shape.Triangle;
-import fr.slypy.slymyjge.utils.ResizingRules;
+import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.graphics.shape.TexturedQuad;
+import fr.slypy.slymyjge.graphics.shape.composite.TexturedCircle;
+import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 
 public class SurfaceTest extends Game {
 	
-	private Surface s1;
-	private Surface s2;
-	private TexturedRectangle s1Rect;
-	private TexturedRectangle s2Rect;
+	private DynamicText text;
+	private Animator anim;
+	private TexturedCircle circle;
+	private Texture tex;
 
 	public SurfaceTest(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
@@ -47,35 +49,9 @@ public class SurfaceTest extends Game {
 	@Override
 	public void render(double alpha) {
 
-		NewGenRenderer.renderOnSurface(() -> {
-			
-			//glTranslatef(10, 10, 0);
-			
-			NewGenRenderer.renderShape(new Point(new Vector2f(0+10, 0+10), 20, Color.red));
-			NewGenRenderer.renderShape(new Point(new Vector2f(512-10, 512-10), 20, Color.red));
-			NewGenRenderer.renderShape(new Point(new Vector2f(512-10, 0+10), 20, Color.red));
-			NewGenRenderer.renderShape(new Point(new Vector2f(0+10, 512-10), 20, Color.red));
-			
-		}, s1);
+		NewGenRenderer.renderText(text, new Vector2f(150, 150));
 		
-		NewGenRenderer.renderOnSurface(() -> 
-			
-			NewGenRenderer.renderInsideArea(0, 0, 60, 150, () -> {
-				
-				glRotatef(20, 0, 0, 1);
-				
-				NewGenRenderer.renderShape(new Point(new Vector2f(0+10, 0+10), 20, Color.green));
-				NewGenRenderer.renderShape(new Point(new Vector2f(256-10, 256-10), 20, Color.green));
-				NewGenRenderer.renderShape(new Point(new Vector2f(256-10, 0+10), 20, Color.green));
-				NewGenRenderer.renderShape(new Point(new Vector2f(0+10, 256-10), 20, Color.green));
-				NewGenRenderer.renderShape(new Triangle(new Vector2f(50, 200), new Vector2f(100, 100), new Vector2f(25, 75), Color.pink));
-				
-			}),
-			
-		s2);
-		
-		NewGenRenderer.renderShape(s1Rect);
-		NewGenRenderer.renderShape(s2Rect);
+		NewGenRenderer.renderShape(circle);
 		
 	}
 
@@ -85,24 +61,33 @@ public class SurfaceTest extends Game {
 		setShowFPS(true);
 		setShowTPS(true);
 		
-		setTickCap(20);
+		setTickCap(60);
 		setFrameCap(240);
 		
-		this.resizingRules = new ResizingRules(true, true, true);
+		SlymyFont font = new SlymyFont(new Font("", Font.BOLD, 64), Color.black);
+		text = new DynamicText(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", this);
+		text.setSize(20);
 		
-		s1 = new Surface(512, 512, this);
-		s2 = new Surface(256, 256, new Color(0, 0, 128, 255), this);
-		s1Rect = new TexturedRectangle(50, 30, 512, 512);
-		s2Rect = new TexturedRectangle(400, 50, 800, 200);
-		s1Rect.setTexture(s1.getTextureId());
-		s2Rect.setTexture(s2.getTextureId());
+		anim = new Animator();
+		AnimationTrack<Vector2f> track = new AnimationTrack<>(new AnimationTrack.Vector2Interpolator(AnimationTrack.Interpolator.EASE_IN_OUT_QUAD));
+		track.addKeyFrame(new KeyFrame<>(0, new Vector2f(0, -50)));
+		track.addKeyFrame(new KeyFrame<>(1, new Vector2f(0, 50)));
+		track.addKeyFrame(new KeyFrame<>(2, new Vector2f(0, -50)));
+		anim.addTrack(track, Shape::translate);
+		anim.setLooping(true);
+		
+		tex = Texture.loadTexture("origin.png");
+		
+		circle = (TexturedCircle) new TexturedCircle(new Vector2f(600,800), 100, 50, tex).rotate((float) Math.toRadians(30)).sheer(new Vector2f(0f, 0));
 		
 	}
 
 	@Override
 	public void update(double alpha) {
 		
+		anim.step((float) alpha);
 		
+		text.perCharacterTransform((i, c) -> (TexturedQuad) anim.apply(c, i*0.1f));
 		
 	}
 

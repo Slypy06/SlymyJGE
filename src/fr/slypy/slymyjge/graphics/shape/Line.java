@@ -3,11 +3,12 @@ package fr.slypy.slymyjge.graphics.shape;
 import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineWidth;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
+import java.util.function.BinaryOperator;
 
+import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
 
 public class Line implements Shape {
@@ -74,39 +75,171 @@ public class Line implements Shape {
 		
 	}
 	
+	
 	@Override
-	public Line rotate(float angle) {
+	public Vector2f getOrigin() {
+		
+		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			origin.setX(Math.min(vertex.x, origin.x));
+			origin.setY(Math.min(vertex.y, origin.y));
+			
+		}
+		
+		return origin;
+		
+	}
+	
+	@Override
+	public float getWidth() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.x, min);
+			max = Math.max(vertex.x, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
+	public float getHeight() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.y, min);
+			max = Math.max(vertex.y, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	@Override
+	public Shape rotate(float angle) {
 		
 		return rotate(angle, getCenter());
 		
 	}
 	
 	@Override
-	public Line rotate(float angle, Vector2f center) {
+	public Shape rotate(float angle, Vector2f center) {
 		
-		Vector2f[] rotatedVertexes = Shape.rotateVertexes(vertexes, center, angle);
+		Vector2f[] rotatedVertexes = Shape.applyTransform(vertexes, Shape.rotationMatrix(angle), center);
 		
 		return new Line(rotatedVertexes[0], rotatedVertexes[1], width, color);
 		
 	}
-	
+
 	@Override
 	public void glData() {
-		
-		glLineWidth(width);
 		
 		glBegin(INFOS.getGlMode());
 			Shape.glColor(color);
 			Shape.glVertexes(vertexes);
 		glEnd();
-		
-		glLineWidth(1);
 
 	}
+
+	@Override
+	public Shape transform(float[][] transform, Vector2f center) {
+		
+		return transform(Shape.getMatrix(transform), center);
+		
+	}
+
+	@Override
+	public Shape transform(Matrix2f transform, Vector2f center) {
+
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), transform, center);
+		
+		return new Line(newVertexes[0], newVertexes[1], width, color);
+		
+	}
+
+	@Override
+	public Shape transform(float[][] transform) {
+		
+		return transform(Shape.getMatrix(transform), getCenter());
+		
+	}
+
+	@Override
+	public Shape transform(Matrix2f transform) {
+
+		return transform(transform, getCenter());
+		
+	}
+
+	@Override
+	public Shape sheer(Vector2f sheer, Vector2f center) {
+
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.shearMatrix(sheer.getX(), sheer.getY()), center);
+		
+		return new Line(newVertexes[0], newVertexes[1], width, color);
+		
+	}
+
+	@Override
+	public Shape sheer(Vector2f sheer) {
+
+		return sheer(sheer, getCenter());
+		
+	}
+
+	@Override
+	public Shape scale(Vector2f scale, Vector2f center) {
+
+		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center);
+		
+		return new Line(newVertexes[0], newVertexes[1], width, color);
+		
+	}
+
+	@Override
+	public Shape scale(Vector2f scale) {
+
+		return scale(scale, getCenter());
+		
+	}
+
+	@Override
+	public Shape translate(Vector2f translation) {
+
+		Vector2f[] newVertexes = Shape.applyTranslate(getVertexes(), translation);
+		
+		return new Line(newVertexes[0], newVertexes[1], width, color);
+		
+	}
 	
-	public int getWidth() {
+	public int getLineWidth() {
 		
 		return width;
+		
+	}
+
+	@Override
+	public Shape color(Color newColor) {
+
+		return new Line(getVertexes()[0], getVertexes()[1], width, newColor);
+		
+	}
+
+	@Override
+	public Shape color(Color newColor, BinaryOperator<Color> blend) {
+
+		return new Line(getVertexes()[0], getVertexes()[1], width, blend.apply(color, newColor));
 		
 	}
 

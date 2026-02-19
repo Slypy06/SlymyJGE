@@ -18,12 +18,10 @@ import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.graphics.shape.dynamic.StaticText;
 
 public class TextTest extends Game {
-	
-	private SlymyFont f;
+
 	private StaticText text;
 	private TexturedQuad rect;
 	private Animator textAnimator;
-	private Texture tex;
 	
 	public TextTest(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
@@ -47,13 +45,10 @@ public class TextTest extends Game {
 		
 		setTickCap(100);
 		
-		f = new SlymyFont(new Font("Serif", Font.BOLD, 200), Color.white);
+		text = new StaticText(new SlymyFont(new Font("Serif", Font.BOLD, 200), Color.white), "Apache", getGame());
+		rect = text.getTextShape(new Vector2f(250,300));
 		
-		text = new StaticText(f, "Apache", getGame());
-		rect = new TexturedRectangle(500, 200, text.getSurface().getWidth(), text.getSurface().getHeight());
-		rect.setTexture(text.getSurface().getTextureId());
-		
-		textAnimator = new Animator(rect);
+		textAnimator = new Animator();
 		AnimationTrack<Float> rotation = new AnimationTrack<>(new AnimationTrack.FloatInterpolator(AnimationTrack.Interpolator.EASE_IN_OUT_QUAD));
 		rotation.addKeyFrame(new KeyFrame<>(0f, (float) Math.toRadians(0)));
 		rotation.addKeyFrame(new KeyFrame<>(2f, (float) Math.toRadians(180)));
@@ -61,7 +56,7 @@ public class TextTest extends Game {
 		rotation.addKeyFrame(new KeyFrame<>(3f, (float) Math.toRadians(90)));
 		rotation.addKeyFrame(new KeyFrame<>(1f, (float) Math.toRadians(360)));
 		
-		Vector2f r1Center = new Vector2f(900, 600);
+		Vector2f r1Center = new Vector2f(600, 300);
 		AnimationTrack<Float> r1 = new AnimationTrack<>(new AnimationTrack.FloatInterpolator(AnimationTrack.Interpolator.EASE_IN_OUT_QUAD));
 		r1.addKeyFrame(new KeyFrame<>(0f, (float) Math.toRadians(0)));
 		r1.addKeyFrame(new KeyFrame<>(3.5f, (float) Math.toRadians(360)));
@@ -95,7 +90,7 @@ public class TextTest extends Game {
 		//textAnimator.addTrack(sheer, (shape, s) -> shape.sheer(s, scalingCenter));
 		
 		//textAnimator.addTrack(rotation, (shape, angle) -> shape.rotate(angle));
-		textAnimator.addTrack(r1, (shape, angle) -> shape.rotate(angle));
+		textAnimator.addTrack(r1, (shape, angle) -> shape.rotate(angle, shape.getVertexes()[0]));
 		textAnimator.addTrack(r2, (shape, angle) -> shape.rotate(angle, r1Center));
         textAnimator.addTrack(color, (shape, c) -> shape.color(c));
 		textAnimator.addTrack(scaling, (shape, scale) -> shape.scale(scale));
@@ -109,7 +104,7 @@ public class TextTest extends Game {
 	@Override
 	public void update(double alpha) {
 
-		textAnimator.update((float) alpha);
+		textAnimator.step((float) alpha);
 
 		if(textAnimator.isFinished()) {
 			
@@ -124,7 +119,7 @@ public class TextTest extends Game {
 	@Override
 	public void render(double alpha) {
 		
-		NewGenRenderer.renderShape(textAnimator.apply());
+		NewGenRenderer.renderShape(textAnimator.apply(rect));
 		
 		//TexturedRectangle rect2 = new TexturedRectangle(200, 200, f.getCharAtlas().getWidth(), f.getCharAtlas().getHeight(), f.getCharAtlas());
 		//NewGenRenderer.renderShape(rect2);
@@ -143,6 +138,23 @@ public class TextTest extends Game {
 		//Rectangle back = new Rectangle(100, 200, f.getCharAtlas().getWidth(), f.getCharAtlas().getHeight(), Color.green);
 		//TexturedRectangle rect2 = new TexturedRectangle(100, 200, f.getCharAtlas().getWidth(), f.getCharAtlas().getHeight(), f.getCharAtlas(), Color.white, f.getCharCoords('Z'));
 		//NewGenRenderer.renderShape(rect2);
+		
+	}
+	
+	@Override
+	public void keyTyped(char key, boolean pressed) {
+		
+		if(key == 'z' && pressed) {
+			
+			text.setText(text.getText() + "aha");
+			rect = text.getTextShape(new Vector2f(250,300));
+			
+		} else if(key == 's' && pressed) {
+			
+			text.setText(text.getText().substring(0, Math.max(0, text.getText().length() - 3)));
+			rect = text.getTextShape(new Vector2f(250,300));
+			
+		}
 		
 	}
 	
