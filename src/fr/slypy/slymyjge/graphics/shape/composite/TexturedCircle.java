@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL11.glEnd;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.function.BinaryOperator;
+import java.util.function.IntFunction;
 
 import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
@@ -16,10 +17,13 @@ import org.lwjgl.util.vector.Vector2f;
 import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
 import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.graphics.shape.ShapeInfo;
 import fr.slypy.slymyjge.graphics.shape.TexturedShape;
 
 public class TexturedCircle implements TexturedShape {
 
+	public static final IntFunction<ShapeInfo> INFOS = i -> new ShapeInfo(i*3, true, GL_TRIANGLES);
+	
     private final Vector2f center;
     private final float radius;
     private final int segments;

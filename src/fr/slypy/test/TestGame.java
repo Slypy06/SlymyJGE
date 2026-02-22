@@ -13,8 +13,9 @@ import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.animations.framed.Animation;
-import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.Rectangle;
 import fr.slypy.test.imagematching.Hilbert;
 
 public class TestGame extends Game {
@@ -51,8 +52,6 @@ public class TestGame extends Game {
 
 	@Override
 	public void init() {
-		
-		Renderer.init(game);
 		
 		game.setFrameCap(360);
 		game.setTickCap(20);
@@ -213,7 +212,7 @@ public class TestGame extends Game {
 
 	    public void render() {
 	    	
-	        Renderer.renderQuad(currentX*scale-1, currentY*scale-1, (int) Math.ceil(scale + 2), (int) Math.ceil(scale + 2), color);
+	        NewGenRenderer.renderShape(new Rectangle(currentX*scale-1, currentY*scale-1, (int) Math.ceil(scale + 2), (int) Math.ceil(scale + 2), color));
 	        
 	    }
 	    

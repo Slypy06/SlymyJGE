@@ -1,18 +1,21 @@
 package fr.slypy.slymyjge.animations.framed;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.lwjgl.util.vector.Vector2f;
+
 import com.madgag.gif.fmsware.GifDecoder;
 
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 
 
 public class Animation {
 	
-	private List<AnimationFrame> frames = new ArrayList<AnimationFrame>();
+	private List<AnimationFrame> frames = new ArrayList<>();
 	
 	private double lastUpdate = 0;
 	private double currentTime;
@@ -27,7 +30,7 @@ public class Animation {
 		
 	}
 	
-	public void update(double delta) {
+	public void step(double delta) {
 
 		currentTime += delta;
 			
@@ -59,29 +62,35 @@ public class Animation {
 		
 	}
 	
-	public void render(float x, float y, int w, int h, Color color) {
+	public Shape getShape(float x, float y, int w, int h) {
 			
 		if(frames.isEmpty()) {
 			
-			return;
+			return new TexturedRectangle(x, y, w, h);
 			
 		}
 		
-		frames.get(frame).render(x, y, w, h, color);
+		return frames.get(frame).getShape(new Vector2f(x, y), new Vector2f(w, h));
 		
 	}
 	
-	public void render(float x, float y, int w, int h) {
+	public Shape getShape(Vector2f position, Vector2f size) {
+			
+		if(frames.isEmpty()) {
+			
+			return new TexturedRectangle(position.getX(), position.getY(), size.getX(), size.getY());
+			
+		}
 		
-		render(x, y, w, h, Color.white);
+		return frames.get(frame).getShape(position, size);
 		
 	}
 	
 	public void setSpeed(float speed) {
 		
-		for(AnimationFrame frame : frames) {
+		for(AnimationFrame f : frames) {
 			
-			frame.setSpeed(speed);
+			f.setSpeed(speed);
 			
 		}
 		
@@ -101,7 +110,7 @@ public class Animation {
 	
 	public float getSpeed() {
 		
-		return frames.get(0).getSpeed();
+		return frames.get(frame).getSpeed();
 		
 	}
 	
@@ -135,7 +144,7 @@ public class Animation {
 		
 		frame -= rounds * (frames.size());
 			
-		this.frame = (int) frame;
+		this.frame = frame;
 		
 	}
 	
@@ -180,7 +189,7 @@ public class Animation {
 		
 		for (int i = 0; i < frames; i++) {
 			
-			animationFrames[i] = new TexturedAnimationFrame(Texture.loadTexture(decoder.getFrame(i)), (float) (1000000000D / (float) (decoder.getDelay(i) * 10000000)));
+			animationFrames[i] = new TexturedQuadAnimationFrame(Texture.loadTexture(decoder.getFrame(i)), (float) (1000000000D / (decoder.getDelay(i) * 10000000)));
 			
 		}
 		

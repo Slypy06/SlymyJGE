@@ -2,35 +2,37 @@ package fr.slypy.slymyjge.animations.framed;
 
 import java.awt.Color;
 
-import fr.slypy.slymyjge.graphics.NewGenRenderer;
+import org.lwjgl.util.vector.Vector2f;
+
 import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.Shape;
 import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 
-public class TexturedAnimationFrame extends AnimationFrame {
+public class TexturedQuadAnimationFrame extends AnimationFrame {
 
 	protected TexCoords texCoords;
 	protected Texture texture;
 	
-	public TexturedAnimationFrame(Texture texture) {
+	public TexturedQuadAnimationFrame(Texture texture) {
 
 		this(texture, 1, TexCoords.QUAD_DEFAULT_COORDS);
 		
 	}
 	
-	public TexturedAnimationFrame(Texture texture, TexCoords coords) {
+	public TexturedQuadAnimationFrame(Texture texture, TexCoords coords) {
 
 		this(texture, 1, coords);
 		
 	}
 	
-	public TexturedAnimationFrame(Texture texture, float speed) {
+	public TexturedQuadAnimationFrame(Texture texture, float speed) {
 
 		this(texture, speed, TexCoords.QUAD_DEFAULT_COORDS);
 		
 	}
 	
-	public TexturedAnimationFrame(Texture texture, float speed, TexCoords coords) {
+	public TexturedQuadAnimationFrame(Texture texture, float speed, TexCoords coords) {
 
 		this.texture = texture;
 		this.texCoords = coords;
@@ -51,9 +53,9 @@ public class TexturedAnimationFrame extends AnimationFrame {
 	}
 
 	@Override
-	public void render(float x, float y, int w, int h, Color c) {
+	public Shape getShape(Vector2f pos, Vector2f size) {
 		
-		NewGenRenderer.renderShape(new TexturedRectangle(x, y, w, h, texture, c, texCoords));
+		return new TexturedRectangle(pos.getX(), pos.getY(), size.getX(), size.getY(), texture, Color.white, texCoords);
 		
 	}
 	

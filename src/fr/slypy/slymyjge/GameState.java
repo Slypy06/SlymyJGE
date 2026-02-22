@@ -10,8 +10,9 @@ import fr.slypy.slymyjge.inputs.InputsHandler;
 public abstract class GameState extends InputsHandler {
 	
 	public abstract void render(double alpha);
-	public abstract void init();
+	public abstract void init(InitType type);
 	public abstract void update(double alpha);
+	public abstract void exit(boolean stopping);
 	
 	public abstract Game getGame();
 	

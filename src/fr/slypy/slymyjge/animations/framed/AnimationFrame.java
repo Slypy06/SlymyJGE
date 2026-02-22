@@ -1,12 +1,14 @@
 package fr.slypy.slymyjge.animations.framed;
 
-import java.awt.Color;
+import org.lwjgl.util.vector.Vector2f;
+
+import fr.slypy.slymyjge.graphics.shape.Shape;
 
 public abstract class AnimationFrame {
 
     private long speed = 50000000;
 
-    public abstract void render(float x, float y, int w, int h, Color c);
+    public abstract Shape getShape(Vector2f position, Vector2f size);
 
     public float getSpeed() {
 

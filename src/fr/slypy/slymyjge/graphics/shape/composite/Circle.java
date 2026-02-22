@@ -7,14 +7,18 @@ import static org.lwjgl.opengl.GL11.glEnd;
 import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.function.BinaryOperator;
+import java.util.function.IntFunction;
 
 import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.graphics.shape.ShapeInfo;
 
 public class Circle implements Shape {
 
+	public static final IntFunction<ShapeInfo> INFOS = i -> new ShapeInfo(i*3, false, GL_TRIANGLES);
+	
     private final Vector2f center;
     private final float radius;
     private final int segments;

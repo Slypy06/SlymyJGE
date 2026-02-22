@@ -173,7 +173,7 @@ public abstract class Game extends GameState {
 		
 		if(s.getInitType() == InitType.INIT_ON_REGISTER || s.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
 			
-			s.init();
+			s.init(InitType.INIT_ON_REGISTER);
 			
 		}
 		
@@ -187,13 +187,13 @@ public abstract class Game extends GameState {
 			
 			executeInRenderThread(() -> {
 				
-				state.isInitialised = false;
+				state.exit(false);
 				
 				state = states.get(id);
 				
 				if(state.getInitType() == InitType.INIT_ON_LOAD || state.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
 					
-					state.init();
+					state.init(InitType.INIT_ON_LOAD);
 					
 				}
 				
@@ -333,7 +333,7 @@ public abstract class Game extends GameState {
 		
 		Logger.log("Initialisation du jeu");
 		
-		init();
+		init(InitType.MANUALY_INIT);
 		
 		Logger.log("D�marage de la boucle principale du jeu");
 		
@@ -409,6 +409,13 @@ public abstract class Game extends GameState {
 			if (Display.isCloseRequested()) {
 					
 				Logger.log("Arret du jeu (display)");
+				
+				for(GameState s : states.values()) {
+					
+					s.exit(true);
+					
+				}
+				
 				game.stop();
 				game.exit();
 					

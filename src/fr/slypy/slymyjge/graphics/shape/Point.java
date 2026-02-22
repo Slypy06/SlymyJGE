@@ -133,30 +133,9 @@ public class Point implements Shape {
 	}
 
 	@Override
-	public Shape transform(float[][] transform, Vector2f center) {
-		
-		return transform(Shape.getMatrix(transform), center);
-		
-	}
-
-	@Override
 	public Shape transform(Matrix2f transform, Vector2f center) {
 
 		return new Point(Shape.applyTransform(getVertexes(), transform, center)[0], size, color);
-		
-	}
-
-	@Override
-	public Shape transform(float[][] transform) {
-		
-		return transform(Shape.getMatrix(transform), getCenter());
-		
-	}
-
-	@Override
-	public Shape transform(Matrix2f transform) {
-
-		return transform(transform, getCenter());
 		
 	}
 
@@ -168,13 +147,6 @@ public class Point implements Shape {
 	}
 
 	@Override
-	public Shape sheer(Vector2f sheer) {
-
-		return sheer(sheer, getCenter());
-		
-	}
-
-	@Override
 	public Shape scale(Vector2f scale, Vector2f center) {
 
 		return new Point(Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center)[0], size, color);
@@ -182,23 +154,9 @@ public class Point implements Shape {
 	}
 
 	@Override
-	public Shape scale(Vector2f scale) {
-
-		return scale(scale, getCenter());
-		
-	}
-
-	@Override
 	public Shape translate(Vector2f translation) {
 
 		return new Point(Shape.applyTranslate(getVertexes(), translation)[0], size, color);
-		
-	}
-
-	@Override
-	public Shape color(Color newColor) {
-
-		return new Point(getVertexes()[0], size, newColor);
 		
 	}
 

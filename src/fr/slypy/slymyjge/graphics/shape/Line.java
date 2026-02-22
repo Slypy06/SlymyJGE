@@ -3,6 +3,7 @@ package fr.slypy.slymyjge.graphics.shape;
 import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLineWidth;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
@@ -75,64 +76,6 @@ public class Line implements Shape {
 		
 	}
 	
-	
-	@Override
-	public Vector2f getOrigin() {
-		
-		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			origin.setX(Math.min(vertex.x, origin.x));
-			origin.setY(Math.min(vertex.y, origin.y));
-			
-		}
-		
-		return origin;
-		
-	}
-	
-	@Override
-	public float getWidth() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.x, min);
-			max = Math.max(vertex.x, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
-	public float getHeight() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.y, min);
-			max = Math.max(vertex.y, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
-	public Shape rotate(float angle) {
-		
-		return rotate(angle, getCenter());
-		
-	}
-	
 	@Override
 	public Shape rotate(float angle, Vector2f center) {
 		
@@ -145,18 +88,13 @@ public class Line implements Shape {
 	@Override
 	public void glData() {
 		
-		glBegin(INFOS.getGlMode());
-			Shape.glColor(color);
-			Shape.glVertexes(vertexes);
-		glEnd();
+		glLineWidth(width);	
+			glBegin(INFOS.getGlMode());
+				Shape.glColor(color);
+				Shape.glVertexes(vertexes);
+			glEnd();
+		glLineWidth(1);
 
-	}
-
-	@Override
-	public Shape transform(float[][] transform, Vector2f center) {
-		
-		return transform(Shape.getMatrix(transform), center);
-		
 	}
 
 	@Override
@@ -165,20 +103,6 @@ public class Line implements Shape {
 		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), transform, center);
 		
 		return new Line(newVertexes[0], newVertexes[1], width, color);
-		
-	}
-
-	@Override
-	public Shape transform(float[][] transform) {
-		
-		return transform(Shape.getMatrix(transform), getCenter());
-		
-	}
-
-	@Override
-	public Shape transform(Matrix2f transform) {
-
-		return transform(transform, getCenter());
 		
 	}
 
@@ -192,25 +116,11 @@ public class Line implements Shape {
 	}
 
 	@Override
-	public Shape sheer(Vector2f sheer) {
-
-		return sheer(sheer, getCenter());
-		
-	}
-
-	@Override
 	public Shape scale(Vector2f scale, Vector2f center) {
 
 		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center);
 		
 		return new Line(newVertexes[0], newVertexes[1], width, color);
-		
-	}
-
-	@Override
-	public Shape scale(Vector2f scale) {
-
-		return scale(scale, getCenter());
 		
 	}
 
@@ -226,13 +136,6 @@ public class Line implements Shape {
 	public int getLineWidth() {
 		
 		return width;
-		
-	}
-
-	@Override
-	public Shape color(Color newColor) {
-
-		return new Line(getVertexes()[0], getVertexes()[1], width, newColor);
 		
 	}
 

@@ -62,57 +62,6 @@ public class Triangle implements Shape {
 		
 	}
 	
-	
-	@Override
-	public Vector2f getOrigin() {
-		
-		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			origin.setX(Math.min(vertex.x, origin.x));
-			origin.setY(Math.min(vertex.y, origin.y));
-			
-		}
-		
-		return origin;
-		
-	}
-	
-	@Override
-	public float getWidth() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.x, min);
-			max = Math.max(vertex.x, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
-	public float getHeight() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.y, min);
-			max = Math.max(vertex.y, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
 	@Override
 	public void glData() {
 		
@@ -124,25 +73,11 @@ public class Triangle implements Shape {
 	}
 	
 	@Override
-	public Shape rotate(float angle) {
-		
-		return rotate(angle, getCenter());
-		
-	}
-	
-	@Override
 	public Shape rotate(float angle, Vector2f center) {
 		
 		Vector2f[] rotatedVertexes = Shape.applyTransform(getVertexes(), Shape.rotationMatrix(angle), center);
 		
 		return new Triangle(rotatedVertexes[0], rotatedVertexes[1], rotatedVertexes[2], color);
-		
-	}
-
-	@Override
-	public Shape transform(float[][] transform, Vector2f center) {
-		
-		return transform(Shape.getMatrix(transform), center);
 		
 	}
 
@@ -156,20 +91,6 @@ public class Triangle implements Shape {
 	}
 
 	@Override
-	public Shape transform(float[][] transform) {
-		
-		return transform(Shape.getMatrix(transform), getCenter());
-		
-	}
-
-	@Override
-	public Shape transform(Matrix2f transform) {
-
-		return transform(transform, getCenter());
-		
-	}
-
-	@Override
 	public Shape sheer(Vector2f sheer, Vector2f center) {
 
 		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.shearMatrix(sheer.getX(), sheer.getY()), center);
@@ -179,25 +100,11 @@ public class Triangle implements Shape {
 	}
 
 	@Override
-	public Shape sheer(Vector2f sheer) {
-
-		return sheer(sheer, getCenter());
-		
-	}
-
-	@Override
 	public Shape scale(Vector2f scale, Vector2f center) {
 
 		Vector2f[] newVertexes = Shape.applyTransform(getVertexes(), Shape.scalingMatrix(scale.getX(), scale.getY()), center);
 		
 		return new Triangle(newVertexes[0], newVertexes[1], newVertexes[2], color);
-		
-	}
-
-	@Override
-	public Shape scale(Vector2f scale) {
-
-		return scale(scale, getCenter());
 		
 	}
 

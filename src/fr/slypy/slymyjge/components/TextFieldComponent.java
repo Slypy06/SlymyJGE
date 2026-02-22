@@ -40,11 +40,7 @@ public abstract class TextFieldComponent extends Component {
 	public int offsetx = 0;
 	public int offsety = 0;
 	public boolean beamCursor = false;
-	
-	//TODO : CLICK SET CURSOR POSITION - ADD DEL KEY - ALWAYS HAVE AT LEAST ONE CARAC BEFORE CURSOR WHEN DELETING
-	
-	//TODO : setText cause a StringIndexOutOfBoundsException because of a cursor mess or something (fixed... I think)
-	
+
 	public TextFieldComponent(float x, float y, int w, int h, Game game, SlymyFont font) {
 		
 		this(x, y, w, h, game, font, RenderType.ONMAP);

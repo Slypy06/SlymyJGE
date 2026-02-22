@@ -18,22 +18,107 @@ public interface Shape {
 	public Vector2f[] getVertexes();
 	public Color getColor();
 	public Vector2f getCenter();
-	public Vector2f getOrigin();
-	public float getWidth();
-	public float getHeight();
 	
-	public Shape transform(float[][] transform, Vector2f center);
+	public default Vector2f getOrigin() {
+		
+		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			origin.setX(Math.min(vertex.x, origin.x));
+			origin.setY(Math.min(vertex.y, origin.y));
+			
+		}
+		
+		return origin;
+		
+	}
+	
+	public default float getWidth() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.x, min);
+			max = Math.max(vertex.x, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	
+	public default float getHeight() {
+		
+		float min = Float.POSITIVE_INFINITY;
+		float max = Float.NEGATIVE_INFINITY;
+		
+		for(Vector2f vertex : getVertexes()) {
+			
+			min = Math.min(vertex.y, min);
+			max = Math.max(vertex.y, max);
+			
+		}
+		
+		return max-min;
+		
+	}
+	
+	public default Shape transform(float[][] transform, Vector2f center) {
+		
+		return transform(Shape.getMatrix(transform), center);
+		
+	}
+	
 	public Shape transform(Matrix2f transform, Vector2f center);
-	public Shape transform(float[][] transform);
-	public Shape transform(Matrix2f transform);
+	
+	public default Shape transform(float[][] transform) {
+		
+		return transform(Shape.getMatrix(transform), getCenter());
+		
+	}
+	
+	public default Shape transform(Matrix2f transform) {
+		
+		return transform(transform, getCenter());
+		
+	}
+	
 	public Shape sheer(Vector2f sheer, Vector2f center);
-	public Shape sheer(Vector2f sheer);
+	
+	public default Shape sheer(Vector2f sheer) {
+		
+		return sheer(sheer, getCenter());
+		
+	}
+	
 	public Shape scale(Vector2f scale, Vector2f center);
-	public Shape scale(Vector2f scale);
+	
+	public default Shape scale(Vector2f scale) {
+		
+		return scale(scale, getCenter());
+		
+	}
+	
 	public Shape translate(Vector2f translation);
-	public Shape color(Color newColor);
+	
+	public default Shape color(Color newColor) {
+		
+		return color(newColor, (c1, c2) -> c2);
+		
+	}
+	
 	public Shape color(Color newColor, BinaryOperator<Color> blend);
-	public Shape rotate(float angle);
+	
+	public default Shape rotate(float angle) {
+		
+		return rotate(angle, getCenter());
+		
+	}
+	
 	public Shape rotate(float angle, Vector2f center);
 	
 	/**
