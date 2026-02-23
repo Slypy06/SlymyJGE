@@ -52,7 +52,7 @@ public class MediaPlayer {
 
 	public MediaPlayer(String filename, Game g) {
 		
-		System.setProperty("jna.library.path", "C:\\Program Files\\VideoLAN\\VLC");
+		//System.setProperty("jna.library.path", "C:\\Program Files\\VideoLAN\\VLC");
 		
 		media = filename;
 

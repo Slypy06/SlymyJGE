@@ -1,16 +1,17 @@
 package fr.slypy.slymyjge.animations.dynamic;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 
 import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.utils.SimpleEntry;
 
 public class Animator {
 
 	private float t = 0;
-	private Map<BiFunction<Shape, ?, Shape>, AnimationTrack<?>> tracks = new HashMap<>();
+	private List<SimpleEntry<BiFunction<Shape, ?, Shape>, AnimationTrack<?>>> tracks = new ArrayList<>();
 	private float max = 0;
 	private boolean loop = false;
 	
@@ -18,7 +19,7 @@ public class Animator {
 	
 	public <T> void addTrack(AnimationTrack<T> track, BiFunction<Shape, T, Shape> applicator) {
 		
-		tracks.put(applicator, track);
+		tracks.add(new SimpleEntry<BiFunction<Shape, ?, Shape>, AnimationTrack<?>>(applicator, track));
 		
 		this.max = Math.max(max, track.getMaximum());
 		
@@ -44,7 +45,7 @@ public class Animator {
 		
 		Shape ret = s;
 		
-		for(Entry<BiFunction<Shape, ?, Shape>, AnimationTrack<?>> entry : tracks.entrySet()) {
+		for(SimpleEntry<BiFunction<Shape, ?, Shape>, AnimationTrack<?>> entry : tracks) {
 			
 	        @SuppressWarnings("unchecked")
 	        BiFunction<Shape, Object, Shape> func = (BiFunction<Shape, Object, Shape>) entry.getKey();

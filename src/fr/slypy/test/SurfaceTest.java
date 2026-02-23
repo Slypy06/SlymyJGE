@@ -13,6 +13,7 @@ import fr.slypy.slymyjge.animations.dynamic.Animator;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.Point;
 import fr.slypy.slymyjge.graphics.shape.Shape;
 import fr.slypy.slymyjge.graphics.shape.TexturedQuad;
 import fr.slypy.slymyjge.graphics.shape.composite.QuadBorder;
@@ -67,6 +68,8 @@ public class SurfaceTest extends Game {
 		NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
 		
 		NewGenRenderer.renderShape(videoQuad);
+		
+		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
 	
 	}
 
@@ -114,10 +117,10 @@ public class SurfaceTest extends Game {
 		track4.addKeyFrame(new KeyFrame<>(0.3f, 1.3f));
 		track4.addKeyFrame(new KeyFrame<>(0.6f, 0.7f));
 		track4.addKeyFrame(new KeyFrame<>(1f, 1.3f));
-		anim3.addTrack(track4, (shape, scale) -> shape.scale(new Vector2f(scale, 1), new Vector2f(320, 80)));
 		AnimationTrack<Float> track3 = new AnimationTrack<>(new AnimationTrack.FloatInterpolator(AnimationTrack.Interpolator.LINEAR));
 		track3.addKeyFrame(new KeyFrame<>(0, (float) Math.toRadians(360)));
 		track3.addKeyFrame(new KeyFrame<>(1, 0.0f));
+		anim3.addTrack(track4, (shape, scale) -> shape.scale(new Vector2f(scale, 1), new Vector2f(320, 80)));
 		anim3.addTrack(track3, (shape, angle) -> shape.rotate(angle, new Vector2f(300, 0)));
 		anim3.setLooping(true);
 		anim3.setSpeed(0.2f);
