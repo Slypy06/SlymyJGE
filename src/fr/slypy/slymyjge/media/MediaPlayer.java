@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
@@ -31,6 +32,8 @@ import uk.co.caprica.vlcj.player.base.AudioApi;
 import uk.co.caprica.vlcj.player.base.ControlsApi;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 import uk.co.caprica.vlcj.player.base.State;
+import uk.co.caprica.vlcj.player.base.VideoApi;
+import uk.co.caprica.vlcj.player.component.CallbackMediaListPlayerComponent;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback;
@@ -38,9 +41,8 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
 public class MediaPlayer {
-	
-	private MediaPlayerFactory factory;
-	private EmbeddedMediaPlayer mediaPlayer;
+
+	private CallbackMediaListPlayerComponent mediaPlayerComponent;
 	private boolean playing;
 	private int id;
 	private ByteBuffer byteBuffer;
@@ -50,26 +52,15 @@ public class MediaPlayer {
 
 	public MediaPlayer(String filename, Game g) {
 		
-		media = filename;
+		System.setProperty("jna.library.path", "C:\\Program Files\\VideoLAN\\VLC");
 		
-		factory = new MediaPlayerFactory();
-		mediaPlayer = factory.mediaPlayers().newEmbeddedMediaPlayer();
+		media = filename;
 
-		id = glGenTextures();
-
-		mediaPlayer.videoSurface().set(factory.videoSurfaces().newVideoSurface(new BufferFormatCallback() {
-			
-			@Override
-			public BufferFormat getBufferFormat(int w, int h) {
-				
-				return new RV32BufferFormat(w, h);
-				
-			}
-			
-			@Override
-			public void allocatedBuffers(ByteBuffer[] bb) {}
-			
-		}, new RenderCallback() {
+		mediaPlayerComponent = new CallbackMediaListPlayerComponent(new MediaPlayerFactory(
+			    "--vout=vmem",
+			    "--no-video-title-show",
+			    "--quiet"
+			), null, null, true, null, new RenderCallback() {
 			
 			@Override
 			public void display(uk.co.caprica.vlcj.player.base.MediaPlayer mp, ByteBuffer[] bb, BufferFormat bf) {
@@ -112,7 +103,7 @@ public class MediaPlayer {
 					
 				}
 				
-				if(playing && (mediaPlayer.status().state() == State.ENDED || mediaPlayer.status().state() == State.PAUSED || mediaPlayer.status().state() == State.STOPPED || mediaPlayer.status().state() == State.ERROR)) {
+				if(playing && (mediaPlayerComponent.mediaPlayer().status().state() == State.ENDED || mediaPlayerComponent.mediaPlayer().status().state() == State.PAUSED || mediaPlayerComponent.mediaPlayer().status().state() == State.STOPPED || mediaPlayerComponent.mediaPlayer().status().state() == State.ERROR)) {
 					
 					playing = false;
 
@@ -120,9 +111,23 @@ public class MediaPlayer {
 				
 			}
 			
-		}, false));
+		}, new BufferFormatCallback() {
+			
+			@Override
+			public BufferFormat getBufferFormat(int w, int h) {
+				
+				return new RV32BufferFormat(w, h);
+				
+			}
+
+			@Override
+			public void allocatedBuffers(ByteBuffer[] arg0) {}
+			
+		}, null);
 		
-		mediaPlayer.media().startPaused("resources/" + media);
+		id = glGenTextures();
+		
+		mediaPlayerComponent.mediaPlayer().media().startPaused("resources/" + media);
 
 	}
 	
@@ -141,7 +146,7 @@ public class MediaPlayer {
 	public void play() {
 		
 		playing = true;
-		mediaPlayer.controls().play();
+		mediaPlayerComponent.mediaPlayer().controls().play();
 		
 	}
 	
@@ -149,7 +154,7 @@ public class MediaPlayer {
 		
 		playing = false;
 		
-		mediaPlayer.controls().pause();
+		mediaPlayerComponent.mediaPlayer().controls().pause();
 		
 	}
 	
@@ -161,31 +166,37 @@ public class MediaPlayer {
 	
 	public State getState() {
 		
-		return mediaPlayer.status().state();
+		return mediaPlayerComponent.mediaPlayer().status().state();
 		
 	}
 	
 	public EmbeddedMediaPlayer getMediaPlayer() {
 		
-		return mediaPlayer;
+		return mediaPlayerComponent.mediaPlayer();
 		
 	}
 	
 	public AudioApi getAudioHandler() {
 		
-		return mediaPlayer.audio();
+		return mediaPlayerComponent.mediaPlayer().audio();
+		
+	}
+	
+	public VideoApi getVideoHandler() {
+		
+		return mediaPlayerComponent.mediaPlayer().video();
 		
 	}
 	
 	public ControlsApi getControls() {
 		
-		return mediaPlayer.controls();
+		return mediaPlayerComponent.mediaPlayer().controls();
 		
 	}
 	
 	public void muteOnStart(boolean mute) {
 		
-		mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+		mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
 			
 			@Override
 			public void timeChanged(uk.co.caprica.vlcj.player.base.MediaPlayer p, long time) {
@@ -201,7 +212,7 @@ public class MediaPlayer {
 	
 	public void setVolumeOnStart(int volume) {
 		
-		mediaPlayer.events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
+		mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(new MediaPlayerEventAdapter() {
 			
 			@Override
 			public void timeChanged(uk.co.caprica.vlcj.player.base.MediaPlayer p, long time) {
@@ -219,14 +230,23 @@ public class MediaPlayer {
 		
 		this.media = newMedia;
 		
-		mediaPlayer.controls().stop();
-		mediaPlayer.media().startPaused("resources/" + media);
+		mediaPlayerComponent.mediaPlayer().controls().stop();
+		mediaPlayerComponent.mediaPlayer().media().startPaused("resources/" + media);
 		
 	}
 	
 	public void addEventHandler(MediaPlayerEventAdapter handler) {
 		
-		mediaPlayer.events().addMediaPlayerEventListener(handler);
+		mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(handler);
 		
 	}
+	
+	public void destroy() {
+		
+		mediaPlayerComponent.release();
+		
+		glDeleteTextures(id);
+		
+	}
+	
 }

@@ -18,7 +18,7 @@
 	<classpathentry kind="lib" path="lib/slf4j-api-1.7.9.jar"/>
 	<classpathentry kind="lib" path="lib/animated-gif-lib-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/filters-2.0.235-1.jar"/>
-	<classpathentry kind="lib" path="lib/vlcj-4.x-fixed.jar"/>
 	<classpathentry kind="lib" path="lib/steamworks4j-1.9.0.jar"/>
+	<classpathentry kind="lib" path="lib/vlcj-4.9.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

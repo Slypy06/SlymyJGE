@@ -65,7 +65,7 @@ public abstract class Game extends GameState {
 	
 	protected Map<Integer, GameState> states = new ConcurrentHashMap<>();
 	
-	protected GameState state;
+	protected int state;
 	
 	protected long wait = 0;
 	
@@ -85,8 +85,6 @@ public abstract class Game extends GameState {
 	private long renderThreadId;
 	
 	private boolean resizable;
-	
-	//TODO Modify the resizingRule
 	
 	public Game(int width, int height, String title) {
 		
@@ -121,7 +119,7 @@ public abstract class Game extends GameState {
 		
 		states.put(0, this);
 		
-		state = this;
+		state = 0;
 		
 	}
 	
@@ -173,7 +171,7 @@ public abstract class Game extends GameState {
 		
 		if(s.getInitType() == InitType.INIT_ON_REGISTER || s.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
 			
-			s.init(InitType.INIT_ON_REGISTER);
+			s.init(InitEvent.registerEvent);
 			
 		}
 		
@@ -187,17 +185,24 @@ public abstract class Game extends GameState {
 			
 			executeInRenderThread(() -> {
 				
-				state.exit(false);
+				ExitEvent event = new ExitEvent(ExitType.SWITCHING_STATE, id);
 				
-				state = states.get(id);
+				states.get(state).exit(event);
 				
-				if(state.getInitType() == InitType.INIT_ON_LOAD || state.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
+				int prevState = state;
+				state = id;
+				
+				GameState newState = states.get(state);
+				
+				if(newState.getInitType() == InitType.INIT_ON_LOAD || newState.getInitType() == InitType.INIT_ON_LOAD_AND_ON_REGISTER) {
 					
-					state.init(InitType.INIT_ON_LOAD);
+					InitEvent e = new InitEvent(InitType.INIT_ON_LOAD, event.getResources(), prevState);
+					
+					newState.init(e);
 					
 				}
 				
-				state.isInitialised = true;
+				newState.isInitialised = true;
 				
 			});
 			
@@ -333,7 +338,7 @@ public abstract class Game extends GameState {
 		
 		Logger.log("Initialisation du jeu");
 		
-		init(InitType.MANUALY_INIT);
+		init(InitEvent.manualEvent);
 		
 		Logger.log("D�marage de la boucle principale du jeu");
 		
@@ -362,14 +367,16 @@ public abstract class Game extends GameState {
 					}
 						
 					tps++;
+					
+					GameState s = states.get(state);
 						
-					if(state.isInitialised) {
+					if(s.isInitialised) {
 						
-						state.updateInputs();
+						s.updateInputs();
 							
-						state.componentsUpdate();
+						s.componentsUpdate();
 							
-						state.update(tickSync.getDelta());
+						s.update(tickSync.getDelta());
 						
 					}
 						
@@ -384,7 +391,6 @@ public abstract class Game extends GameState {
 					if(game.isCloseRequested()) {
 							
 						Logger.log("Arret du jeu (keyboard)");
-						game.stop();
 						game.exit(); //this will update closeRequested and exit the while
 							
 					}
@@ -410,29 +416,43 @@ public abstract class Game extends GameState {
 					
 				Logger.log("Arret du jeu (display)");
 				
-				for(GameState s : states.values()) {
-					
-					s.exit(true);
-					
-				}
-				
-				game.stop();
 				game.exit();
 					
 			}
 				
 			if(closeRequested) {
+				
+				try {
+
+					ut.join();
+
+				} catch (InterruptedException e) {
+
+					e.printStackTrace();
+
+				}
+
+				for(GameState s : states.values()) {
 					
+					s.exit(ExitEvent.stoppingEvent);
+					
+				}
+				
+				game.stop();
+
 				Display.destroy();
-				System.exit(0);
-					
+
+				return;
+				
 			}
+			
+			GameState s = states.get(state);
 				
 			fps++;
 						
 			updateView2D();
 						
-			translateView(state.getXCam(), state.getYCam());
+			translateView(s.getXCam(), s.getYCam());
 						
 			glClearColor(backgroundColor.getRed() / 255F, backgroundColor.getGreen() / 255F, backgroundColor.getBlue() / 255F, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -443,9 +463,9 @@ public abstract class Game extends GameState {
 					
 			}
 			
-			state.render(frameSync.getDelta());
+			s.render(frameSync.getDelta());
 				
-			state.componentsRender();
+			//TODO remove s.componentsRender();
 						
 			if (fpsUpdateScheduler.isReady()) {
 							

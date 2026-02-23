@@ -47,7 +47,7 @@ public class AlphaTest extends Game {
 				intensity = 1.0d;
 				
 			}
-			
+
 			int r1 = (rgb >> 16) & 0xFF;
 			int g1 = (rgb >> 8) & 0xFF;
 			int b1 = (rgb) & 0xFF;
