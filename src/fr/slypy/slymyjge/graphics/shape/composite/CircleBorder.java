@@ -69,8 +69,8 @@ public class CircleBorder implements Shape {
         Vector2f[] verts = new Vector2f[segments * 2];
 
         for (int i = 0; i < segments; i++) {
-            float angle1 = (float) (2 * Math.PI * i / segments);
-            float angle2 = (float) (2 * Math.PI * (i + 1) / segments);
+            float angle1 = (float) (2 * Math.PI * (i-0.1) / segments);
+            float angle2 = (float) (2 * Math.PI * (i + 1.1) / segments);
 
             Vector2f p1 = new Vector2f(
                     center.x + (float) Math.cos(angle1) * radius,

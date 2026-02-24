@@ -173,10 +173,10 @@ public abstract class GameState extends InputsHandler {
 		public static final InitEvent manualEvent = new InitEvent(InitType.MANUALY_INIT);
 		
 		private InitType eventType;
-		private List<Object> resources = new ArrayList<>();
+		private Map<String, Object> resources = new HashMap<>();
 		private int previousState;
 
-		public InitEvent(InitType eventType, List<Object> resources, int previousState) {
+		public InitEvent(InitType eventType, Map<String, Object> resources, int previousState) {
 
 			this.eventType = eventType;
 			this.resources = resources;
@@ -197,10 +197,30 @@ public abstract class GameState extends InputsHandler {
 		
 		}
 		
-		public List<Object> getResources() {
+		public Map<String, Object> getResources() {
 		
 			return resources;
 		
+		}
+		
+		
+		public List<String> getResourcesList() {
+			
+			return new ArrayList<String>(resources.keySet());
+			
+		}
+		
+		@SuppressWarnings("unchecked")
+		public <T> T getResource(String name, Class<T> objClass) {
+			
+			if(!resources.containsKey(name) || !objClass.isInstance(resources.get(name))) {
+				
+				return null;
+				
+			}
+			
+			return (T) resources.get(name); 
+			
 		}
 		
 		public int getPreviousState() {
@@ -225,7 +245,7 @@ public abstract class GameState extends InputsHandler {
 		public static final ExitEvent manualEvent = new ExitEvent(ExitType.MANUAL_EXIT);
 
 		private ExitType eventType;
-		private List<Object> resources = new ArrayList<>();
+		private Map<String, Object> resources = new HashMap<>();
 		private int nextState;
 
 		public ExitEvent(ExitType eventType, int nextState) {
@@ -248,12 +268,12 @@ public abstract class GameState extends InputsHandler {
 		
 		}
 		
-		public void addResources(Object o) {
+		public void addResources(String name, Object o) {
 		
 			if(eventType != ExitType.SWITCHING_STATE)
 				return;
 			
-			resources.add(o);
+			resources.put(name, o);
 		
 		}
 		
@@ -263,7 +283,7 @@ public abstract class GameState extends InputsHandler {
 		
 		}
 		
-		public List<Object> getResources() {
+		public Map<String, Object> getResources() {
 			
 			return resources;
 			

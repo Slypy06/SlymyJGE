@@ -3,6 +3,7 @@ package fr.slypy.test;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 import org.lwjgl.util.vector.Vector2f;
 
@@ -39,7 +40,8 @@ public class SurfaceTest extends Game {
 		
 	}
 	
-	public static void main(String[] args) {
+	
+	public static void main(String[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
@@ -47,6 +49,8 @@ public class SurfaceTest extends Game {
 		
 	}
 
+	
+	
 	@Override
 	public void stop() {
 		
@@ -65,7 +69,7 @@ public class SurfaceTest extends Game {
 		
 		NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
 		
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
+		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2)).rotate((float) Math.toRadians(180));
 		NewGenRenderer.renderShape(videoQuad);
 		
 		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
@@ -74,6 +78,8 @@ public class SurfaceTest extends Game {
 
 	@Override
 	public void init(InitEvent t) {
+		
+		System.exit(0);
 		
 		setShowFPS(true);
 		setShowTPS(true);
@@ -129,11 +135,11 @@ public class SurfaceTest extends Game {
 		
 		Vector2f center = circle.getCenter();
 		
-		border = new CircleBorder(center, 120, 5, 16, Color.red);
+		border = new CircleBorder(center, 120, 32, 32, Color.red);
 		
-		player = new MediaPlayer("funky_size_change.webm", this);
+		player = new MediaPlayer("piston.webm", this);
 		
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()));
+		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight())).rotate((float) Math.toRadians(180));
 		player.play();
 		player.setVolumeOnStart(25);
 
@@ -156,14 +162,20 @@ public class SurfaceTest extends Game {
 
 	@Override
 	public void exit(ExitEvent evnt) {
-
+		
 		if(evnt.getEventType() == ExitType.STOPPING_GAME) {
 			
 			player.destroy();
+			text.getFont().getCharAtlas().free();
+			text2.getFont().getCharAtlas().free();
+			tex.free();
+			
+		} else {
+			
+			evnt.addResources("texture", tex);
 			
 		}
 		
-
 	}
 
 }

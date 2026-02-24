@@ -35,6 +35,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.glu.GLU;
+import org.lwjgl.util.vector.Vector2f;
 
 import com.codedisaster.steamworks.SteamAPI;
 import com.codedisaster.steamworks.SteamException;
@@ -47,6 +48,7 @@ import fr.slypy.slymyjge.utils.Logger;
 import fr.slypy.slymyjge.utils.RepeatedScheduler;
 import fr.slypy.slymyjge.utils.ResizingRules;
 import fr.slypy.slymyjge.utils.Synchronizer;
+import fr.slypy.slymyjge.utils.TriEntry;
 
 public abstract class Game extends GameState {
 	
@@ -54,6 +56,7 @@ public abstract class Game extends GameState {
 	protected long fps = 0;
 
 	protected ResizingRules resizingRules;
+	protected TriEntry<Vector2f, Vector2f, Vector2f> viewCoordinates;
 	
 	protected String title;
 
@@ -113,7 +116,8 @@ public abstract class Game extends GameState {
 		
 		this.backgroundColor = backgroundColor;
 		
-		resizingRules = ResizingRules.DefaultRules;
+		resizingRules = ResizingRules.ORIGINAL_RESIZED;
+		viewCoordinates = resizingRules.getView(new Vector2f(width, height), new Vector2f(width, height));
 		
 		this.resizable = resizable;
 		
@@ -365,9 +369,7 @@ public abstract class Game extends GameState {
 						SteamAPI.runCallbacks();
 							
 					}
-						
-					tps++;
-					
+											
 					GameState s = states.get(state);
 						
 					if(s.isInitialised) {
@@ -446,11 +448,13 @@ public abstract class Game extends GameState {
 				
 			}
 			
-			GameState s = states.get(state);
-				
 			fps++;
+			
+			viewCoordinates = resizingRules.getView(new Vector2f(width, height), new Vector2f(width, height));
 						
 			updateView2D();
+			
+			GameState s = states.get(state);
 						
 			translateView(s.getXCam(), s.getYCam());
 						
@@ -762,50 +766,12 @@ public abstract class Game extends GameState {
 	
 	public void updateView2D() {
 		
-		int x = 0;
-		int y = 0;
-		int w = Display.getWidth();
-		int h = Display.getHeight();
-		
-		if(!resizingRules.resizeWidth()) {
-			
-			x = (w - width) / 2;
-			x = x < 0 ? 0 : x;
-			
-			w = width;
-			
-		}
-		
-		if(!resizingRules.resizeHeight()) {
-			
-			y = (h - height) / 2;
-			y = y < 0 ? 0 : y;
-			
-			h = height;
-			
-		} else if(resizingRules.fixedAspectRatio()) {
-			
-			float coef = w / (float) width;
-			coef = Math.min(h / (float) height, coef);
-			
-			x = (w - (int) (width*coef)) / 2;
-			x = x < 0 ? 0 : x;
-			
-			w = (int) (width*coef);
-			
-			y = (h - (int) (height*coef)) / 2;
-			y = y < 0 ? 0 : y;
-			
-			h = (int) (height*coef);
-			
-		}
-		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		
-		setVirtualSize(width, height);
+		setVirtualSize((int) viewCoordinates.getFirst().getX(), (int) viewCoordinates.getFirst().getY());
 		
-		setView2D(x, y, w, h);
+		setView2D((int) viewCoordinates.getSecond().getX(), (int) viewCoordinates.getSecond().getY(), (int) viewCoordinates.getThird().getX(), (int) viewCoordinates.getThird().getY());
 		
 	}
 	
@@ -858,28 +824,57 @@ public abstract class Game extends GameState {
 		
 	}
 	
-	public float getRelativeXCursor() {
-		
-		return (Mouse.getX() / (float) getRealWidth()) * getWidth() + xCam;
-		
-	}
-	
-	public float getRelativeYCursor() {
-		
-		return ((-Mouse.getY() + Display.getHeight()) / (float) getRealHeight()) * getHeight() + yCam;
-		
+	public Vector2f screenToLogical(Vector2f windowCoords) {
+
+	    Vector2f logicalSize  = viewCoordinates.getFirst();
+	    Vector2f viewportPos  = viewCoordinates.getSecond();
+	    Vector2f viewportSize = viewCoordinates.getThird();
+
+	    float localX = windowCoords.getX() - viewportPos.getX();
+	    float localY = windowCoords.getY() - viewportPos.getY();
+
+	    if (localX < 0 || localY < 0 ||
+	        localX > viewportSize.getX() ||
+	        localY > viewportSize.getY()) {
+	        return null;
+	    }
+
+	    float nx = localX / viewportSize.getX();
+	    float ny = localY / viewportSize.getY();
+
+	    float logicalX = nx * logicalSize.getX();
+	    float logicalY = (1f - ny) * logicalSize.getY();
+
+	    return new Vector2f(logicalX, logicalY);
+	    
 	}
 	
 	public float getAbsoluteXCursor() {
-		
-		return (Mouse.getX() / (float) getRealWidth()) * getWidth();
-		
+
+	    Vector2f logical = screenToLogical(new Vector2f(Mouse.getX(), Mouse.getY()));
+	    return logical != null ? logical.getX() : 0f;
+	    
+	}
+
+	public float getAbsoluteYCursor() {
+
+	    Vector2f logical = screenToLogical(new Vector2f(Mouse.getX(), Mouse.getY()));
+	    return logical != null ? logical.getY() : 0f;
+	    
 	}
 	
-	public float getAbsoluteYCursor() {
-		
-		return ((-Mouse.getY() + Display.getHeight()) / (float) getRealHeight()) * getHeight();
-		
+	public float getRelativeXCursor() {
+
+	    Vector2f logical = screenToLogical(new Vector2f(Mouse.getX(), Mouse.getY()));
+	    return logical != null ? logical.getX() + xCam : xCam;
+	    
+	}
+
+	public float getRelativeYCursor() {
+
+	    Vector2f logical = screenToLogical(new Vector2f(Mouse.getX(), Mouse.getY()));
+	    return logical != null ? logical.getY() + yCam : yCam;
+	    
 	}
 	
 	public void setShowFPS(boolean showFPS) {
