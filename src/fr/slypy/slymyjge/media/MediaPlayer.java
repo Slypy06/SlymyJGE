@@ -241,6 +241,18 @@ public class MediaPlayer {
 		
 	}
 	
+	public int getVideoWidth() {
+		
+		return width;
+		
+	}
+	
+	public int getVideoHeight() {
+		
+		return height;
+		
+	}
+	
 	public void destroy() {
 		
 		mediaPlayerComponent.release();

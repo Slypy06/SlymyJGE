@@ -2,7 +2,6 @@ package fr.slypy.slymyjge.animations.dynamic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.function.BiFunction;
 
 import fr.slypy.slymyjge.graphics.shape.Shape;

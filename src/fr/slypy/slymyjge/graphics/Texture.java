@@ -126,6 +126,7 @@ public class Texture {
 		
 	}
 	
+	
 	public int getId() {
 		
 		return id;
@@ -147,6 +148,7 @@ public class Texture {
 	public void free() {
 		
 		glDeleteTextures(id);
+		image.flush();
 		
 	}
 	

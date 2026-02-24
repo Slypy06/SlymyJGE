@@ -125,57 +125,7 @@ public class Circle implements Shape {
     public Vector2f getCenter() {
         return new Vector2f(center);
     }
-    
-	@Override
-	public Vector2f getOrigin() {
-		
-		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			origin.setX(Math.min(vertex.x, origin.x));
-			origin.setY(Math.min(vertex.y, origin.y));
-			
-		}
-		
-		return origin;
-		
-	}
-	
-	@Override
-	public float getWidth() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.x, min);
-			max = Math.max(vertex.x, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
-	public float getHeight() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.y, min);
-			max = Math.max(vertex.y, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-
+ 
     @Override
     public void glData() {
         glBegin(GL_TRIANGLES);
@@ -185,11 +135,6 @@ public class Circle implements Shape {
     }
 
     /* ---------- TRANSFORMS ---------- */
-
-    @Override
-    public Shape rotate(float angle) {
-        return rotate(angle, center);
-    }
 
     @Override
     public Shape rotate(float angle, Vector2f pivot) {
@@ -204,19 +149,9 @@ public class Circle implements Shape {
     }
 
     @Override
-    public Shape scale(Vector2f scale) {
-        return scale(scale, center);
-    }
-
-    @Override
     public Shape scale(Vector2f scale, Vector2f pivot) {
         Vector2f[] newVerts = Shape.applyTransform(vertexes, Shape.scalingMatrix(scale.x, scale.y), pivot);
         return new Circle(newVerts, color);
-    }
-
-    @Override
-    public Shape transform(Matrix2f transform) {
-        return transform(transform, center);
     }
 
     @Override
@@ -226,29 +161,9 @@ public class Circle implements Shape {
     }
 
     @Override
-    public Shape transform(float[][] transform) {
-        return transform(Shape.getMatrix(transform), center);
-    }
-
-    @Override
-    public Shape transform(float[][] transform, Vector2f pivot) {
-        return transform(Shape.getMatrix(transform), pivot);
-    }
-
-    @Override
-    public Shape sheer(Vector2f sheer) {
-        return sheer(sheer, center);
-    }
-
-    @Override
     public Shape sheer(Vector2f sheer, Vector2f pivot) {
         Vector2f[] newVerts = Shape.applyTransform(vertexes, Shape.shearMatrix(sheer.x, sheer.y), pivot);
         return new Circle(newVerts, color);
-    }
-
-    @Override
-    public Shape color(Color newColor) {
-        return new Circle(vertexes, newColor);
     }
 
     @Override

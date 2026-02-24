@@ -13,11 +13,9 @@ import fr.slypy.slymyjge.animations.dynamic.Animator;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Texture;
-import fr.slypy.slymyjge.graphics.shape.Point;
 import fr.slypy.slymyjge.graphics.shape.Shape;
 import fr.slypy.slymyjge.graphics.shape.TexturedQuad;
-import fr.slypy.slymyjge.graphics.shape.composite.QuadBorder;
-import fr.slypy.slymyjge.graphics.shape.composite.RectangleBorder;
+import fr.slypy.slymyjge.graphics.shape.composite.CircleBorder;
 import fr.slypy.slymyjge.graphics.shape.composite.TexturedCircle;
 import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 import fr.slypy.slymyjge.media.MediaPlayer;
@@ -30,7 +28,7 @@ public class SurfaceTest extends Game {
 	private Animator anim2;
 	private Animator anim3;
 	private TexturedCircle circle;
-	private QuadBorder border;
+	private CircleBorder border;
 	private Texture tex;
 	private MediaPlayer player;
 	private Shape videoQuad;
@@ -45,7 +43,7 @@ public class SurfaceTest extends Game {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
-		new SurfaceTest(1920, 1080, "Test", Color.white, false).start();
+		new SurfaceTest(1920, 1080, "Test", Color.cyan, false).start();
 		
 	}
 
@@ -67,6 +65,7 @@ public class SurfaceTest extends Game {
 		
 		NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
 		
+		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
 		NewGenRenderer.renderShape(videoQuad);
 		
 		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
@@ -84,7 +83,6 @@ public class SurfaceTest extends Game {
 		
 		Font f = new Font("Sewer Sys", Font.ITALIC, 256);
 
-		
 		SlymyFont font = new SlymyFont(new Font("", Font.BOLD, 64), Color.black);
 		SlymyFont font2 = new SlymyFont(f, new Color(100, 0, 0));
 		
@@ -129,16 +127,15 @@ public class SurfaceTest extends Game {
 		
 		circle = (TexturedCircle) new TexturedCircle(new Vector2f(600,800), 100, 50, tex).rotate((float) Math.toRadians(30)).sheer(new Vector2f(0f, 0));
 		
-		Vector2f origin = circle.getOrigin();
-		int w = (int) circle.getWidth();
-		int h = (int) circle.getHeight();
+		Vector2f center = circle.getCenter();
 		
-		border = new RectangleBorder(origin.getX(), origin.getY(), w, h, 3, Color.red);
+		border = new CircleBorder(center, 120, 5, 16, Color.red);
 		
-		player = new MediaPlayer("rs.mp4", this);
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(1000, 200)).color(new Color(255, 255, 128));
+		player = new MediaPlayer("funky_size_change.webm", this);
+		
+		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()));
 		player.play();
-		player.setVolumeOnStart(100);
+		player.setVolumeOnStart(25);
 
 	}
 
