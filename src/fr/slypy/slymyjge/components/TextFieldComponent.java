@@ -7,14 +7,18 @@ import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.Point;
+import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.animations.framed.Animation;
 import fr.slypy.slymyjge.animations.framed.AnimationFrame;
 import fr.slypy.slymyjge.font.SlymyFont;
-import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
+import fr.slypy.slymyjge.graphics.shape.EmptyShape;
+import fr.slypy.slymyjge.graphics.shape.Line;
+import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 import fr.slypy.slymyjge.utils.MouseButtons;
-import fr.slypy.slymyjge.utils.RenderType;
 
 public abstract class TextFieldComponent extends Component {
 
@@ -25,6 +29,8 @@ public abstract class TextFieldComponent extends Component {
 	public SlymyFont f;
 	public SlymyFont ghostF;
 	public String ghostText;
+	public DynamicText ghostTextShape;
+	public DynamicText textShape;
 	public int margin = 10;
 	public Animation cursorAnimation;
 	public long delDuration = Long.MAX_VALUE;
@@ -40,16 +46,10 @@ public abstract class TextFieldComponent extends Component {
 	public int offsetx = 0;
 	public int offsety = 0;
 	public boolean beamCursor = false;
-
+	
 	public TextFieldComponent(float x, float y, int w, int h, Game game, SlymyFont font) {
 		
-		this(x, y, w, h, game, font, RenderType.ONMAP);
-
-	}
-	
-	public TextFieldComponent(float x, float y, int w, int h, Game game, SlymyFont font, RenderType type) {
-		
-		super(x, y, w, h, game, type);
+		super(x, y, w, h, game);
 		
 		this.f = font;
 		this.ghostF = font;
@@ -71,20 +71,24 @@ public abstract class TextFieldComponent extends Component {
 		cursorAnimation = new Animation(new AnimationFrame[] {
 				
 				new AnimationFrame() {
-					
+
 					@Override
-					public void render(float x, float y, int w, int h, Color c) {
-						
-						Renderer.renderLine(x, y, x + w, y + h, c);
+					public Shape getShape(Vector2f position, Vector2f size) {
+
+						return new Line(position, Vector2f.add(position, size, null), 3, Color.white);
 						
 					}
 					
 				},
 				
 				new AnimationFrame() {
-					
+
 					@Override
-					public void render(float x, float y, int w, int h, Color c) {}
+					public Shape getShape(Vector2f position, Vector2f size) {
+
+						return new EmptyShape();
+						
+					}
 					
 				}
 				
@@ -92,6 +96,10 @@ public abstract class TextFieldComponent extends Component {
 		
 		cursorAnimation.setSpeed(1.5f);
 		cursorAnimation.setPlaying(true);
+		
+		this.ghostTextShape = new DynamicText(ghostF, "", game);
+		this.textShape = new DynamicText(font, "", game);
+		
 		
 	}
 	
@@ -201,7 +209,7 @@ public abstract class TextFieldComponent extends Component {
 	}
 	
 	@Override
-	public void componentUpdate(float xCursor, float yCursor, Game game) {
+	public void componentUpdate() {
 		
 		if(!activated || !focus) {
 			
@@ -658,6 +666,7 @@ public abstract class TextFieldComponent extends Component {
 	public void setFont(SlymyFont f) {
 		
 		this.f = f;
+		this.textShape.setFont(f);
 		
 	}
 
@@ -677,6 +686,11 @@ public abstract class TextFieldComponent extends Component {
 		
 		this.text = text;
 		
+		StringBuilder b = new StringBuilder();
+		text.forEach(line -> b.append(line).append('\n'));
+		
+		this.textShape.setText(b.toString().substring(0, b.toString().length()-1));
+		
 	}
 	
 	public void setText(String text) {
@@ -694,16 +708,11 @@ public abstract class TextFieldComponent extends Component {
 		}
 		
 		this.text = new ArrayList<String>(Arrays.asList(text));
-		 
+		this.textShape.setText(text);
+		
 	}
 
 	public SlymyFont getGhostFont() {
-		
-		return ghostF;
-		
-	}
-	
-	public SlymyFont getGhostFontName() {
 		
 		return ghostF;
 		
@@ -712,6 +721,7 @@ public abstract class TextFieldComponent extends Component {
 	public void setGhostFont(SlymyFont ghostF) {
 		
 		this.ghostF = ghostF;
+		this.ghostTextShape.setFont(ghostF);
 		
 	}
 
@@ -724,6 +734,7 @@ public abstract class TextFieldComponent extends Component {
 	public void setGhostText(String ghostText) {
 		
 		this.ghostText = ghostText;
+		this.ghostTextShape.setText(ghostText);
 		
 	}
 
@@ -741,126 +752,79 @@ public abstract class TextFieldComponent extends Component {
 		List<String> linesTemp = new ArrayList<String>();
 		String lineTemp = "";
 		
-		if(text.size() <= 1 && (text.size() == 0 || text.get(0).equals("")) && !focus && ghostText != null) {
+		if(text.size() <= 1 && (text.size() == 0 || text.get(0).equals("")) && !focus && ghostText != null && !ghostText.isEmpty()) {
 			
-			if(ghostF.getHeight() <= h - (margin * 2)) {
+			NewGenRenderer.renderInsideArea((int) position.getX() + margin, (int) position.getY() + margin, (int) size.getX() - margin, (int) size.getY() - margin, () -> {
 				
-				for(char c : ghostText.toCharArray()) {
-					
-					if(ghostF.getWidth(lineTemp + c) <= w - (margin * 2)) {
-						
-						lineTemp += c;
-						
-					}
-					
-				}
+				NewGenRenderer.renderText(ghostTextShape, new Vector2f(position.getX() + margin, position.getY() + margin));
 				
-			}
-			
-			Renderer.renderText(x + margin, y + margin, ghostF, lineTemp, ghostF.getColor());
+			});
 			
 		} else {
 		
 			int i = 1;
 			
-			int maxLines = (h - (margin * 2)) / f.getHeight();
+			int maxLines = (int) Math.floor((size.getY() - (margin * 2)) / f.getHeight());
 
-			if(cursory + 1 > maxLines + offsety) {
+			
+			int cursorxSnapshot = cursorx;
+			int cursorySnapshot = cursory;
+			
+			if(cursorySnapshot + 1 > maxLines + offsety) {
 				
-				offsety = cursory + 1 - maxLines;
+				offsety = cursorySnapshot + 1 - maxLines;
 				
-			} else if(cursory < offsety) {
+			} else if(cursorySnapshot < offsety) {
 				
-				offsety = cursory;
+				offsety = cursorySnapshot;
 				
 			}
-			
-			
-			int cursorxTmp = cursorx;
-			int cursoryTmp = cursory;
 			
 			List<String> linesTmp = new ArrayList<String>(text);
 			List<String> linesCalc = new ArrayList<String>(text);
 			
-			if(cursorxTmp < offsetx) {
+			if(cursorxSnapshot < offsetx) {
 				
-				offsetx = cursorxTmp;
+				offsetx = cursorxSnapshot;
 				
 			}
 				
-				String cursorLine = linesCalc.get(cursoryTmp).substring(offsetx, cursorxTmp);
+			String cursorLine = linesCalc.get(cursorySnapshot).substring(offsetx, cursorxSnapshot);
 
-				if(f.getWidth(cursorLine) > w - (margin * 2) - 5) {  //5 is the minimum amount of pixel of the next letter we need to see
+			if(f.getWidth(cursorLine) > size.getX() - (margin * 2) - 5) {  //5 is the minimum amount of pixel of the next letter we need to see
 					
-					boolean fit = false;
+				boolean fit = false;
 					
-					for(int k = offsetx; k <= cursorxTmp && !fit; k++) {
+				for(int k = offsetx; k <= cursorxSnapshot && !fit; k++) {
 						
-						cursorLine = linesCalc.get(cursoryTmp).substring(k, cursorxTmp);
+					cursorLine = linesCalc.get(cursorySnapshot).substring(k, cursorxSnapshot);
 						
-						if(f.getWidth(cursorLine) <= w - (margin * 2)) {
+					if(f.getWidth(cursorLine) <= size.getX() - (margin * 2)) {
 							
-							fit = true;
-							offsetx = k;
+						fit = true;
+						offsetx = k;
 							
-						}
-						
 					}
-					
-				} 
-				
-			for(String line : linesTmp) {
-				
-				if(i > offsety && f.getHeight() * (i - offsety) <= h - (margin * 2)) {
-				
-					int j = 1;
-					
-					for(char c : line.toCharArray()) {
 						
-						int width = f.getWidth(lineTemp + c);
-						
-						if(j > offsetx && width <= w - (margin * 2)) {
-							
-							lineTemp += c;
-							
-						} else if(width > w - (margin * 2)) {
-							
-							break;
-							
-						}
-						
-						j++;
-						
-					}
-					
-					linesTemp.add(lineTemp);
-					
-					lineTemp = "";
-					
 				}
-				
-				i++;
-				
-			}
+					
+			} 
 			
-			i = 0;
+			int offsetxPx = f.getWidth("cursorLine");
+			int offsetyPx = (int) (1 + textShape.getLineSpacing())*f.getHeight()*textShape.getSize();
 			
-			int cursorypos = cursoryTmp - offsety;
-			int cursorxpos = f.getWidth(linesCalc.get(cursoryTmp).substring(offsetx, cursorxTmp));
-			
-			for(String line : linesTemp) {
+			NewGenRenderer.renderInsideArea((int) position.getX() + margin, (int) position.getY() + margin, (int) size.getX() - margin, (int) size.getY() - margin, () -> {
 
-				Renderer.renderText(x + margin, y + margin + (f.getHeight() * i), f, line, f.getColor());
+				int cursorypos = cursorySnapshot - offsety;
+				int cursorxpos = f.getWidth(linesCalc.get(cursorySnapshot).substring(offsetx, cursorxSnapshot));
+
+				System.out.println("rendering " + textShape.getText());
 				
-				if(i == cursorypos && focus && x + margin + cursorxpos + f.getWidth(" ") + (f.getF().getSize() / 10) <= x + w) {
-					
-					Renderer.renderAnimation(x + margin + cursorxpos + (f.getF().getSize() / 50), y + margin + (f.getHeight() * i), 0, f.getHeight(), cursorAnimation, f.getColor());
-					
-				}
-				
-				i++;
-				
-			}
+				NewGenRenderer.renderText(textShape, new Vector2f(position.getX() + margin - offsetxPx, position.getY() + margin - offsetyPx));
+
+				NewGenRenderer.renderShape(cursorAnimation.getShape(position.getX() + margin + cursorxpos + (textShape.getSize() / 50), position.getY() + margin + (cursorypos*textShape.getSize()), 0, textShape.getHeight()).color(f.getColor()));
+			
+			});
 		
 		}
 		

@@ -19,6 +19,7 @@ public class DynamicText {
 	private ShapeBundle<TexturedQuad> charBundle;
 	private List<TexturedQuad> chars = new ArrayList<TexturedQuad>();
 	private float size = 1;
+	private float lineSpacing = 0.1f;
 	
 	public DynamicText(SlymyFont font, String text, Game game) {
 
@@ -29,15 +30,40 @@ public class DynamicText {
 		
 		charBundle.setTexture(font.getCharAtlas());
 		int x = 0;
+		int y = 0;
 		for(char c : text.toCharArray()) {
 			
-			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance(), 0, font.getVisualWidth(c), font.getHeight(), font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
-			chars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance(), 0, font.getVisualWidth(c), font.getHeight(), font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
-			x+=font.getWidth(c);
+			if(c == '\n') {
+				
+				y+=font.getHeight()*(1+lineSpacing)*size;
+				x = 0;
+				continue;
+				
+			}
+				
+			if(font.getCharData(c) == null)
+				continue;
+			
+			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
+			chars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
+			x+=font.getWidth(c)*size;
 			
 		}
 		
 		charBundle.pushChanges();
+		
+	}
+	
+	public float getLineSpacing() {
+		
+		return lineSpacing;
+		
+	}
+	
+	public void setLineSpacing(float lineSpacing) {
+		
+		this.lineSpacing = lineSpacing;
+		resetBundle();
 		
 	}
 	
@@ -46,16 +72,32 @@ public class DynamicText {
 		charBundle.free();
 		chars.clear();
 		
+		List<TexturedQuad> newChars = new ArrayList<>();
+		
 		charBundle = new ShapeBundle<>(text.length(), game, TexturedQuad.INFOS);
 		charBundle.setTexture(font.getCharAtlas());
 		int x = 0;
+		int y = 0;
 		for(char c : text.toCharArray()) {
 			
-			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, 0, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
-			chars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, 0, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
+			if(c == '\n') {
+				
+				y+=font.getHeight()*(1+lineSpacing)*size;
+				x = 0;
+				continue;
+				
+			}
+				
+			if(font.getCharData(c) == null)
+				continue;
+			
+			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
+			newChars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
 			x+=font.getWidth(c)*size;
 			
 		}
+		
+		chars = newChars;
 		
 	}
 	
@@ -112,6 +154,12 @@ public class DynamicText {
 		
 	}
 	
+	public int getHeight() {
+		
+		return (int) (size*font.getHeight()*text.split("\n").length);
+		
+	}
+	
 	public int getWidth() {
 		
 		return (int) (size*font.getWidth(text));
@@ -135,6 +183,12 @@ public class DynamicText {
 		}
 		
 		charBundle.pushChanges();
+		
+	}
+	
+	public void free() {
+		
+		charBundle.free();
 		
 	}
 	

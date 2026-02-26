@@ -19,12 +19,13 @@ import fr.slypy.slymyjge.graphics.shape.TexturedQuad;
 import fr.slypy.slymyjge.graphics.shape.composite.CircleBorder;
 import fr.slypy.slymyjge.graphics.shape.composite.TexturedCircle;
 import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
+import fr.slypy.slymyjge.graphics.shape.dynamic.StaticText;
 import fr.slypy.slymyjge.media.MediaPlayer;
 
 public class SurfaceTest extends Game {
 	
 	private DynamicText text;
-	private DynamicText text2;
+	private StaticText text2;
 	private Animator anim;
 	private Animator anim2;
 	private Animator anim3;
@@ -54,8 +55,6 @@ public class SurfaceTest extends Game {
 	@Override
 	public void stop() {
 		
-		
-		
 	}
 
 	@Override
@@ -63,14 +62,14 @@ public class SurfaceTest extends Game {
 
 		NewGenRenderer.renderText(text, new Vector2f(150, 150));
 		
-		NewGenRenderer.renderText(text2, new Vector2f(1100, 700));
+		NewGenRenderer.renderShape(text2.getTextShape(new Vector2f(1100, 700)));
 		
 		NewGenRenderer.renderShape(anim2.apply(circle));
 		
 		NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
 		
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2)).rotate((float) Math.toRadians(180));
-		NewGenRenderer.renderShape(videoQuad);
+		//videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
+		//.renderShape(videoQuad);
 		
 		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
 	
@@ -78,8 +77,6 @@ public class SurfaceTest extends Game {
 
 	@Override
 	public void init(InitEvent t) {
-		
-		System.exit(0);
 		
 		setShowFPS(true);
 		setShowTPS(true);
@@ -90,13 +87,13 @@ public class SurfaceTest extends Game {
 		Font f = new Font("Sewer Sys", Font.ITALIC, 256);
 
 		SlymyFont font = new SlymyFont(new Font("", Font.BOLD, 64), Color.black);
-		SlymyFont font2 = new SlymyFont(f, new Color(100, 0, 0));
+		SlymyFont font2 = new SlymyFont(f, new Color(150, 0, 0));
 		
 		text = new DynamicText(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", this);
 		text.setSize(20);
 		
-		text2 = new DynamicText(font2, "Apache2", this);
-		text2.setSize(160);
+		text2 = new StaticText(font2, "Apache\n2", this);
+		text2.setSize(180);
 		
 		anim = new Animator();
 		AnimationTrack<Vector2f> track = new AnimationTrack<>(new AnimationTrack.Vector2Interpolator(AnimationTrack.Interpolator.EASE_IN_OUT_QUAD));
@@ -137,12 +134,12 @@ public class SurfaceTest extends Game {
 		
 		border = new CircleBorder(center, 120, 32, 32, Color.red);
 		
-		player = new MediaPlayer("piston.webm", this);
+		player = new MediaPlayer("funky_size_change.webm", this);
 		
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight())).rotate((float) Math.toRadians(180));
+		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()));
 		player.play();
 		player.setVolumeOnStart(25);
-
+		
 	}
 
 	@Override
@@ -153,11 +150,7 @@ public class SurfaceTest extends Game {
 		anim3.step((float) alpha);
 		
 		text.perCharacterTransform((i, c) -> (TexturedQuad) anim.apply(c, i*0.1f));
-		
-		text2.perCharacterTransform((i, c) -> (TexturedQuad) anim3.apply(c));
-		
-		//System.out.println(player.getAudioHandler().volume() + " - " + player.getAudioHandler().isMute());
-		
+
 	}
 
 	@Override

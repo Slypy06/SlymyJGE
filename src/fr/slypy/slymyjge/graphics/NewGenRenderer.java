@@ -38,6 +38,7 @@ import java.util.List;
 
 import org.lwjgl.util.vector.Vector2f;
 
+import fr.slypy.slymyjge.components.Component;
 import fr.slypy.slymyjge.graphics.shape.Shape;
 import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 
@@ -94,6 +95,12 @@ public class NewGenRenderer {
 			render.run();
 		
 		surface.unbind();
+		
+	}
+	
+	public static void renderComponent(Component c) {
+		
+		
 		
 	}
 	

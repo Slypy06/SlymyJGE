@@ -33,7 +33,7 @@ public abstract class GameState extends InputsHandler {
 		
 		for(Component comp : components.values()) {
 			
-			if(comp.isPossiblyHover(getGame().getRelativeXCursor(), getGame().getRelativeYCursor()) && comp.isVisible()) {
+			if(comp.isPossiblyHover() && comp.isVisible()) {
 				
 				return comp;
 				
@@ -105,21 +105,7 @@ public abstract class GameState extends InputsHandler {
 			
 			if(comp.isActivated()) {
 				
-				comp.update(getGame().getRelativeXCursor(), getGame().getRelativeYCursor(), getGame());
-				
-			}
-			
-		}
-		
-	}
-	
-	public void componentsRender() {
-		
-		for(Component comp : components.values()) {
-			
-			if(comp.isVisible()) {
-				
-				comp.render();
+				comp.update();
 				
 			}
 			

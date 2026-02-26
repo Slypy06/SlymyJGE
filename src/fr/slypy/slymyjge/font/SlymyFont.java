@@ -15,6 +15,7 @@ import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.Texture.TextureFilterMode;
 
 public class SlymyFont {
 	
@@ -106,7 +107,11 @@ public class SlymyFont {
 		    
 		}
 		
+		Texture.setFilterMode(TextureFilterMode.ALIASED);
+		
 		charAtlas = Texture.loadTexture(atlasImg);
+		
+		Texture.resetFilterMode();
 		
 	}
 	

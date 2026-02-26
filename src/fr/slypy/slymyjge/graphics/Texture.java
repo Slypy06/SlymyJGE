@@ -1,6 +1,9 @@
 package fr.slypy.slymyjge.graphics;
 
+import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
+import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_RGBA8;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
@@ -10,11 +13,14 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
+import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.glTexParameterf;
+import static org.lwjgl.opengl.GL11.glGetFloat;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -32,11 +38,15 @@ import java.util.function.Function;
 import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
+import org.lwjgl.opengl.GLContext;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sf.image4j.codec.ico.ICOImage;
 
 public class Texture {
+	
+	private static TextureFilterMode mode = TextureFilterMode.DEFAULT;
 	
 	public static final BiFunction<Dimension, ByteBuffer, BiConsumer<Point, Integer>> DEFAULT = (dim, buffer) -> ((coord, rgb) -> {
 		
@@ -295,10 +305,24 @@ public class Texture {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode.getMin());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode.getMag());
 		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, b);
+		System.out.println(mode.min);
+		System.out.println(GL_LINEAR_MIPMAP_LINEAR);
+		
+		if (mode.usesMipmap() && GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic) {
+		    float max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+		    glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, Math.min(4.0f, max));
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, b);	
+		
+		if(mode.usesMipmap()) {
+			
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+		}
 		
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
@@ -370,6 +394,57 @@ public class Texture {
 		}
 		
 		return null;
+		
+	}
+	
+	public static void setFilterMode(TextureFilterMode mode) {
+		
+		Texture.mode = mode;
+		
+	}
+	
+	public static void resetFilterMode() {
+		
+		Texture.mode = TextureFilterMode.DEFAULT;
+		
+	}
+	
+	public static class TextureFilterMode {
+		
+		public static final TextureFilterMode PIXEL_ART = new TextureFilterMode(GL_NEAREST, GL_NEAREST);
+		public static final TextureFilterMode DEFAULT = new TextureFilterMode(GL_LINEAR, GL_LINEAR);
+		public static final TextureFilterMode SMALL_ALIASING = new TextureFilterMode(GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
+		public static final TextureFilterMode ALIASED = new TextureFilterMode(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);		
+		
+		private int min;
+		private int mag;
+		private boolean mipmap;
+		
+		public TextureFilterMode(int min, int mag) {
+
+			this.min = min;
+			this.mag = mag;
+			this.mipmap = min == GL_LINEAR_MIPMAP_LINEAR || min == GL_LINEAR_MIPMAP_NEAREST;
+			
+		}
+
+		public int getMin() {
+			
+			return min;
+			
+		}
+		
+		public int getMag() {
+			
+			return mag;
+			
+		}
+		
+		public boolean usesMipmap() {
+			
+			return mipmap;
+			
+		}
 		
 	}
 	

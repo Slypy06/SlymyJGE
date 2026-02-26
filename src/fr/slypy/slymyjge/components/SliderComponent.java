@@ -5,11 +5,9 @@ import org.lwjgl.input.Mouse;
 
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.utils.MouseButtons;
-import fr.slypy.slymyjge.utils.RenderType;
 
 public abstract class SliderComponent extends Component {
-
-	public boolean focus;
+	
 	public float value;
 	public float lastValue;
 	public int padding;
@@ -18,9 +16,9 @@ public abstract class SliderComponent extends Component {
 	public long downTime;
 	public long upTime;
 	
-	public SliderComponent(float x, float y, int w, int h, Game game, RenderType type) {
+	public SliderComponent(float x, float y, int w, int h, Game game) {
 		
-		super(x, y, w, h, game, type);
+		super(x, y, w, h, game);
 		
 		padding = h;
 		
@@ -28,12 +26,6 @@ public abstract class SliderComponent extends Component {
 		this.addKeyToListen(Keyboard.KEY_DOWN);
 		this.addKeyToListen(Keyboard.KEY_UP);
 
-	}
-	
-	public SliderComponent(float x, float y, int w, int h, Game game) {
-		
-		this(x, y, w, h, game, RenderType.ONMAP);
-		
 	}
 	
 	@Override
@@ -126,7 +118,7 @@ public abstract class SliderComponent extends Component {
 	}
 	
 	@Override
-	public void componentUpdate(float xCursor, float yCursor, Game game) {
+	public void componentUpdate() {
 		
 		if(!activated) {
 			
@@ -136,31 +128,23 @@ public abstract class SliderComponent extends Component {
 			
 		}
 		
-		float xCur = xCursor;
-	
-		if(renderType == RenderType.HUD) {
-			
-			xCur = xCursor + game.getXCam();
-			
-		}
-		
-		xCur /= game.getWidthDiff();
+		float xCur = absoluteCoordinate ? game.getAbsoluteXCursor() : game.getRelativeXCursor();
 		
 		if(Mouse.isButtonDown(MouseButtons.LEFT_BUTTON)) {
 			
 			if(focus) {
 				
-				if(xCur < x + (padding / 2)) {
+				if(xCur < position.getX() + (padding / 2)) {
 					
-					xCur = x + (padding / 2);
+					xCur = position.getX() + (padding / 2);
 					
-				} else if(xCur > x + w - (padding / 2)) {
+				} else if(xCur > position.getX() + size.getX() - (padding / 2)) {
 					
-					xCur = x + w - (padding / 2);
+					xCur = position.getX() + size.getX() - (padding / 2);
 					
 				}
 				
-				value = (float) (xCur - x - (padding / 2)) / (float) (w - padding);
+				value = (float) (xCur - size.getX() - (padding / 2)) / (float) (size.getX() - padding);
 				
 				if(steps > 0) {
 				
@@ -256,18 +240,6 @@ public abstract class SliderComponent extends Component {
 		
 	}
 	
-	public boolean isFocus() {
-		
-		return focus;
-		
-	}
-	
-	public void setFocus(boolean focus) {
-		
-		this.focus = focus;
-		
-	}
-	
 	public int getPadding() {
 		
 		return padding;
@@ -299,9 +271,5 @@ public abstract class SliderComponent extends Component {
 	}
 
 	public void valueChanged() {}
-	
-	public void focusGained() {}
-	
-	public void focusLost() {}
 
 }

@@ -1,175 +1,132 @@
 package fr.slypy.slymyjge.components;
 
+import java.awt.Color;
+
+import org.lwjgl.util.vector.Vector2f;
+
 import fr.slypy.slymyjge.Game;
+import fr.slypy.slymyjge.graphics.ISurface;
+import fr.slypy.slymyjge.graphics.MultiSampledSurface;
+import fr.slypy.slymyjge.graphics.Surface;
+import fr.slypy.slymyjge.graphics.TexCoords;
+import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.inputs.InputsHandler;
-import fr.slypy.slymyjge.utils.RenderType;
+import fr.slypy.slymyjge.utils.Logger;
 
 public abstract class Component extends InputsHandler {
 
 	protected Game game;
 	
-	public boolean activated = true;
+	protected boolean activated = true;
 	
-	float x;
-	float y;
+	protected Vector2f position;
+	protected Vector2f size;
 	
-	int w;
-	int h;
+	protected Vector2f hitboxPosition;
+	protected Vector2f hitboxSize;
 	
-	float hitboxX;
-	float hitboxY;
+	protected boolean visible = true;
 	
-	int hitboxW;
-	int hitboxH;
+	protected boolean absoluteCoordinate = true;
 	
-	private boolean visible = true;
+	protected boolean hover;
 	
-	boolean hover;
+	protected ISurface sur = null;
 	
-	protected RenderType renderType;
-	
-	public RenderType getRenderType() {
-		
-		return renderType;
-		
-	}
-
-	public void setRenderType(RenderType renderType) {
-		
-		this.renderType = renderType;
-		
-	}
+	protected boolean focus = false;
+	protected boolean lastFocus = false;
 	
 	public Component(float x, float y, int w, int h, Game game) {
-		
-		this(x, y, w, h, game, RenderType.ONMAP);
-		
-	}
-	
-	public Component(float x, float y, int w, int h, Game game, RenderType type) {
-		
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
+
+		this.position = new Vector2f(x, y);
+		this.size = new Vector2f(w, h);
 		this.setHitbox(x, y, w, h);
 		this.game = game;
-		this.renderType = type;
 		
 	}
 	
-	public float getX() {
+	public void setupSurface(int samples) {
 		
-		return x;
-		
-	}
-
-	public void setX(float x) {
-		
-		float xDiff = x - this.x;
-		this.x = x;
-		setHitbox(hitboxX + xDiff, hitboxY, hitboxW, hitboxH);
-		
-	}
-
-	public float getY() {
-		
-		return y;
-		
-	}
-
-	public void setY(float y) {
-		
-		float yDiff = y - this.y;
-		this.y = y;
-		setHitbox(hitboxX, hitboxY + yDiff, hitboxW, hitboxH);
-		
-	}
-
-	public int getW() {
-		
-		return w;
-		
-	}
-
-	public void setW(int w) {
-		
-		int wDiff = w / this.w;
-		this.w = w;
-		setHitbox(hitboxX, hitboxY, hitboxW * wDiff, hitboxH);
-		
-	}
-
-	public int getH() {
-		
-		return h;
-		
-	}
-
-	public void setH(int h) {
-		
-		int hDiff = h / this.h;
-		this.h = h;
-		setHitbox(hitboxX, hitboxY, hitboxW, hitboxH * hDiff);
+		if(samples == 1) {
+			
+			sur = new Surface((int) size.getX(), (int) size.getY(), game);
+			
+		} else {
+			
+			sur = new MultiSampledSurface((int) size.getX(), (int) size.getY(), samples, game);
+			
+		}
 		
 	}
 	
-	public float getHitboxX() {
-		return hitboxX;
-	}
-
-	public void setHitboxX(float hitboxX) {
+	public void setupSurface() {
 		
-		this.hitboxX = hitboxX;
+		setupSurface(1);
 		
 	}
-
-	public float getHitboxY() {
+	
+	public Vector2f getPosition() {
 		
-		return hitboxY;
+		return position;
+		
+	}
+	
+	public Vector2f getSize() {
+		
+		return size;
 		
 	}
 
-	public void setHitboxY(float hitboxY) {
-		this.hitboxY = hitboxY;
+	public void setPosition(Vector2f pos) {
+		
+		float xDiff = this.position.getX() - pos.getX();
+		float yDiff = this.position.getY() - pos.getY();
+		setHitbox(hitboxPosition.getX() + xDiff, hitboxPosition.getY() + yDiff, hitboxSize.getX(), hitboxSize.getY());
+		
 	}
 
-	public int getHitboxW() {
-		return hitboxW;
+	public void setSize(Vector2f size) {
+		
+		float xDiff = this.size.getX() / size.getX();
+		float yDiff = this.size.getY() / size.getY();
+		setHitbox(hitboxPosition.getX(), hitboxPosition.getY(), hitboxSize.getX()/xDiff, hitboxSize.getY()/yDiff);
+		
 	}
-
-	public void setHitboxW(int hitboxW) {
-		this.hitboxW = hitboxW;
+	
+	public Vector2f getHitboxPosition() {
+		
+		return hitboxPosition;
+		
 	}
-
-	public int getHitboxH() {
-		return hitboxH;
+	
+	public Vector2f getHitboxSize() {
+		
+		return hitboxSize;
+		
 	}
-
-	public void setHitboxH(int hitboxH) {
-		this.hitboxH = hitboxH;
+	
+	public void setHitboxPosition(Vector2f pos) {
+		
+		setHitbox(pos.getX(), pos.getY(), hitboxSize.getX(), hitboxSize.getY());
+		
+	}
+	
+	public void getHitboxSize(Vector2f size) {
+		
+		setHitbox(hitboxPosition.getX(), hitboxPosition.getY(), size.getX(), size.getY());
+		
 	}
 
 	public boolean isHover() {
 		return hover;
 	}
 	
-	public boolean isPossiblyHover(float xCursor, float yCursor) {
+	public boolean isPossiblyHover() {
 		
-		float x = xCursor;
-		float y = yCursor;
+		float x = absoluteCoordinate ? game.getAbsoluteXCursor() : game.getRelativeXCursor();
+		float y = absoluteCoordinate ? game.getAbsoluteYCursor() : game.getRelativeYCursor();
 		
-		if(renderType == RenderType.HUD) {
-			
-			x = xCursor + game.getXCam();
-			y = yCursor + game.getYCam();
-			
-		}
-		
-		x /= game.getWidthDiff();
-		y /= game.getHeightDiff();
-		
-		if((x >= hitboxX && x <= hitboxX + hitboxW) && (y >= hitboxY && y <= hitboxY + hitboxH)) {
+		if((x >= hitboxPosition.getX() && x <= hitboxPosition.getX() + hitboxSize.getX()) && (y >= hitboxPosition.getY() && y <= hitboxPosition.getY() + hitboxSize.getY())) {
 			
 			return true;
 			
@@ -182,14 +139,18 @@ public abstract class Component extends InputsHandler {
 	}
 	
 	public boolean isActivated() {
+		
 		return activated;
+	
 	}
 
 	public void setActivated(boolean activated) {
+		
 		this.activated = activated;
+	
 	}
 
-	public void update(float xCursor, float yCursor, Game game) {
+	public void update() {
 		
 		if(!activated) {
 			
@@ -200,15 +161,25 @@ public abstract class Component extends InputsHandler {
 		this.updateInputs();
 		this.mouseUpdate();
 		
-		boolean lastHover = hover;
-		
-		hover = isPossiblyHover(xCursor, yCursor);
-		
-		if(game.getComponentHover() != this) {
+		if(focus != lastFocus) {
 			
-			hover = false;
+			if(focus) {
+				
+				focusGained();
+				
+			} else {
+				
+				focusLost();
+				
+			}
 			
 		}
+		
+		lastFocus = focus;
+		
+		boolean lastHover = hover;
+		
+		hover = game.getComponentHover() == this;
 		
 		if(lastHover != hover) {
 			
@@ -224,20 +195,22 @@ public abstract class Component extends InputsHandler {
 			
 		}
 		
-		componentUpdate(xCursor, yCursor, game);
+		componentUpdate();
 		
 	}
 	
-	public void componentUpdate(float xCursor, float yCursor, Game game) {}
+	public void focusGained() {}
+
+	public void focusLost() {}
+
+	public abstract void componentUpdate();
 	
 	public abstract void render();
 	
-	public void setHitbox(float x, float y, int w, int h) {
-		
-		setHitboxX(x);
-		setHitboxY(y);
-		setHitboxW(w);
-		setHitboxH(h);
+	public void setHitbox(float x, float y, float w, float h) {
+
+		hitboxPosition = new Vector2f(x, y);
+		hitboxSize = new Vector2f(w, h);
 		
 	}
 
@@ -250,6 +223,55 @@ public abstract class Component extends InputsHandler {
 	public boolean isVisible() {
 		
 		return visible;
+		
+	}
+	
+	public boolean usesSurface() {
+		
+		return sur != null;
+		
+	}
+	
+	public ISurface getSurface() {
+		
+		return sur;
+		
+	}
+	
+	public TexturedRectangle getShape() {
+		
+		if(sur == null) {
+			
+			Logger.warn("Trying to get shape object from a non surfaced component");
+			return null;
+			
+		}
+		
+		return new TexturedRectangle(position.getX(), position.getY(), size.getX(), size.getY(), sur.getTextureId(), Color.white, TexCoords.QUAD_DEFAULT_COORDS);
+		
+	}
+	
+	public boolean isFocused() {
+		
+		return focus;
+		
+	}
+	
+	public void setFocus(boolean focus) {
+		
+		this.focus = focus;
+		
+	}
+	
+	public boolean isAbsoluteCoordinate() {
+		
+		return absoluteCoordinate;
+		
+	}
+	
+	public void useAbsoluteCoordinate(boolean absolute) {
+		
+		this.absoluteCoordinate = absolute;
 		
 	}
 	

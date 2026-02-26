@@ -5,11 +5,14 @@ import java.awt.Font;
 import java.io.File;
 import java.util.Arrays;
 
+import javax.swing.Renderer;
+
 import fr.slypy.slymyjge.Game;
-import fr.slypy.slymyjge.components.ButtonComponent;
 import fr.slypy.slymyjge.components.TextFieldComponent;
 import fr.slypy.slymyjge.font.SlymyFont;
-import fr.slypy.slymyjge.graphics.Renderer;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
+import fr.slypy.slymyjge.graphics.shape.Rectangle;
+import fr.slypy.slymyjge.graphics.shape.composite.RectangleBorder;
 import fr.slypy.slymyjge.utils.ResizingRules;
 
 public class TextFieldTest extends Game {
@@ -27,40 +30,34 @@ public class TextFieldTest extends Game {
 		
 		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
 		
-		game = new TextFieldTest(1280, 720, "Test Game Title", Color.black, true);
+		game = new TextFieldTest(1280, 720, "Test Game Title", Color.white, true);
 		game.start();
 		
 	}
 
 	@Override
-	public void init() {
-		
-		Renderer.init(game);
-		
+	public void init(InitEvent e) {
+
 		game.setFrameCap(120);
 		game.setTickCap(60);
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 
-		game.setResizingRules(new ResizingRules(true, true, true));
-		
 		f = new SlymyFont(new Font("Arial", Font.PLAIN, 30), Color.white);
-		
-		System.out.println(f.getWidth("€"));
 		
 		TextFieldComponent t = new TextFieldComponent(100, 100, 500, 150, game, f) {
 			
 			@Override
 			public void renderForeground() {
 				
-				Renderer.renderBorder(this.getX(), this.getY(), this.getW(), this.getH(), 2, Color.black);
+				NewGenRenderer.renderShape(new RectangleBorder(this.getPosition().getX(), this.getPosition().getY(), this.getSize().getX(), this.getSize().getY(), 2, Color.black));
 				
 			}
 			
 			@Override
 			public void renderBackground() {
 				
-				Renderer.renderQuad(this.getX(), this.getY(), this.getW(), this.getH(), Color.lightGray);
+				NewGenRenderer.renderShape(new Rectangle(this.getPosition().getX(), this.getPosition().getY(), this.getSize().getX(), this.getSize().getY(), Color.lightGray));
 				
 			}
 			
@@ -68,7 +65,7 @@ public class TextFieldTest extends Game {
 		
 		t.setAllowMultilines(true);
 		
-		t.setText(Arrays.asList("abcde", "fgh", "\ta"));
+		t.setText(Arrays.asList("abcde", "fgh", "a"));
 		
 		game.addComponent(t, "t");
 
@@ -82,13 +79,20 @@ public class TextFieldTest extends Game {
 	@Override
 	public void render(double alpha) {
 		
-
+		game.getComponent("t").render();
+		
 	}
 
 	@Override
 	public void stop() {
 		
 
+		
+	}
+
+	@Override
+	public void exit(ExitEvent event) {
+		// TODO Auto-generated method stub
 		
 	}
 	

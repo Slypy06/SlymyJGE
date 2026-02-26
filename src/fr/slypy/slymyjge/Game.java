@@ -108,7 +108,7 @@ public abstract class Game extends GameState {
 	}
 	
 	public Game(int width, int height, String title, Color backgroundColor, boolean resizable) {
-		
+
 		this.width = width;
 		this.height = height;
 		
@@ -363,6 +363,8 @@ public abstract class Game extends GameState {
 				long tps = 0;
 
 				while(!closeRequested && !Thread.interrupted()) {
+					
+					tps++;
 
 					if(steamLinked && SteamAPI.isSteamRunning()) {
 							
