@@ -11,9 +11,13 @@ import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.animations.dynamic.AnimationTrack;
 import fr.slypy.slymyjge.animations.dynamic.AnimationTrack.KeyFrame;
 import fr.slypy.slymyjge.animations.dynamic.Animator;
+import fr.slypy.slymyjge.animations.framed.Animation;
+import fr.slypy.slymyjge.animations.framed.AnimationFrame;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.EmptyShape;
+import fr.slypy.slymyjge.graphics.shape.Line;
 import fr.slypy.slymyjge.graphics.shape.Shape;
 import fr.slypy.slymyjge.graphics.shape.TexturedQuad;
 import fr.slypy.slymyjge.graphics.shape.composite.CircleBorder;
@@ -33,6 +37,7 @@ public class SurfaceTest extends Game {
 	private CircleBorder border;
 	private Texture tex;
 	private MediaPlayer player;
+	private Animation cursorAnimation;
 	private Shape videoQuad;
 
 	public SurfaceTest(int width, int height, String title, Color backgroundColor, boolean resizable) {
@@ -73,6 +78,8 @@ public class SurfaceTest extends Game {
 		
 		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
 	
+		NewGenRenderer.renderShape(cursorAnimation.getShape(new Vector2f(100, 100), new Vector2f(0, 100)).color(Color.black));
+		
 	}
 
 	@Override
@@ -140,6 +147,35 @@ public class SurfaceTest extends Game {
 		player.play();
 		player.setVolumeOnStart(25);
 		
+		cursorAnimation = new Animation(new AnimationFrame[] {
+				
+				new AnimationFrame() {
+
+					@Override
+					public Shape getShape(Vector2f position, Vector2f size) {
+
+						return new Line(position, Vector2f.add(position, size, null), 3, Color.white);
+						
+					}
+					
+				},
+				
+				new AnimationFrame() {
+
+					@Override
+					public Shape getShape(Vector2f position, Vector2f size) {
+
+						return new EmptyShape();
+						
+					}
+					
+				}
+				
+		});
+		
+		cursorAnimation.setSpeed(1.3f);
+		cursorAnimation.setPlaying(true);
+		
 	}
 
 	@Override
@@ -148,6 +184,9 @@ public class SurfaceTest extends Game {
 		anim.step((float) alpha);
 		anim2.step((float) alpha);
 		anim3.step((float) alpha);
+		cursorAnimation.step((float) alpha);
+		
+		System.out.println(cursorAnimation.getSpeed());
 		
 		text.perCharacterTransform((i, c) -> (TexturedQuad) anim.apply(c, i*0.1f));
 

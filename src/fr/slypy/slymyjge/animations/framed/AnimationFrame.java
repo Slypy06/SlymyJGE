@@ -6,19 +6,19 @@ import fr.slypy.slymyjge.graphics.shape.Shape;
 
 public abstract class AnimationFrame {
 
-    private long speed = 50000000;
+    private float speed = 1;
 
     public abstract Shape getShape(Vector2f position, Vector2f size);
 
     public float getSpeed() {
 
-        return (long) (1000000000D / speed);
+        return speed;
 
     }
 
     public void setSpeed(float speed) {
 
-        this.speed = (long) (1000000000D / speed);
+        this.speed = speed;
 
     }
 

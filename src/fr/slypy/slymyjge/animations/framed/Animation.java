@@ -48,8 +48,9 @@ public class Animation {
 				if(alpha > 1.0f / frames.get(frame).getSpeed()) {
 						
 					frame = (frame + (int) Math.floor(alpha / (1.0f / frames.get(frame).getSpeed()))) % frames.size();
-					currentTime = currentTime - (alpha % (1.0f / frames.get(frame).getSpeed()));
+					lastUpdate = currentTime - (alpha % (1.0f / frames.get(frame).getSpeed()));
 						
+					
 				}
 				
 			} else {
@@ -93,6 +94,13 @@ public class Animation {
 			f.setSpeed(speed);
 			
 		}
+		
+	}
+	
+	public void setSpeed(float speed, int frame) {
+		
+		if(frame >= 0 && frame < frames.size())
+			frames.get(frame).setSpeed(speed);
 		
 	}
 	
