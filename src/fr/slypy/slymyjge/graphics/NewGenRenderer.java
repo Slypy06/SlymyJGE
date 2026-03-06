@@ -117,11 +117,11 @@ public class NewGenRenderer {
 	public static void renderInsideArea(int x, int y, int w, int h, Runnable render) {
 		
 		glScissor(x, y, w, h);
-		glEnable(GL_SCISSOR_TEST);
+		//glEnable(GL_SCISSOR_TEST);
 
 			render.run();
 		
-		glDisable(GL_SCISSOR_TEST);
+		//glDisable(GL_SCISSOR_TEST);
 	}
 	
 	public static void renderWithTransform(Transform t, Runnable render) {
@@ -136,6 +136,8 @@ public class NewGenRenderer {
 	}
 
 	public static void renderText(DynamicText text, Vector2f position) {
+		
+		System.out.println("Rendering " + text.getText());
 		
 		NewGenRenderer.renderWithTransform(new Transform().translate(position.getX(), position.getY()), () -> 
 		

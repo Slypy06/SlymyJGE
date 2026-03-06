@@ -65,7 +65,7 @@ public class TextFieldTest extends Game {
 		
 		t.setAllowMultilines(true);
 		
-		t.setText(Arrays.asList("abcde", "fgh", "a"));
+		t.setText("abcde");
 		
 		game.addComponent(t, "t");
 
