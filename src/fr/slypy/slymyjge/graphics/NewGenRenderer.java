@@ -123,9 +123,15 @@ public class NewGenRenderer {
 				
 			}
 			
+			if(!c.isVisible())
+				return;
+			
 			renderShape(new TexturedRectangle((int) c.getPosition().getX(), (int) c.getPosition().getY(), (int) c.getSize().getX(), (int) c.getSize().getY(), c.getSurface().getTextureId(), Color.white, TexCoords.QUAD_DEFAULT_COORDS));
 			
 		} else {
+			
+			if(!c.isVisible())
+				return;
 			
 			renderInsideArea((int) c.getPosition().getX(), (int) c.getPosition().getY(), (int) c.getSize().getX(), (int) c.getSize().getY(), () -> 
 				

@@ -4,35 +4,44 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.slypy.slymyjge.Game;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
 
-public class PanelComponent {
+public class PanelComponent extends Component {
 
 	public Map<String, Component> components = new HashMap<String, Component>();
 	public Game game;
-	public boolean visible;
-	public boolean activated;
 	
-	public PanelComponent(Game game) {
+	public PanelComponent(float x, float y, int w, int h, Game game) {
 		
+		super(x, y, w, h, game);
 		this.game = game;
-
+		
 	}
 
+	@Override
 	public void render() {
 		
 		for(Component comp : components.values()) {
 			
-			comp.render();
+			if(comp.isVisible()) {
+				
+				NewGenRenderer.renderComponent(comp);
+				
+			}
 			
 		}
 
 	}
 	
-	public void update(double alpha) {
+	@Override
+	public void componentUpdate(double alpha) {
 		
 		for(Component comp : components.values()) {
 			
 			comp.update(alpha);
+			
+			if(usesSurface() && comp.usesSurface() && comp.peekNeedsRedrawing())
+				redraw();
 			
 		}
 		
@@ -41,6 +50,7 @@ public class PanelComponent {
 	public void addComponent(String key, Component value) {
 		
 		components.put(key, value);
+		value.setActivated(activated);
 		
 	}
 	
@@ -59,38 +69,6 @@ public class PanelComponent {
 		}
 		
 		return components.get(key);
-		
-	}
-
-	public boolean isVisible() {
-		
-		return visible;
-		
-	}
-
-	public void setVisible(boolean visible) {
-		
-		for(Component comp : components.values()) {
-			
-			comp.setVisible(visible);
-			
-		}
-		
-	}
-
-	public boolean isActivated() {
-		
-		return activated;
-		
-	}
-
-	public void setActivated(boolean activated) {
-		
-		for(Component comp : components.values()) {
-			
-			comp.setActivated(activated);
-			
-		}
 		
 	}
 
