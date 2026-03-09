@@ -37,11 +37,14 @@ public abstract class TextFieldComponent extends Component {
 	private long downDuration = Long.MAX_VALUE;
 	private long leftDuration = Long.MAX_VALUE;
 	private long rightDuration = Long.MAX_VALUE;
+	private float interline = 0.0f;
 
 	private int cursorIndex = 0;
 
 	private int offsetx = 0;
 	private int offsety = 0;
+	
+	//TODO add highlighting
 
 	public TextFieldComponent(float x, float y, int w, int h, Game game, SlymyFont font) {
 
@@ -70,7 +73,7 @@ public abstract class TextFieldComponent extends Component {
 					@Override
 					public Shape getShape(Vector2f position, Vector2f size) {
 
-						return new Line(position, Vector2f.add(position, size, null), 3, Color.white);
+						return new Line(position, Vector2f.add(position, size, null), 2, Color.white);
 
 					}
 
@@ -94,6 +97,7 @@ public abstract class TextFieldComponent extends Component {
 
 		this.ghostTextShape = new DynamicText(ghostFont, "", game);
 		this.textShape = new DynamicText(font, "", game);
+		this.textShape.setLineSpacing(interline);
 
 	}
 
@@ -184,7 +188,7 @@ public abstract class TextFieldComponent extends Component {
 		int line = getCursorLine();
 		String[] lines = text.toString().split("\n", -1);
 		int col = getCursorColumn();
-		return font.getWidth(lines[line].substring(0, col));
+		return font.getWidth(lines[line].substring(0, Math.min(lines[line].length(), col)));
 
 	}
 
@@ -285,10 +289,12 @@ public abstract class TextFieldComponent extends Component {
 	}
 
 	@Override
-	public void componentUpdate() {
+	public void componentUpdate(double alpha) {
 
 		if (!activated || !focus)
 			return;
+		
+		cursorAnimation.step(alpha);
 
 		if (System.currentTimeMillis() - backDuration >= 500L) {
 
@@ -478,12 +484,12 @@ public abstract class TextFieldComponent extends Component {
 	        cursorIndex = findIndexOnLine(clickedLine, relativeX);
 			
 	        updateOffsets();
+	        cursorAnimation.resetAnimation();
 	        
 			if (!focus) {
 
 				focus = true;
 				focusGained();
-				cursorAnimation.resetAnimation();
 
 			}
 			
@@ -586,7 +592,7 @@ public abstract class TextFieldComponent extends Component {
 	
 	private void updateOffsets() {
 
-	    int lineHeight = font.getHeight();
+	    int lineHeight = (int) (font.getHeight() * (1+interline));
 	    int visibleWidth = (int) size.getX() - 2 * margin;
 	    int visibleHeight = (int) size.getY() - 2 * margin;
 
@@ -595,51 +601,34 @@ public abstract class TextFieldComponent extends Component {
 
 	        int cursorLine = getCursorLine();
 	        int cursorTop    = cursorLine * lineHeight;
-	        int cursorBottom = cursorTop + lineHeight;
+	        int cursorBottom = cursorTop + font.getHeight();
 
-	        // Scroll up if cursor top is above the visible area
 	        if (cursorTop < offsety) {
 	            offsety = cursorTop;
-	        }
-	        // Scroll down just enough so the cursor line is fully visible
-	        else if (cursorBottom > offsety + visibleHeight) {
+	        } else if (cursorBottom > offsety + visibleHeight) {
 	            offsety = cursorBottom - visibleHeight;
 	        }
+	        
 	    }
 
 	    // --- Horizontal ---
 	    int cursorPixelX = getCursorPixelX();
-
-	    // Requirement 2: at least one character visible before the cursor,
-	    // unless the cursor is at the start of its line (column 0)
 	    int col = getCursorColumn();
 	    String currentLine = text.toString().split("\n", -1)[getCursorLine()];
-
-	    int minOffsetX;
-	    if (col == 0 || currentLine.isEmpty()) {
-	        // Cursor is at the start of the line — no character required before it
-	        minOffsetX = 0;
-	    } else {
-	        // Width of the character immediately before the cursor
-	        int charBeforeWidth = font.getWidth(currentLine.charAt(col - 1) + "");
-	        // The character before must start at or after offsetx
-	        int charBeforeStart = cursorPixelX - charBeforeWidth;
-	        minOffsetX = charBeforeStart;
-	    }
+	    int minWidth = col <= 0 ? 0 : font.getWidth(currentLine.charAt(col-1));
 
 	    // Requirement 1: cursor must be fully inside the visible width
 	    if (cursorPixelX > offsetx + visibleWidth) {
 	        // Cursor is past the right edge — scroll right
 	        offsetx = cursorPixelX - visibleWidth;
 	    }
-	    if (offsetx < minOffsetX) {
-	        // Would hide the character before cursor — scroll right to show it
-	        offsetx = minOffsetX;
-	    }
 	    // Cursor is left of visible area (e.g. after pressing left)
-	    if (cursorPixelX < offsetx) {
-	        offsetx = col == 0 ? 0 : minOffsetX;
+	    if (cursorPixelX-minWidth < offsetx) {
+	    	
+	        offsetx = cursorPixelX-minWidth;
+	        
 	    }
+	    
 	}
 
 	public SlymyFont getFont() {
@@ -664,6 +653,19 @@ public abstract class TextFieldComponent extends Component {
 	public void setMargin(int margin) {
 
 		this.margin = margin;
+
+	}
+	
+	public float getInterline() {
+
+		return interline;
+
+	}
+
+	public void setInterline(float interline) {
+
+		this.interline = interline;
+		textShape.setLineSpacing(interline);
 
 	}
 
@@ -748,37 +750,33 @@ public abstract class TextFieldComponent extends Component {
 		}
 
 	    renderBackground();
-
+	    
 	    NewGenRenderer.renderInsideArea((int) position.getX() + margin, (int) position.getY() + margin, (int) size.getX() - 2 * margin, (int) size.getY() - 2 * margin, () -> {
-
-	        float areaX = getPosition().getX() + margin;
-	        float areaY = getPosition().getY() + margin;
 
 	        // Ghost text — only when empty and unfocused
 	        if (text.length() == 0 && ghostText != null && !ghostText.isEmpty()) {
-	            NewGenRenderer.renderText(ghostTextShape, new Vector2f(areaX - offsetx, areaY - offsety));
+	            NewGenRenderer.renderText(ghostTextShape, new Vector2f(margin-offsetx, margin-offsety));
 	        }
 
 	        // Normal text
 	        if (text.length() > 0) {
-	            NewGenRenderer.renderText(textShape, new Vector2f(areaX - offsetx, areaY - offsety));
-	        }
-
-	        // Cursor
-	        if (focus) {
-
-	            int cursorLine = getCursorLine();
-	            int cursorPixelX = getCursorPixelX();
-	            int lineHeight = font.getHeight();
-
-	            Vector2f cursorPos = new Vector2f(areaX + cursorPixelX - offsetx, areaY + cursorLine * lineHeight - offsety);
-	            Vector2f cursorSize = new Vector2f(0, lineHeight);
-
-	            NewGenRenderer.renderShape(cursorAnimation.getShape(cursorPos, cursorSize).color(font.getColor()));
-	            
+	            NewGenRenderer.renderText(textShape, new Vector2f(margin-offsetx, margin-offsety));
 	        }
 	        
 	    });
+
+        if (focus) {
+
+            int cursorLine = getCursorLine();
+            int cursorPixelX = getCursorPixelX();
+            int lineHeight = (int) (font.getHeight()*(1+interline));
+
+            Vector2f cursorPos = new Vector2f(margin + cursorPixelX - offsetx, margin + cursorLine * lineHeight - offsety);
+            Vector2f cursorSize = new Vector2f(0, font.getHeight());
+
+            NewGenRenderer.renderShape(cursorAnimation.getShape(cursorPos, cursorSize).color(font.getColor()));
+            
+        }
 
 	    renderForeground();
 

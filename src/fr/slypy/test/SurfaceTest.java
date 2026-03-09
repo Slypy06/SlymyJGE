@@ -73,8 +73,8 @@ public class SurfaceTest extends Game {
 		
 		NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
 		
-		//videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
-		//.renderShape(videoQuad);
+		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
+		NewGenRenderer.renderShape(videoQuad);
 		
 		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
 	

@@ -3,7 +3,6 @@ package fr.slypy.slymyjge.graphics;
 import static org.lwjgl.opengl.GL11.GL_COLOR_ARRAY;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_COORD_ARRAY;
@@ -12,10 +11,8 @@ import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glColorPointer;
-import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDisableClientState;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
-import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
@@ -23,6 +20,9 @@ import static org.lwjgl.opengl.GL11.glPushMatrix;
 import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glScalef;
 import static org.lwjgl.opengl.GL11.glScissor;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.glTexCoordPointer;
 import static org.lwjgl.opengl.GL11.glTranslatef;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
@@ -32,17 +32,28 @@ import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glMapBuffer;
 import static org.lwjgl.opengl.GL15.glUnmapBuffer;
 
+import java.awt.Color;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.lwjgl.util.vector.Vector2f;
 
+import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.components.Component;
 import fr.slypy.slymyjge.graphics.shape.Shape;
+import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 
 public class NewGenRenderer {
+	
+	protected static Game game;
+	
+	public static void init(Game g) {
+		
+		game = g;
+		
+	}
 
 	public static void renderShapeBundle(ShapeBundle<?> bundle) {
 
@@ -100,7 +111,29 @@ public class NewGenRenderer {
 	
 	public static void renderComponent(Component c) {
 		
-		
+		if(c.usesSurface()) {
+			
+			if(c.needsRedrawing()) {
+				
+				renderOnSurface(() -> {
+					
+					c.render();
+					
+				}, c.getSurface());
+				
+			}
+			
+			renderShape(new TexturedRectangle((int) c.getPosition().getX(), (int) c.getPosition().getY(), (int) c.getSize().getX(), (int) c.getSize().getY(), c.getSurface().getTextureId(), Color.white, TexCoords.QUAD_DEFAULT_COORDS));
+			
+		} else {
+			
+			renderInsideArea((int) c.getPosition().getX(), (int) c.getPosition().getY(), (int) c.getSize().getX(), (int) c.getSize().getY(), () -> 
+				
+				renderWithTransform(new Transform().translate((int) c.getPosition().getX(), (int) c.getPosition().getY()), () -> c.render())
+				
+			);
+			
+		}
 		
 	}
 	
@@ -116,12 +149,15 @@ public class NewGenRenderer {
 	
 	public static void renderInsideArea(int x, int y, int w, int h, Runnable render) {
 		
-		glScissor(x, y, w, h);
-		//glEnable(GL_SCISSOR_TEST);
+		Vector2f p1 = game.logicalToScreenCoords(new Vector2f(x, y));
+		Vector2f p2 = game.logicalToScreenCoords(new Vector2f(x+w, y+h));
+		
+		glScissor((int) p1.getX(), (int) p2.getY(), (int) (p2.getX() - p1.getX()), (int) (p1.getY() - p2.getY()));
+		glEnable(GL_SCISSOR_TEST);
 
 			render.run();
 		
-		//glDisable(GL_SCISSOR_TEST);
+		glDisable(GL_SCISSOR_TEST);
 	}
 	
 	public static void renderWithTransform(Transform t, Runnable render) {
@@ -136,9 +172,7 @@ public class NewGenRenderer {
 	}
 
 	public static void renderText(DynamicText text, Vector2f position) {
-		
-		System.out.println("Rendering " + text.getText());
-		
+
 		NewGenRenderer.renderWithTransform(new Transform().translate(position.getX(), position.getY()), () -> 
 		
 			NewGenRenderer.renderShapeBundle(text.getCharacterBundle())

@@ -19,7 +19,7 @@ public abstract class ButtonComponent extends Component {
 	public abstract void componentActivated();
 	
 	@Override
-	public void componentUpdate() {
+	public void componentUpdate(double alpha) {
 		
 		pressed = activated && pressed && hover;
 		

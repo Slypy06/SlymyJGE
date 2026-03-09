@@ -307,10 +307,7 @@ public class Texture {
 		
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode.getMin());
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode.getMag());
-		
-		System.out.println(mode.min);
-		System.out.println(GL_LINEAR_MIPMAP_LINEAR);
-		
+
 		if (mode.usesMipmap() && GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic) {
 		    float max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
 		    glTexParameterf(GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, Math.min(4.0f, max));

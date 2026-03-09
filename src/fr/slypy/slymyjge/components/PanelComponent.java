@@ -28,11 +28,11 @@ public class PanelComponent {
 
 	}
 	
-	public void update(float xCursor, float yCursor, Game game) {
+	public void update(double alpha) {
 		
 		for(Component comp : components.values()) {
 			
-			comp.update(xCursor, yCursor, game);
+			comp.update(alpha);
 			
 		}
 		

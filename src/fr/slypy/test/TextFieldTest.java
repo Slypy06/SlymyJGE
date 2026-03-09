@@ -3,9 +3,6 @@ package fr.slypy.test;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
-import java.util.Arrays;
-
-import javax.swing.Renderer;
 
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.components.TextFieldComponent;
@@ -13,7 +10,6 @@ import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.shape.Rectangle;
 import fr.slypy.slymyjge.graphics.shape.composite.RectangleBorder;
-import fr.slypy.slymyjge.utils.ResizingRules;
 
 public class TextFieldTest extends Game {
 
@@ -43,21 +39,21 @@ public class TextFieldTest extends Game {
 		game.setShowFPS(true);
 		game.setShowTPS(true);
 
-		f = new SlymyFont(new Font("Arial", Font.PLAIN, 30), Color.white);
+		f = new SlymyFont(new Font("Arial", Font.PLAIN, 30), Color.black);
 		
-		TextFieldComponent t = new TextFieldComponent(100, 100, 500, 150, game, f) {
+		TextFieldComponent t = new TextFieldComponent(100, 100, 500, 300, game, f) {
 			
 			@Override
 			public void renderForeground() {
 				
-				NewGenRenderer.renderShape(new RectangleBorder(this.getPosition().getX(), this.getPosition().getY(), this.getSize().getX(), this.getSize().getY(), 2, Color.black));
+				NewGenRenderer.renderShape(new RectangleBorder(0, 0, this.getSize().getX(), this.getSize().getY(), 2, Color.black));
 				
 			}
 			
 			@Override
 			public void renderBackground() {
 				
-				NewGenRenderer.renderShape(new Rectangle(this.getPosition().getX(), this.getPosition().getY(), this.getSize().getX(), this.getSize().getY(), Color.lightGray));
+				NewGenRenderer.renderShape(new Rectangle(0, 0, this.getSize().getX(), this.getSize().getY(), Color.lightGray));
 				
 			}
 			
@@ -79,7 +75,7 @@ public class TextFieldTest extends Game {
 	@Override
 	public void render(double alpha) {
 		
-		game.getComponent("t").render();
+		game.renderComponent("t");
 		
 	}
 

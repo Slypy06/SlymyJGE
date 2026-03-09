@@ -36,6 +36,8 @@ public abstract class Component extends InputsHandler {
 	protected boolean focus = false;
 	protected boolean lastFocus = false;
 	
+	protected boolean needsRedrawing = true;
+	
 	public Component(float x, float y, int w, int h, Game game) {
 
 		this.position = new Vector2f(x, y);
@@ -150,7 +152,7 @@ public abstract class Component extends InputsHandler {
 	
 	}
 
-	public void update() {
+	public void update(double alpha) {
 		
 		if(!activated) {
 			
@@ -195,7 +197,7 @@ public abstract class Component extends InputsHandler {
 			
 		}
 		
-		componentUpdate();
+		componentUpdate(alpha);
 		
 	}
 	
@@ -203,7 +205,7 @@ public abstract class Component extends InputsHandler {
 
 	public void focusLost() {}
 
-	public abstract void componentUpdate();
+	public abstract void componentUpdate(double alpha);
 	
 	public abstract void render();
 	
@@ -235,6 +237,31 @@ public abstract class Component extends InputsHandler {
 	public ISurface getSurface() {
 		
 		return sur;
+		
+	}
+	
+	public boolean peekNeedsRedrawing() {
+		
+		return needsRedrawing;
+		
+	}
+	
+	public boolean needsRedrawing() {
+		
+		if(needsRedrawing) {
+			
+			needsRedrawing = false;
+			return true;
+			
+		}
+		
+		return false;
+		
+	}
+	
+	public void redraw() {
+		
+		this.needsRedrawing = true;
 		
 	}
 	

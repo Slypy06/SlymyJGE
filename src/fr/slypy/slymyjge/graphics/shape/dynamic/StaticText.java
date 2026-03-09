@@ -21,7 +21,7 @@ public class StaticText {
 	private Game game;
 	private ShapeBundle<TexturedRectangle> chars;
 	private float size = 1;
-	private float interline = 0.1f;
+	private float interline = 0.0f;
 	
 	public StaticText(SlymyFont font, String text, Game game) {
 		

@@ -43,6 +43,7 @@ import com.codedisaster.steamworks.SteamException;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.graphics.Texture;
 import fr.slypy.slymyjge.utils.Logger;
 import fr.slypy.slymyjge.utils.RepeatedScheduler;
@@ -327,6 +328,7 @@ public abstract class Game extends GameState {
 	public void start() {
 		
 		display();
+		NewGenRenderer.init(this);
 		loop();
 		
 	}
@@ -378,7 +380,7 @@ public abstract class Game extends GameState {
 						
 						s.updateInputs();
 							
-						s.componentsUpdate();
+						s.componentsUpdate(tickSync.getDelta());
 							
 						s.update(tickSync.getDelta());
 						
@@ -848,6 +850,25 @@ public abstract class Game extends GameState {
 	    float logicalY = (1f - ny) * logicalSize.getY();
 
 	    return new Vector2f(logicalX, logicalY);
+	    
+	}
+	
+	public Vector2f logicalToScreenCoords(Vector2f logicalCoords) {
+
+	    Vector2f logicalSize  = viewCoordinates.getFirst();
+	    Vector2f viewportPos  = viewCoordinates.getSecond();
+	    Vector2f viewportSize = viewCoordinates.getThird();
+
+	    float nx = logicalCoords.getX() / logicalSize.getX();
+	    float ny = 1f - (logicalCoords.getY() / logicalSize.getY());
+
+	    float localX = nx * viewportSize.getX();
+	    float localY = ny * viewportSize.getY();
+
+	    float windowX = localX + viewportPos.getX();
+	    float windowY = localY + viewportPos.getY();
+
+	    return new Vector2f(windowX, windowY);
 	    
 	}
 	

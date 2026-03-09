@@ -118,7 +118,7 @@ public abstract class SliderComponent extends Component {
 	}
 	
 	@Override
-	public void componentUpdate() {
+	public void componentUpdate(double alpha) {
 		
 		if(!activated) {
 			

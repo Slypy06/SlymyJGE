@@ -19,7 +19,7 @@ public class DynamicText {
 	private ShapeBundle<TexturedQuad> charBundle;
 	private List<TexturedQuad> chars = new ArrayList<TexturedQuad>();
 	private float size = 1;
-	private float lineSpacing = 0.1f;
+	private float lineSpacing = 0.0f;
 	
 	public DynamicText(SlymyFont font, String text, Game game) {
 

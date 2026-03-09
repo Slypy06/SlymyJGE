@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import fr.slypy.slymyjge.components.Component;
+import fr.slypy.slymyjge.graphics.NewGenRenderer;
 import fr.slypy.slymyjge.inputs.InputsHandler;
 
 public abstract class GameState extends InputsHandler {
@@ -99,13 +100,36 @@ public abstract class GameState extends InputsHandler {
 		
 	}
 	
-	public void componentsUpdate() {
+	public void componentsUpdate(double alpha) {
 		
 		for(Component comp : components.values()) {
 			
 			if(comp.isActivated()) {
 				
-				comp.update();
+				comp.update(alpha);
+				
+			}
+			
+		}
+		
+	}
+	
+	public void renderComponent(String key) {
+		
+		if(components.containsKey(key)) {
+			
+			NewGenRenderer.renderComponent(components.get(key));
+			
+		} else {
+			
+			for(String s : components.keySet()) {
+				
+				if(s.equalsIgnoreCase(key)) {
+					
+					NewGenRenderer.renderComponent(components.get(key));
+					return;
+					
+				}
 				
 			}
 			
