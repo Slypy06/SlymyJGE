@@ -49,7 +49,7 @@ public class SurfaceTest extends Game {
 	
 	public static void main(String[] args) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		
-		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
+		Game.setNativesLocation(new File("lib/natives").getAbsolutePath());
 		
 		new SurfaceTest(1920, 1080, "Test", Color.cyan, false).start();
 		

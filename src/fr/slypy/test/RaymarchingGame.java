@@ -15,8 +15,8 @@ public class RaymarchingGame extends Game {
 	
 	public static void main(String[] args) {
 		
-		System.setProperty("org.lwjgl.librarypath", new File("lib/natives").getAbsolutePath());
-
+		Game.setNativesLocation(new File("lib/natives").getAbsolutePath());
+		
 		new RaymarchingGame(3840, 2160, "Raymarching Game", Color.black, false).start();
 		
 	}

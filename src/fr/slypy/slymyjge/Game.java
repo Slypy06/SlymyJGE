@@ -967,5 +967,29 @@ public abstract class Game extends GameState {
 		toExecute.add(run);
 		
 	}
+	
+	public void setWindowLocation(Vector2f location) {
+		
+		Display.setLocation((int) location.getX(), (int) location.getY());
+		
+	}
+	
+	public Vector2f getWindowLocation() {
+		
+		return new Vector2f(Display.getX(), Display.getY());
+		
+	}
+	
+	public static void setNativesLocation(String path) {
+		
+		System.setProperty("org.lwjgl.librarypath", path);
+		
+	}
+	
+	public static void setDecoration(boolean decorated) {
+		
+		System.setProperty("org.lwjgl.opengl.Window.undecorated", "" + (!decorated));
+		
+	}
 
 }
