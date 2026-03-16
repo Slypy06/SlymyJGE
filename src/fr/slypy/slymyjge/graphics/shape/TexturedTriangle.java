@@ -16,21 +16,16 @@ import org.lwjgl.util.vector.Vector2f;
 import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
 
-public class TexturedTriangle implements TexturedShape {
+public class TexturedTriangle extends Triangle implements TexturedShape {
 	
 	public static final ShapeInfo INFOS = new ShapeInfo(3, true, GL_TRIANGLES);
-
-	protected final Vector2f[] vertexes = new Vector2f[4];
-	protected final Color color;
+	
 	private final int texture;
 	private final Vector2f[] texCoords;
 	
 	public TexturedTriangle(Vector2f a, Vector2f b, Vector2f c, int tex, Color color, TexCoords coords) {
 		
-		vertexes[0] = a;
-		vertexes[1] = b;
-		vertexes[2] = c;
-		this.color = color;
+		super(a, b, c, color);
 		
 		this.texture = tex;
 		
@@ -43,10 +38,7 @@ public class TexturedTriangle implements TexturedShape {
 	
 	public TexturedTriangle(Vector2f a, Vector2f b, Vector2f c, Texture tex, Color color, TexCoords coords) {
 		
-		vertexes[0] = a;
-		vertexes[1] = b;
-		vertexes[2] = c;
-		this.color = color;
+		super(a, b, c, color);
 		
 		this.texture = tex.getId();
 		
@@ -71,10 +63,7 @@ public class TexturedTriangle implements TexturedShape {
 	
 	public TexturedTriangle(Vector2f a, Vector2f b, Vector2f c, Color color) {
 		
-		vertexes[0] = a;
-		vertexes[1] = b;
-		vertexes[2] = c;
-		this.color = color;
+		super(a, b, c, color);
 		
 		this.texture = 0;
 		this.texCoords = TexCoords.QUAD_DEFAULT_COORDS.getCoords();
@@ -94,77 +83,6 @@ public class TexturedTriangle implements TexturedShape {
 		b.putFloat(vertexes[1].x).putFloat(vertexes[1].y).putFloat(texCoords[1].x).putFloat(texCoords[1].y).put((byte) color.getRed()).put((byte) color.getGreen()).put((byte) color.getBlue()).put((byte) color.getAlpha());
 		b.putFloat(vertexes[2].x).putFloat(vertexes[2].y).putFloat(texCoords[2].x).putFloat(texCoords[2].y).put((byte) color.getRed()).put((byte) color.getGreen()).put((byte) color.getBlue()).put((byte) color.getAlpha());
 
-	}
-	
-	@Override
-	public Vector2f[] getVertexes() {
-		
-		return vertexes;
-		
-	}
-	
-	@Override
-	public Color getColor() {
-		
-		return color;
-		
-	}
-	
-	@Override
-	public Vector2f getCenter() {
-		
-		return new Vector2f((vertexes[0].x + vertexes[1].x + vertexes[2].x) / 3, (vertexes[0].y + vertexes[1].y + vertexes[2].y) / 3);
-		
-	}
-	
-	@Override
-	public Vector2f getOrigin() {
-		
-		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			origin.setX(Math.min(vertex.x, origin.x));
-			origin.setY(Math.min(vertex.y, origin.y));
-			
-		}
-		
-		return origin;
-		
-	}
-	
-	@Override
-	public float getWidth() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.x, min);
-			max = Math.max(vertex.x, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
-	public float getHeight() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.y, min);
-			max = Math.max(vertex.y, max);
-			
-		}
-		
-		return max-min;
-		
 	}
 	
 	@Override

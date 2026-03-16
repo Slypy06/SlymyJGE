@@ -91,22 +91,19 @@ public class SurfaceTest extends Game {
 			
 			//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
 		
+			
+			
+			NewGenRenderer.renderShape(anim2.apply(circle));
+			
 			NewGenRenderer.renderShape(cursorAnimation.getShape(new Vector2f(100, 100), new Vector2f(0, 100)).color(Color.black));
 			
 		}, sur);
 		
-		NewGenRenderer.renderWithShader(s, () -> {
-			
 		    //GL20.glUniform1i(s.getUniformLocation("screen"), 0);
 		    //GL20.glUniform2f(s.getUniformLocation("resolution"), width, height);
 		    //GL20.glUniform1f(s.getUniformLocation("strength"), 0.005f);
 			
 			NewGenRenderer.renderShape(new TexturedRectangle(0, 0, width, height, sur.getTextureId(), Color.white, TexCoords.QUAD_DEFAULT_COORDS));
-			
-			
-			NewGenRenderer.renderShape(anim2.apply(circle));
-			
-		});
 
 	}
 
@@ -119,26 +116,47 @@ public class SurfaceTest extends Game {
 		setTickCap(60);
 		setFrameCap(480);
 		
-		setResizingRules(ResizingRules.DO_NOTHING);
+		setResizingRules(ResizingRules.ASPECT_RATIO_CONSERVED_CENTERED);
 		
 		sur = new Surface(width, height, getGame());
 		s = new Shader();
 		System.out.println(s.setFragmentShader("#version 120\r\n"
-				+ "\r\n"
-				+ "varying vec2 f_texCoord;\r\n"
-				+ "uniform sampler2D tex;\r\n"
-				+ "\r\n"
-				+ "void main() {\r\n"
-				+ "    vec2 uv     = f_texCoord;\r\n"
-				+ "    vec2 offset = (uv - 0.5) * 0.01;\r\n"
-				+ "\r\n"
-				+ "    float r = texture2D(tex, uv + offset).r;\r\n"
-				+ "    float g = texture2D(tex, uv        ).g;\r\n"
-				+ "    float b = texture2D(tex, uv - offset).b;\r\n"
-				+ "    float a = max(texture2D(tex, uv + offset).a, max(texture2D(tex, uv).a, texture2D(tex, uv - offset).a));\r\n"
-				+ "\r\n"
-				+ "    gl_FragColor = vec4(r, g, b, a);"
-				+ "}"));
+		        + "\r\n"
+		        + "varying vec2 f_texCoord;\r\n"
+		        + "uniform sampler2D textureLayer;\r\n"
+		        + "\r\n"
+		        + "void main() {\r\n"
+		        + "    // --- Constants ---\r\n"
+		        + "    float curvatureStrength = 0.03;  // higher = more bent\r\n"
+		        + "    float crtLines         = 480;  // number of scanlines\r\n"
+		        + "    float scanlineStrength = 0.06;   // darkness of scanlines\r\n"
+		        + "    float borderFade       = 0.01;   // size of the border fade (0.0 to 0.5)\r\n"
+		        + "\r\n"
+		        + "    // --- Curvature (applied first so everything uses curved UV) ---\r\n"
+		        + "    vec2 curved = f_texCoord * 2.0 - 1.0;\r\n"
+		        + "    curved *= 1.0 + dot(curved.yx, curved.yx) * curvatureStrength;\r\n"
+		        + "    vec2 uv = curved * 0.5 + 0.5;\r\n"
+		        + "\r\n"
+		        + "    // --- Out of bounds = black ---\r\n"
+		        + "    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {\r\n"
+		        + "        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\r\n"
+		        + "        return;\r\n"
+		        + "    }\r\n"
+		        + "\r\n"
+		        + "    // --- Sample texture with curved UV ---\r\n"
+		        + "    vec4 color = texture2D(textureLayer, uv);\r\n"
+		        + "\r\n"
+		        + "    // --- Scanlines ---\r\n"
+		        + "    float scanline = sin(uv.y * crtLines * 3.14159) * scanlineStrength;\r\n"
+		        + "    color.rgb -= scanline;\r\n"
+		        + "\r\n"
+		        + "    // --- Border fade (smooth black vignette at edges) ---\r\n"
+		        + "    float fadeX = smoothstep(0.0, borderFade, uv.x) * smoothstep(1.0, 1.0 - borderFade, uv.x);\r\n"
+		        + "    float fadeY = smoothstep(0.0, borderFade, uv.y) * smoothstep(1.0, 1.0 - borderFade, uv.y);\r\n"
+		        + "    color.rgb *= fadeX * fadeY;\r\n"
+		        + "\r\n"
+		        + "    gl_FragColor = vec4(color.rgb, 1.0);\r\n"
+		        + "}"));
 		s.loadShaders();
 		
 		Font f = new Font("Sewer Sys", Font.ITALIC, 256);

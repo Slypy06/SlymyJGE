@@ -1,6 +1,10 @@
 package fr.slypy.slymyjge.graphics.shape;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glEnd;
 
 import java.awt.Color;
 import java.nio.ByteBuffer;
@@ -12,22 +16,16 @@ import org.lwjgl.util.vector.Vector2f;
 import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
 
-public class TexturedQuad implements TexturedShape {
+public class TexturedQuad extends Quad implements TexturedShape {
 	
 	public static final ShapeInfo INFOS = new ShapeInfo(4, true, GL_QUADS);
 
-	protected final Vector2f[] vertexes = new Vector2f[4];
-	protected Color color;
 	private int texture;
 	private final Vector2f[] texCoords;
 	
 	public TexturedQuad(Vector2f a, Vector2f b, Vector2f c, Vector2f d, int tex, Color color, TexCoords coords) {
-		
-		vertexes[0] = a;
-		vertexes[1] = b;
-		vertexes[2] = c;
-		vertexes[3] = d;
-		this.color = color;
+
+		super(a, b, c, d, color);
 		
 		this.texture = tex;
 		
@@ -40,11 +38,7 @@ public class TexturedQuad implements TexturedShape {
 	
 	public TexturedQuad(Vector2f a, Vector2f b, Vector2f c, Vector2f d, Texture tex, Color color, TexCoords coords) {
 		
-		vertexes[0] = a;
-		vertexes[1] = b;
-		vertexes[2] = c;
-		vertexes[3] = d;
-		this.color = color;
+		super(a, b, c, d, color);
 		
 		this.texture = tex.getId();
 		
@@ -69,20 +63,13 @@ public class TexturedQuad implements TexturedShape {
 	
 	public TexturedQuad(Vector2f a, Vector2f b, Vector2f c, Vector2f d, Color color) {
 		
-		vertexes[0] = a;
-		vertexes[1] = b;
-		vertexes[2] = c;
-		vertexes[3] = d;
-		this.color = color;
-		
-		this.texture = 0;
-		this.texCoords = TexCoords.QUAD_DEFAULT_COORDS.getCoords();
+		this(a, b, c, d, 0, color, TexCoords.QUAD_DEFAULT_COORDS);
 		
 	}
 	
 	public TexturedQuad(Vector2f a, Vector2f b, Vector2f c, Vector2f d) {
 		
-		this(a, b, c, d, Color.white);
+		this(a, b, c, d, 0, Color.white, TexCoords.QUAD_DEFAULT_COORDS);
 		
 	}
 	
@@ -97,89 +84,23 @@ public class TexturedQuad implements TexturedShape {
 	}
 	
 	@Override
-	public Vector2f[] getVertexes() {
-		
-		return vertexes;
-		
-	}
-	
-	@Override
-	public Color getColor() {
-		
-		return color;
-		
-	}
-	
-	@Override
-	public Vector2f getCenter() {
-		
-		return new Vector2f((vertexes[0].x + vertexes[1].x + vertexes[2].x + vertexes[3].x) / 4, (vertexes[0].y + vertexes[1].y + vertexes[2].y + vertexes[3].y) / 4);
-		
-	}
-	
-	
-	@Override
-	public Vector2f getOrigin() {
-		
-		Vector2f origin = new Vector2f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			origin.setX(Math.min(vertex.x, origin.x));
-			origin.setY(Math.min(vertex.y, origin.y));
-			
-		}
-		
-		return origin;
-		
-	}
-	
-	@Override
-	public float getWidth() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.x, min);
-			max = Math.max(vertex.x, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
-	public float getHeight() {
-		
-		float min = Float.POSITIVE_INFINITY;
-		float max = Float.NEGATIVE_INFINITY;
-		
-		for(Vector2f vertex : getVertexes()) {
-			
-			min = Math.min(vertex.y, min);
-			max = Math.max(vertex.y, max);
-			
-		}
-		
-		return max-min;
-		
-	}
-	
-	@Override
 	public void glData() {
 		
 		glBindTexture(GL_TEXTURE_2D, texture);
+		
+		if(s != null)
+			s.start();
 		
 		glBegin(INFOS.getGlMode());
 			Shape.glColor(color);
 			Shape.glVertexes(vertexes, texCoords);
 		glEnd();
 		
+		if(s != null)
+			s.stop();
+		
 		glBindTexture(GL_TEXTURE_2D, 0);
-
+		
 	}
 	
 	@Override

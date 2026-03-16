@@ -394,6 +394,12 @@ public class Texture {
 		
 	}
 	
+	public static TextureFilterMode getFilterMode() {
+		
+		return Texture.mode;
+		
+	}
+	
 	public static void setFilterMode(TextureFilterMode mode) {
 		
 		Texture.mode = mode;

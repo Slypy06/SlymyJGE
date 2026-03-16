@@ -11,11 +11,14 @@ import java.util.function.BinaryOperator;
 import org.lwjgl.util.vector.Matrix2f;
 import org.lwjgl.util.vector.Vector2f;
 
+import fr.slypy.slymyjge.graphics.Shader;
+
 public class Quad implements Shape {
 
 	public static final ShapeInfo INFOS = new ShapeInfo(4, false, GL_QUADS);
 	protected final Vector2f[] vertexes = new Vector2f[4];
 	protected final Color color;
+	protected Shader s = null;
 	
 	public Quad(Vector2f a, Vector2f b, Vector2f c, Vector2f d, Color color) {
 		
