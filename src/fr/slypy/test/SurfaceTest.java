@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.vector.Vector2f;
 
 import fr.slypy.slymyjge.Game;
@@ -15,16 +16,22 @@ import fr.slypy.slymyjge.animations.framed.Animation;
 import fr.slypy.slymyjge.animations.framed.AnimationFrame;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
+import fr.slypy.slymyjge.graphics.Shader;
+import fr.slypy.slymyjge.graphics.Surface;
+import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
 import fr.slypy.slymyjge.graphics.shape.EmptyShape;
 import fr.slypy.slymyjge.graphics.shape.Line;
+import fr.slypy.slymyjge.graphics.shape.Rectangle;
 import fr.slypy.slymyjge.graphics.shape.Shape;
 import fr.slypy.slymyjge.graphics.shape.TexturedQuad;
+import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.graphics.shape.composite.CircleBorder;
 import fr.slypy.slymyjge.graphics.shape.composite.TexturedCircle;
 import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 import fr.slypy.slymyjge.graphics.shape.dynamic.StaticText;
 import fr.slypy.slymyjge.media.MediaPlayer;
+import fr.slypy.slymyjge.utils.ResizingRules;
 
 public class SurfaceTest extends Game {
 	
@@ -39,6 +46,8 @@ public class SurfaceTest extends Game {
 	private MediaPlayer player;
 	private Animation cursorAnimation;
 	private Shape videoQuad;
+	private Surface sur;
+	private Shader s;
 
 	public SurfaceTest(int width, int height, String title, Color backgroundColor, boolean resizable) {
 		
@@ -51,7 +60,7 @@ public class SurfaceTest extends Game {
 		
 		Game.setNativesLocation(new File("lib/natives").getAbsolutePath());
 		
-		new SurfaceTest(1920, 1080, "Test", Color.cyan, false).start();
+		new SurfaceTest(1920, 1080, "Test", Color.cyan, true).start();
 		
 	}
 
@@ -65,21 +74,40 @@ public class SurfaceTest extends Game {
 	@Override
 	public void render(double alpha) {
 
-		NewGenRenderer.renderText(text, new Vector2f(150, 150));
+		NewGenRenderer.renderOnSurface(() -> {
+			
+			NewGenRenderer.renderShape(new Rectangle(0, 0, sur.getWidth(), sur.getHeight(), Color.pink));
+			
+			NewGenRenderer.renderShape(new Rectangle(50, 50, sur.getWidth()-100, 50, Color.white));
+			
+			NewGenRenderer.renderText(text, new Vector2f(150, 150));
+			
+			NewGenRenderer.renderShape(text2.getTextShape(new Vector2f(1100, 700)));
+			
+			//NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
+			
+			//videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
+			//NewGenRenderer.renderShape(videoQuad);
+			
+			//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
 		
-		NewGenRenderer.renderShape(text2.getTextShape(new Vector2f(1100, 700)));
+			NewGenRenderer.renderShape(cursorAnimation.getShape(new Vector2f(100, 100), new Vector2f(0, 100)).color(Color.black));
+			
+		}, sur);
 		
-		NewGenRenderer.renderShape(anim2.apply(circle));
-		
-		NewGenRenderer.renderShape(anim2.apply(border, 10*anim2.getTime()));
-		
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()*2));
-		NewGenRenderer.renderShape(videoQuad);
-		
-		//NewGenRenderer.renderShape(new Point(new Vector2f(320+1100, 80+700), 10, Color.blue));
-	
-		NewGenRenderer.renderShape(cursorAnimation.getShape(new Vector2f(100, 100), new Vector2f(0, 100)).color(Color.black));
-		
+		NewGenRenderer.renderWithShader(s, () -> {
+			
+		    //GL20.glUniform1i(s.getUniformLocation("screen"), 0);
+		    //GL20.glUniform2f(s.getUniformLocation("resolution"), width, height);
+		    //GL20.glUniform1f(s.getUniformLocation("strength"), 0.005f);
+			
+			NewGenRenderer.renderShape(new TexturedRectangle(0, 0, width, height, sur.getTextureId(), Color.white, TexCoords.QUAD_DEFAULT_COORDS));
+			
+			
+			NewGenRenderer.renderShape(anim2.apply(circle));
+			
+		});
+
 	}
 
 	@Override
@@ -91,12 +119,34 @@ public class SurfaceTest extends Game {
 		setTickCap(60);
 		setFrameCap(480);
 		
+		setResizingRules(ResizingRules.DO_NOTHING);
+		
+		sur = new Surface(width, height, getGame());
+		s = new Shader();
+		System.out.println(s.setFragmentShader("#version 120\r\n"
+				+ "\r\n"
+				+ "varying vec2 f_texCoord;\r\n"
+				+ "uniform sampler2D tex;\r\n"
+				+ "\r\n"
+				+ "void main() {\r\n"
+				+ "    vec2 uv     = f_texCoord;\r\n"
+				+ "    vec2 offset = (uv - 0.5) * 0.01;\r\n"
+				+ "\r\n"
+				+ "    float r = texture2D(tex, uv + offset).r;\r\n"
+				+ "    float g = texture2D(tex, uv        ).g;\r\n"
+				+ "    float b = texture2D(tex, uv - offset).b;\r\n"
+				+ "    float a = max(texture2D(tex, uv + offset).a, max(texture2D(tex, uv).a, texture2D(tex, uv - offset).a));\r\n"
+				+ "\r\n"
+				+ "    gl_FragColor = vec4(r, g, b, a);"
+				+ "}"));
+		s.loadShaders();
+		
 		Font f = new Font("Sewer Sys", Font.ITALIC, 256);
 
 		SlymyFont font = new SlymyFont(new Font("", Font.BOLD, 64), Color.black);
 		SlymyFont font2 = new SlymyFont(f, new Color(150, 0, 0));
 		
-		text = new DynamicText(font, "Lorem ipsum dolor sit amet, c\nonsectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", this);
+		text = new DynamicText(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", this);
 		text.setSize(20);
 		
 		text2 = new StaticText(font2, "Apache\n2", this);
@@ -141,11 +191,11 @@ public class SurfaceTest extends Game {
 		
 		border = new CircleBorder(center, 120, 32, 32, Color.red);
 		
-		player = new MediaPlayer("funky_size_change.webm", this);
+		//player = new MediaPlayer("funky_size_change.webm", this);
 		
-		videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()));
-		player.play();
-		player.setVolumeOnStart(25);
+		//videoQuad = player.getShape(new Vector2f(50, 300), new Vector2f(player.getVideoWidth()*2, player.getVideoHeight()));
+		//player.play();
+		//player.setVolumeOnStart(25);
 		
 		cursorAnimation = new Animation(new AnimationFrame[] {
 				
@@ -195,7 +245,7 @@ public class SurfaceTest extends Game {
 		
 		if(evnt.getEventType() == ExitType.STOPPING_GAME) {
 			
-			player.destroy();
+			//player.destroy();
 			text.getFont().getCharAtlas().free();
 			text2.getFont().getCharAtlas().free();
 			tex.free();

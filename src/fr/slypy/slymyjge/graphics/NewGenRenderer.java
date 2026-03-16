@@ -164,6 +164,7 @@ public class NewGenRenderer {
 			render.run();
 		
 		glDisable(GL_SCISSOR_TEST);
+		
 	}
 	
 	public static void renderWithTransform(Transform t, Runnable render) {
@@ -174,6 +175,14 @@ public class NewGenRenderer {
 			render.run();
 		
 		glPopMatrix();
+		
+	}
+	
+	public static void renderWithShader(Shader s, Runnable render) {
+		
+		s.start();
+			render.run();
+		s.stop();
 		
 	}
 

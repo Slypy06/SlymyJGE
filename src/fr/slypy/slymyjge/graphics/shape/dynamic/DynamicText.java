@@ -178,7 +178,8 @@ public class DynamicText {
 		
 		for(int i = 0; i < chars.size(); i++) {
 			
-			charBundle.setShape(i, transformer.apply(i, chars.get(i)));
+			if(i < charBundle.getSize() || i <chars.size())
+				charBundle.setShape(i, transformer.apply(i, chars.get(i)));
 			
 		}
 		

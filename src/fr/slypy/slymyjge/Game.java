@@ -454,7 +454,7 @@ public abstract class Game extends GameState {
 			
 			fps++;
 			
-			viewCoordinates = resizingRules.getView(new Vector2f(width, height), new Vector2f(width, height));
+			viewCoordinates = resizingRules.getView(new Vector2f(getRealWidth(), getRealHeight()), new Vector2f(width, height));
 						
 			updateView2D();
 			
@@ -977,6 +977,19 @@ public abstract class Game extends GameState {
 	public Vector2f getWindowLocation() {
 		
 		return new Vector2f(Display.getX(), Display.getY());
+		
+	}
+	
+	public void setLogicalWindowSize(int width, int height) {
+		
+		this.width = width;
+		this.height = height;
+		
+	}
+	
+	public void setResizingRules(ResizingRules newRules) {
+		
+		this.resizingRules = newRules;
 		
 	}
 	
