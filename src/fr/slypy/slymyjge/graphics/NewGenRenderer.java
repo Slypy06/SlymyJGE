@@ -3,6 +3,7 @@ package fr.slypy.slymyjge.graphics;
 import static org.lwjgl.opengl.GL11.GL_COLOR_ARRAY;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_COORD_ARRAY;
@@ -11,8 +12,10 @@ import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glColorPointer;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDisableClientState;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glPopMatrix;
@@ -20,9 +23,6 @@ import static org.lwjgl.opengl.GL11.glPushMatrix;
 import static org.lwjgl.opengl.GL11.glRotatef;
 import static org.lwjgl.opengl.GL11.glScalef;
 import static org.lwjgl.opengl.GL11.glScissor;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.glTexCoordPointer;
 import static org.lwjgl.opengl.GL11.glTranslatef;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
@@ -48,6 +48,8 @@ import fr.slypy.slymyjge.graphics.shape.dynamic.DynamicText;
 public class NewGenRenderer {
 	
 	protected static Game game;
+	private static int[] glScissorsState = new int[] {0, 0, 0, 0, 0};
+	private static ISurface fboBound = null;
 	
 	public static void init(Game g) {
 		
@@ -101,11 +103,30 @@ public class NewGenRenderer {
 	
 	public static void renderOnSurface(Runnable render, ISurface surface) {
 		
+		ISurface backup = null;
+		
+		if(fboBound != null)
+			backup = fboBound;
+		else if(game.getSurface() != null)
+			backup = game.getSurface();
+		
 		surface.bind();
+		fboBound = surface;
 		
 			render.run();
 		
 		surface.unbind();
+		
+		if(backup != null) {
+			
+			backup.rebind();
+			fboBound = backup;
+			
+		} else {
+			
+			fboBound = null;
+			
+		}
 		
 	}
 	
@@ -155,15 +176,47 @@ public class NewGenRenderer {
 	
 	public static void renderInsideArea(int x, int y, int w, int h, Runnable render) {
 		
-		Vector2f p1 = game.logicalToScreenCoords(new Vector2f(x, y));
-		Vector2f p2 = game.logicalToScreenCoords(new Vector2f(x+w, y+h));
+		Vector2f p1;
+		Vector2f p2;
+		
+		if(game.getSurface() == null && fboBound == null) {
+			
+			p1 = game.logicalToScreenCoords(new Vector2f(x, y-2)); //substract a bit for weird rounding issues
+			p2 = game.logicalToScreenCoords(new Vector2f(x+w, y+h-1)); //substract a bit for weird rounding issues
+			
+		} else {
+			
+			p1 = new Vector2f(x, y+h);
+			p2 = new Vector2f(x+w, y);
+			
+		}
+		
+		boolean enabled = glScissorsState[4] == 1;
+		int[] glScissorsBackup = new int[] {glScissorsState[0], glScissorsState[1], glScissorsState[2], glScissorsState[3]};
 		
 		glScissor((int) p1.getX(), (int) p2.getY(), (int) (p2.getX() - p1.getX()), (int) (p1.getY() - p2.getY()));
 		glEnable(GL_SCISSOR_TEST);
+		
+		glScissorsState[0] = (int) p1.getX();
+		glScissorsState[1] = (int) p2.getY();
+		glScissorsState[2] = (int) (p2.getX() - p1.getX());
+		glScissorsState[3] = (int) (p1.getY() - p2.getY());
+		glScissorsState[4] = 1;
 
 			render.run();
 		
-		glDisable(GL_SCISSOR_TEST);
+		if(!enabled) {
+			
+			glDisable(GL_SCISSOR_TEST);
+			glScissorsState[4] = 0;
+			
+		}
+		
+		glScissor(glScissorsBackup[0], glScissorsBackup[1], glScissorsBackup[2], glScissorsBackup[3]);
+		glScissorsState[0] = glScissorsBackup[0];
+		glScissorsState[1] = glScissorsBackup[1];
+		glScissorsState[2] = glScissorsBackup[2];
+		glScissorsState[3] = glScissorsBackup[3];
 		
 	}
 	
@@ -179,6 +232,13 @@ public class NewGenRenderer {
 	}
 	
 	public static void renderWithShader(Shader s, Runnable render) {
+		
+		if(s == null) {
+			
+			render.run();
+			return;
+			
+		}
 		
 		s.start();
 			render.run();

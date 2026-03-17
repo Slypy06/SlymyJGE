@@ -3,7 +3,9 @@ package fr.slypy.slymyjge.graphics;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_LINE_SMOOTH;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_POINT_SMOOTH;
 import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_RGBA8;
@@ -68,7 +70,7 @@ public class MultiSampledSurface implements ISurface {
     private final int height;
     private final Game g;
     private final int samples;
-    private final Color color;
+    private Color color;
 
     public MultiSampledSurface(int width, int height, Color background, int samples, Game g) {
     	
@@ -139,12 +141,31 @@ public class MultiSampledSurface implements ISurface {
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_LINE_SMOOTH);   // only useful without MSAA
+        glEnable(GL_POINT_SMOOTH);  // only useful without MSAA
 
-        glClearColor(0f, 0f, 0f, 0f);
+        glClearColor(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, color.getAlpha() / 255F);
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glClearColor(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, color.getAlpha() / 255F);
+    }
+    
+    @Override
+    public void rebind() {
+    	
+        glBindFramebuffer(GL_FRAMEBUFFER, msFboId);
         
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		
+		glViewport(0, 0, width, height);
+		GLU.gluOrtho2D(0, width, 0, height);
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_LINE_SMOOTH);   // only useful without MSAA
+        glEnable(GL_POINT_SMOOTH);  // only useful without MSAA
+    	
     }
 
     /** Resolve MSAA buffer to texture */
@@ -215,6 +236,18 @@ public class MultiSampledSurface implements ISurface {
     public int getHeight() {
     	
     	return height; 
+    	
+    }
+    
+    public Color getClearColor() {
+    	
+    	return color;
+    	
+    }
+    
+    public void setClearColor(Color c) {
+    	
+    	this.color = c;
     	
     }
     

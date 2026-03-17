@@ -40,11 +40,16 @@ import org.lwjgl.util.vector.Vector2f;
 import com.codedisaster.steamworks.SteamAPI;
 import com.codedisaster.steamworks.SteamException;
 
+import fr.slypy.slymyjge.graphics.ISurface;
 import fr.slypy.slymyjge.graphics.Icon;
 import fr.slypy.slymyjge.graphics.IconResolution;
+import fr.slypy.slymyjge.graphics.MultiSampledSurface;
 import fr.slypy.slymyjge.graphics.NewDisplayMode;
 import fr.slypy.slymyjge.graphics.NewGenRenderer;
+import fr.slypy.slymyjge.graphics.Shader;
+import fr.slypy.slymyjge.graphics.TexCoords;
 import fr.slypy.slymyjge.graphics.Texture;
+import fr.slypy.slymyjge.graphics.shape.TexturedRectangle;
 import fr.slypy.slymyjge.utils.Logger;
 import fr.slypy.slymyjge.utils.RepeatedScheduler;
 import fr.slypy.slymyjge.utils.ResizingRules;
@@ -90,6 +95,9 @@ public abstract class Game extends GameState {
 	
 	private boolean resizable;
 	
+	private Shader shader = null;
+	private MultiSampledSurface sur = null;
+	
 	public Game(int width, int height, String title) {
 		
 		this(width, height, title, Color.black, true);
@@ -104,7 +112,7 @@ public abstract class Game extends GameState {
 	
 	public Game(int width, int height, String title, boolean resizable) {
 		
-		this(width, height, title, Color.black, true);
+		this(width, height, title, Color.black, resizable);
 		
 	}
 	
@@ -455,15 +463,31 @@ public abstract class Game extends GameState {
 			fps++;
 			
 			viewCoordinates = resizingRules.getView(new Vector2f(getRealWidth(), getRealHeight()), new Vector2f(width, height));
-						
+			
 			updateView2D();
 			
 			GameState s = states.get(state);
-						
-			translateView(s.getXCam(), s.getYCam());
-						
+			
 			glClearColor(backgroundColor.getRed() / 255F, backgroundColor.getGreen() / 255F, backgroundColor.getBlue() / 255F, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
+			
+			if(sur != null) {
+				
+				if(sur.getWidth() != viewCoordinates.getFirst().getX() || sur.getHeight() != viewCoordinates.getFirst().getY()) {
+					
+					System.out.println("Recreating surface");
+					
+					sur.free();
+					sur = new MultiSampledSurface((int) viewCoordinates.getFirst().getX(), (int) viewCoordinates.getFirst().getY(), 8, this);
+					
+				}
+				
+				sur.setClearColor(backgroundColor);
+				sur.bind();
+				
+			}
+						
+			translateView(s.getXCam(), s.getYCam());
 			
 			while(!toExecute.isEmpty()) {
 				
@@ -472,8 +496,18 @@ public abstract class Game extends GameState {
 			}
 			
 			s.render(frameSync.getDelta());
+			
+			if(sur != null) {
 				
-			//TODO remove s.componentsRender();
+				sur.unbind();
+				
+				NewGenRenderer.renderWithShader(shader, () -> {
+					
+					NewGenRenderer.renderShape(new TexturedRectangle((int) viewCoordinates.getSecond().getX(), (int) viewCoordinates.getSecond().getY(), (int) viewCoordinates.getThird().getX(), (int) viewCoordinates.getThird().getY(), sur.getTextureId(), Color.white, TexCoords.QUAD_DEFAULT_COORDS));
+					
+				});
+				
+			}
 						
 			if (fpsUpdateScheduler.isReady()) {
 							
@@ -773,9 +807,19 @@ public abstract class Game extends GameState {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		
-		setVirtualSize((int) viewCoordinates.getFirst().getX(), (int) viewCoordinates.getFirst().getY());
+		if(shader == null) {
 		
-		setView2D((int) viewCoordinates.getSecond().getX(), (int) viewCoordinates.getSecond().getY(), (int) viewCoordinates.getThird().getX(), (int) viewCoordinates.getThird().getY());
+			setVirtualSize((int) viewCoordinates.getFirst().getX(), (int) viewCoordinates.getFirst().getY());
+			
+			setView2D((int) viewCoordinates.getSecond().getX(), (int) viewCoordinates.getSecond().getY(), (int) viewCoordinates.getThird().getX(), (int) viewCoordinates.getThird().getY());
+			
+		} else {
+			
+			setVirtualSize(getRealWidth(), getRealHeight());
+			
+			setView2D(0, 0, getRealWidth(), getRealHeight());
+			
+		}
 		
 	}
 	
@@ -829,7 +873,7 @@ public abstract class Game extends GameState {
 	}
 	
 	public Vector2f screenToLogical(Vector2f windowCoords) {
-
+		
 	    Vector2f logicalSize  = viewCoordinates.getFirst();
 	    Vector2f viewportPos  = viewCoordinates.getSecond();
 	    Vector2f viewportSize = viewCoordinates.getThird();
@@ -854,7 +898,7 @@ public abstract class Game extends GameState {
 	}
 	
 	public Vector2f logicalToScreenCoords(Vector2f logicalCoords) {
-
+		
 	    Vector2f logicalSize  = viewCoordinates.getFirst();
 	    Vector2f viewportPos  = viewCoordinates.getSecond();
 	    Vector2f viewportSize = viewCoordinates.getThird();
@@ -990,6 +1034,43 @@ public abstract class Game extends GameState {
 	public void setResizingRules(ResizingRules newRules) {
 		
 		this.resizingRules = newRules;
+		
+	}
+	
+	public Shader getShader() {
+		
+		return shader;
+		
+	}
+
+	public ISurface getSurface() {
+		
+		return sur;
+		
+	}
+	
+	public void setShader(Shader s) {
+		
+		this.shader = s;
+		
+		if(s != null && sur == null) {
+			
+			executeInRenderThread(() -> {
+				
+				sur = new MultiSampledSurface((int) viewCoordinates.getFirst().getX(), (int) viewCoordinates.getFirst().getY(), backgroundColor, 8, this);
+				
+			});
+			
+		} else if(s == null && sur != null) {
+			
+			executeInRenderThread(() -> {
+				
+				sur.free();
+				sur = null;
+				
+			});
+			
+		}
 		
 	}
 	

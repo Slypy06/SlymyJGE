@@ -57,7 +57,7 @@ public class Surface implements ISurface {
     private final int width;
     private final int height;
     private final Game g;
-    private final Color clearColor;
+    private Color clearColor;
 
     public Surface(int width, int height, Color clearColor, Game g) {
     	
@@ -126,6 +126,26 @@ public class Surface implements ISurface {
         glClear(GL_COLOR_BUFFER_BIT);
         
     }
+    
+    @Override
+    public void rebind() { //Keep current matrix and don't clear color
+    	
+        glBindFramebuffer(GL_FRAMEBUFFER, fboId);
+        
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		
+		glViewport(0, 0, width, height);
+		GLU.gluOrtho2D(0, width, 0, height);
+
+        // enable needed flags for 2D rendering
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_LINE_SMOOTH);   // only useful without MSAA
+        glEnable(GL_POINT_SMOOTH);  // only useful without MSAA
+        
+    }
 
     @Override
     public void unbind() {
@@ -162,5 +182,17 @@ public class Surface implements ISurface {
 
     @Override
     public int getHeight() { return height; }
+
+    public Color getClearColor() {
+    	
+    	return clearColor;
+    	
+    }
+    
+    public void setClearColor(Color c) {
+    	
+    	this.clearColor = c;
+    	
+    }
 
 }

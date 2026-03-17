@@ -1,1 +1,9 @@
 /fr/
+/crt.glsl
+/quantizer.glsl
+/ordered_dithering.glsl
+/edge_detection.glsl
+/distortion.glsl
+/kuwahara.glsl
+/phosphor_glow.glsl
+/fog_of_war.glsl

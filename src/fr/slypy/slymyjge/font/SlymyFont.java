@@ -2,12 +2,14 @@ package fr.slypy.slymyjge.font;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -262,6 +264,30 @@ public class SlymyFont {
 	    }
 	    
 	    return width;
+		
+	}
+	
+	public static Font loadFont(String path, int style, int size) {
+		
+		Font f = null;
+		
+		try {
+			
+			f = Font.createFont(Font.TRUETYPE_FONT, SlymyFont.class.getResourceAsStream("/" + path));
+			
+			if(f != null) {
+				
+				f = f.deriveFont(size).deriveFont(style);
+				
+			}
+		
+		} catch(IOException | FontFormatException e) {
+			
+			e.printStackTrace();
+			
+		}
+		
+		return f;
 		
 	}
 	
