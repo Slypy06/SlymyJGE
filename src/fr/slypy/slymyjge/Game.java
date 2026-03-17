@@ -944,6 +944,24 @@ public abstract class Game extends GameState {
 	    
 	}
 	
+	public float getXCursorMovement() {
+		
+		return Mouse.getDX();
+		
+	}
+	
+	public float getYCursorMovement() {
+		
+		return Mouse.getDY();
+		
+	}
+
+	public boolean isMouseGrabbed() {
+		
+		return Mouse.isGrabbed();
+		
+	}
+	
 	public void setShowFPS(boolean showFPS) {
 		
 		this.showFPS = showFPS;
