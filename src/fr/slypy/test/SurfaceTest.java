@@ -74,7 +74,7 @@ public class SurfaceTest extends Game {
 			
 			//NewGenRenderer.renderShape(new Rectangle(50, 50, sur.getWidth()-100, 50, Color.white));
 			
-			NewGenRenderer.renderText(text, new Vector2f(150, 150));
+			NewGenRenderer.renderText(text);
 			
 			NewGenRenderer.renderShape(text2.getTextShape(new Vector2f(100, 650)));
 			
@@ -128,7 +128,7 @@ public class SurfaceTest extends Game {
 		SlymyFont font = new SlymyFont(new Font("", Font.BOLD, 30), Color.black);
 		SlymyFont font2 = new SlymyFont(f, new Color(150, 0, 0));
 		
-		text = new DynamicText(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", this);
+		text = new DynamicText(font, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", new Vector2f(150, 150), this);
 		text.setSize(20);
 		
 		text2 = new StaticText(font2, "Apache\n2", this);
@@ -246,7 +246,7 @@ public class SurfaceTest extends Game {
 		
 		this.addComponent(shaderField, "shaderField");
 		this.addComponent(btn, "button");
-		
+
 	}
 
 	@Override
@@ -263,6 +263,8 @@ public class SurfaceTest extends Game {
 
 		s.setUniformValue("time", time);
 		s.setUniformValue("focusPoint", new float[] {getAbsoluteXCursor(), getAbsoluteYCursor()});
+		
+		setMouseGrabbed(true);
 		
 	}
 

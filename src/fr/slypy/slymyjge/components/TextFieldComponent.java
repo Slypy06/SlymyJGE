@@ -95,8 +95,8 @@ public abstract class TextFieldComponent extends Component {
 		cursorAnimation.setSpeed(1.5f);
 		cursorAnimation.setPlaying(true);
 
-		this.ghostTextShape = new DynamicText(ghostFont, "", game);
-		this.textShape = new DynamicText(font, "", game);
+		this.ghostTextShape = new DynamicText(ghostFont, "", new Vector2f(position.getX() + margin, position.getY() + margin), game);
+		this.textShape = new DynamicText(font, "", new Vector2f(position.getX() + margin, position.getY() + margin), game);
 		this.textShape.setLineSpacing(interline);
 
 	}
@@ -755,12 +755,26 @@ public abstract class TextFieldComponent extends Component {
 
 	        // Ghost text — only when empty and unfocused
 	        if (text.length() == 0 && ghostText != null && !ghostText.isEmpty()) {
-	            NewGenRenderer.renderText(ghostTextShape, new Vector2f(margin-offsetx, margin-offsety));
+	        	
+	        	Vector2f newPosition = new Vector2f(margin-offsetx, margin-offsety);
+	        	
+	        	if(!ghostTextShape.getPosition().equals(newPosition))
+	        		ghostTextShape.setPosition(newPosition);
+	        	
+	            NewGenRenderer.renderText(ghostTextShape);
+	            
 	        }
 
 	        // Normal text
 	        if (text.length() > 0) {
-	            NewGenRenderer.renderText(textShape, new Vector2f(margin-offsetx, margin-offsety));
+	            
+	        	Vector2f newPosition = new Vector2f(margin-offsetx, margin-offsety);
+	        	
+	        	if(!textShape.getPosition().equals(newPosition))
+	        		textShape.setPosition(newPosition);
+	        	
+	            NewGenRenderer.renderText(textShape);
+	        	
 	        }
 	        
 	    });

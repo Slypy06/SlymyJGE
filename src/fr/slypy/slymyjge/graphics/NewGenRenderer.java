@@ -246,13 +246,9 @@ public class NewGenRenderer {
 		
 	}
 
-	public static void renderText(DynamicText text, Vector2f position) {
+	public static void renderText(DynamicText text) {
 
-		NewGenRenderer.renderWithTransform(new Transform().translate(position.getX(), position.getY()), () -> 
-		
-			NewGenRenderer.renderShapeBundle(text.getCharacterBundle())
-		
-		);
+		NewGenRenderer.renderShapeBundle(text.getCharacterBundle());
 		
 	}
 	

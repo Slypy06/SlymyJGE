@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import org.lwjgl.util.vector.Vector2f;
+
 import fr.slypy.slymyjge.Game;
 import fr.slypy.slymyjge.font.SlymyFont;
 import fr.slypy.slymyjge.graphics.ShapeBundle;
@@ -20,17 +22,20 @@ public class DynamicText {
 	private List<TexturedQuad> chars = new ArrayList<TexturedQuad>();
 	private float size = 1;
 	private float lineSpacing = 0.0f;
+	private Vector2f position;
+	private Color color = Color.white;
 	
-	public DynamicText(SlymyFont font, String text, Game game) {
+	public DynamicText(SlymyFont font, String text, Vector2f position, Game game) {
 
 		this.font = font;
 		this.text = text;
 		this.game = game;
+		this.position = position;
 		this.charBundle = new ShapeBundle<>(text.length(), game, TexturedQuad.INFOS);
 		
 		charBundle.setTexture(font.getCharAtlas());
-		int x = 0;
-		int y = 0;
+		int x = (int) position.getX();
+		int y = (int) position.getY();
 		for(char c : text.toCharArray()) {
 			
 			if(c == '\n') {
@@ -44,13 +49,25 @@ public class DynamicText {
 			if(font.getCharData(c) == null)
 				continue;
 			
-			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
-			chars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
+			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), color, font.getCharData(c).getAtlasCoord()));
+			chars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), color, font.getCharData(c).getAtlasCoord()));
 			x+=font.getWidth(c)*size;
 			
 		}
 		
 		charBundle.pushChanges();
+		
+	}
+	
+	public Color getColor() {
+		
+		return color;
+		
+	}
+	
+	public void setColor(Color color) {
+		
+		this.color = color;
 		
 	}
 	
@@ -76,8 +93,8 @@ public class DynamicText {
 		
 		charBundle = new ShapeBundle<>(text.length(), game, TexturedQuad.INFOS);
 		charBundle.setTexture(font.getCharAtlas());
-		int x = 0;
-		int y = 0;
+		int x = (int) position.getX();
+		int y = (int) position.getY();
 		for(char c : text.toCharArray()) {
 			
 			if(c == '\n') {
@@ -91,8 +108,8 @@ public class DynamicText {
 			if(font.getCharData(c) == null)
 				continue;
 			
-			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
-			newChars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), Color.white, font.getCharData(c).getAtlasCoord()));
+			charBundle.addShapes(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), color, font.getCharData(c).getAtlasCoord()));
+			newChars.add(new TexturedRectangle(x+font.getCharData(c).getAdvance()*size, y, font.getVisualWidth(c)*size, font.getHeight()*size, font.getCharAtlas(), color, font.getCharData(c).getAtlasCoord()));
 			x+=font.getWidth(c)*size;
 			
 		}
@@ -170,6 +187,19 @@ public class DynamicText {
 		
 		this.size = (float) size / font.getHeight();
 		
+		game.executeInRenderThread(this::resetBundle);
+		
+	}
+	
+	public Vector2f getPosition() {
+		
+		return position;
+		
+	}
+	
+	public void setPosition(Vector2f position) {
+		
+		this.position = position;
 		game.executeInRenderThread(this::resetBundle);
 		
 	}
